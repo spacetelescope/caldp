@@ -61,16 +61,16 @@ To run a pre-installed pipeline in JupyterHub:
 
 * Click on https://dev.science.stsci.edu/hub/spawn?image=793754315137.dkr.ecr.us-east-1.amazonaws.com/datb-tc-pipeline-nb:hstdp-snapshot and sign in.
 * Click "Terminal" to:
-    * Do a `which calacs.e` to see if CALACS is installed.
+    * Do a ``which calacs.e`` to see if CALACS is installed.
       You can repeat this for other HSTCAL executables, as desired.
-    * Do a `calacs.e --version` to see which CALACS version is installed.
+    * Do a ``calacs.e --version`` to see which CALACS version is installed.
       You can repeat this for other HSTCAL executables, if applicable, as desired.
-    * Run `pip freeze` to see what Python packages are installed (e.g., `calcos`).
-    * Install any optional Python packages using `pip install`.
+    * Run ``pip freeze`` to see what Python packages are installed (e.g., ``calcos``).
+    * Install any optional Python packages using ``pip install``.
     * You can download the necessary data files using HTTP/HTTPS protocol.
-    * Set up your `jref`, `iref`, etc. as desired.
+    * Set up your ``jref``, ``iref``, etc. as desired.
     * Run the pipeline from command line.
-    * Optional if you use Jupyter notebooks: Grab your notebooks (e.g., using `git clone`).
+    * Optional if you use Jupyter notebooks: Grab your notebooks (e.g., using ``git clone``).
 * Launch your notebook to run the pipeline.
 
 Latest release of any packages is not guaranteed in this environment. Amazon Web Services charges may apply.
