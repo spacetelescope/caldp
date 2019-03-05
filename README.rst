@@ -71,6 +71,6 @@ To run a pre-installed pipeline in JupyterHub:
     * Set up your `jref`, `iref`, etc. as desired.
     * Run the pipeline from command line.
     * Optional if you use Jupyter notebooks: Grab your notebooks (e.g., using `git clone`).
- * Launch your notebook to run the pipeline.
+* Launch your notebook to run the pipeline.
 
 Latest release of any packages is not guaranteed in this environment. Amazon Web Services charges may apply.
