@@ -50,3 +50,27 @@ the errors and assumptions that seasoned contributors have glossed over.
 `PyCon talk <https://www.youtube.com/watch?v=6Uj746j9Heo>`_, and was adapted by
 hstdp based on its use in the README file for the
 `MetPy project <https://github.com/Unidata/MetPy>`_.*
+
+
+JupyterHub Access
+-----------------
+
+*Note:* This is currently still in research-and-development stage and is subject to change.
+
+To run a pre-installed pipeline in JupyterHub:
+
+* Click on https://dev.science.stsci.edu/hub/spawn?image=793754315137.dkr.ecr.us-east-1.amazonaws.com/datb-tc-pipeline-nb:hstdp-snapshot and sign in.
+* Click "Terminal" to:
+    * Do a `which calacs.e` to see if CALACS is installed.
+      You can repeat this for other HSTCAL executables, as desired.
+    * Do a `calacs.e --version` to see which CALACS version is installed.
+      You can repeat this for other HSTCAL executables, if applicable, as desired.
+    * Run `pip freeze` to see what Python packages are installed (e.g., `calcos`).
+    * Install any optional Python packages using `pip install`.
+    * You can download the necessary data files using HTTP/HTTPS protocol.
+    * Set up your `jref`, `iref`, etc. as desired.
+    * Run the pipeline from command line.
+    * Optional if you use Jupyter notebooks: Grab your notebooks (e.g., using `git clone`).
+ * Launch your notebook to run the pipeline.
+
+Latest release of any packages is not guaranteed in this environment. Amazon Web Services charges may apply.
