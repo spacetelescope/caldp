@@ -57,6 +57,8 @@ JupyterHub Access
 
 *Note:* This is currently still in research-and-development stage and is subject to change.
 
+*Note:* This is currently only available internally to STScI
+
 To run a pre-installed pipeline in JupyterHub:
 
 * Click on https://dev.science.stsci.edu/hub/spawn?image=793754315137.dkr.ecr.us-east-1.amazonaws.com/datb-tc-pipeline-nb:hstdp-snapshot and sign in.
