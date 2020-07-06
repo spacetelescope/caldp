@@ -1,28 +1,25 @@
-The DMS environment for HST calibration software
-------------------------------------------------
+Calibration data pipeline for Hubble Space Telescope Observations
+-----------------------------------------------------------------
 
 .. image:: http://img.shields.io/badge/powered%20by-AstroPy-orange.svg?style=flat
     :target: http://www.astropy.org
     :alt: Powered by Astropy Badge
 
-This includes a framework for installing and testing the software that is used
-to calibrate data from the Hubble Space Telescope
-
 
 License
 -------
 
-This project is Copyright (c) Space Telescope Science Institute and licensed under
-the terms of the Aura license. This package is based upon
+This project is Copyright (c) STScI and licensed under
+the terms of the BSD 3-Clause license. This package is based upon
 the `Astropy package template <https://github.com/astropy/package-template>`_
-which is licensed under the BSD 3-clause licence. See the licenses folder for
+which is licensed under the BSD 3-clause license. See the licenses folder for
 more information.
 
 
 Contributing
 ------------
 
-We love contributions! hstdp is open source,
+We love contributions! caldp is open source,
 built on open source, and we'd love to have you hang out in our community.
 
 **Imposter syndrome disclaimer**: We want your help. No, really.
@@ -45,34 +42,8 @@ process). Some of these contributions may be the most valuable to the project as
 a whole, because you're coming to the project with fresh eyes, so you can see
 the errors and assumptions that seasoned contributors have glossed over.
 
-*This disclaimer was originally written by
+Note: This disclaimer was originally written by
 `Adrienne Lowe <https://github.com/adriennefriend>`_ for a
 `PyCon talk <https://www.youtube.com/watch?v=6Uj746j9Heo>`_, and was adapted by
-hstdp based on its use in the README file for the
-`MetPy project <https://github.com/Unidata/MetPy>`_.*
-
-
-JupyterHub Access
------------------
-
-*Note:* This is currently still in research-and-development stage and is subject to change.
-
-*Note:* This is currently only available internally to STScI
-
-To run a pre-installed pipeline in JupyterHub:
-
-* Click on https://dev.science.stsci.edu/hub/spawn?image=793754315137.dkr.ecr.us-east-1.amazonaws.com/datb-tc-pipeline-nb:hstdp-snapshot and sign in.
-* Click "Terminal" to:
-    * Do a ``which calacs.e`` to see if CALACS is installed.
-      You can repeat this for other HSTCAL executables, as desired.
-    * Do a ``calacs.e --version`` to see which CALACS version is installed.
-      You can repeat this for other HSTCAL executables, if applicable, as desired.
-    * Run ``pip freeze`` to see what Python packages are installed (e.g., ``calcos``).
-    * Install any optional Python packages using ``pip install``.
-    * You can download the necessary data files using HTTP/HTTPS protocol.
-    * Set up your ``jref``, ``iref``, etc. as desired.
-    * Run the pipeline from command line.
-    * Optional if you use Jupyter notebooks: Grab your notebooks (e.g., using ``git clone``).
-* Launch your notebook to run the pipeline.
-
-Latest release of any packages is not guaranteed in this environment. Amazon Web Services charges may apply.
+caldp based on its use in the README file for the
+`MetPy project <https://github.com/Unidata/MetPy>`_.
