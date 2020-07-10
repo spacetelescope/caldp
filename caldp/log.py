@@ -98,10 +98,8 @@ class CaldpLogger:
 
     def set_formatter(self, enable_time=True):
         """Set the formatter attribute of `self` to a logging.Formatter and return it."""
-        self.formatter = logging.Formatter(
-            '{}%(levelname)s -%(message)s'.format(
-                "%(asctime)s - " if enable_time else "",
-                ))
+        prefix = "%(asctime)s - " if enable_time else ""
+        self.formatter = logging.Formatter(f'{prefix}%(levelname)s - %(message)s')
         for handler in self.handlers:
             handler.setFormatter(self.formatter)
         return self.formatter
