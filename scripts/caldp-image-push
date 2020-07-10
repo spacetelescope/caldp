@@ -1,0 +1,5 @@
+#! /bin/bash -xu
+
+source caldp-image-config $*
+
+docker push ${CALDP_DOCKER_IMAGE}

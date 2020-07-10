@@ -1,0 +1,7 @@
+#! /bin/bash -xu
+
+# This script is used to build the caldp container image using Docker.
+
+source caldp-image-config $*
+
+docker build -f Dockerfile -t ${CALDP_DOCKER_IMAGE} .
