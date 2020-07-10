@@ -1,0 +1,12 @@
+#! /bin/bash -u
+
+# Primary command script passed into Batch container runs
+
+# caldp-process  s3_output_path  ipppssoots...
+
+s3_output=$1
+shift;
+
+for ipppssoot in $*; do
+    caldp-process-core $s3_output $ipppssoot
+done
