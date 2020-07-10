@@ -63,6 +63,7 @@ import pprint
 
 DEFAULT_VERBOSITY_LEVEL = 50
 
+
 class CaldpLogger:
     def __init__(self, name="CALDP", enable_console=True, level=logging.DEBUG, enable_time=True):
         self.name = name
@@ -73,7 +74,7 @@ class CaldpLogger:
         self.logger = logging.getLogger(name)
         self.logger.setLevel(level)
         self.logger.propagate = False
-        self.formatter = self.set_formatter()
+        self.formatter = self.set_formatter(enable_time)
         self.console = None
         if enable_console:
             self.add_console_handler(level)
@@ -89,32 +90,27 @@ class CaldpLogger:
         # verbose_level handles CALDP verbosity,  defaulting to 0 for no debug
         try:
             verbose_level = os.environ.get("CALDP_VERBOSITY", 0)
-            self.verbose_level =  int(verbose_level)
+            self.verbose_level = int(verbose_level)
         except Exception:
             warning("Bad format for CALDP_VERBOSITY =", repr(verbose_level),
-                        "Use e.g. -1 to squelch info, 0 for no debug,  50 for default debug output. 100 max debug.")
+                    "Use e.g. -1 to squelch info, 0 for no debug,  "
+                    "50 for default debug output. 100 max debug.")
             self.verbose_level = DEFAULT_VERBOSITY_LEVEL
 
-    def set_formatter(self, enable_time=True, enable_msg_count=True):
+    def set_formatter(self, enable_time=True):
         """Set the formatter attribute of `self` to a logging.Formatter and return it."""
-        self.formatter = logging.Formatter(
-            '{}%(levelname)s -%(message)s'.format(
-                "%(asctime)s - " if enable_time else "",
-                ))
+        prefix = "%(asctime)s - " if enable_time else ""
+        self.formatter = logging.Formatter(f'{prefix}%(levelname)s - %(message)s')
         for handler in self.handlers:
             handler.setFormatter(self.formatter)
         return self.formatter
-
-    @property
-    def msg_count(self):
-        return "(%07d) -" % (self.infos + self.errors + self.warnings + self.debugs) if ADD_LOG_MSG_COUNT else ""
 
     def format(self, *args, **keys):
         end = keys.get("end", "\n")
         sep = keys.get("sep", " ")
         output = sep.join([str(arg) for arg in args]) + end
-        for filter in self.filters:
-            output = filter(output)
+        for filt in self.filters:
+            output = filt(output)
         return output
 
     def eformat(self, *args, **keys):
@@ -126,21 +122,21 @@ class CaldpLogger:
     def info(self, *args, **keys):
         self.infos += 1
         if self.verbose_level > -1:
-            self.logger.info(self.eformat(self.msg_count, *args, **keys))
+            self.logger.info(self.eformat(*args, **keys))
 
     def warn(self, *args, **keys):
         self.warnings += 1
         if self.verbose_level > -2:
-            self.logger.warning(self.eformat(self.msg_count, *args, **keys))
+            self.logger.warning(self.eformat(*args, **keys))
 
     def error(self, *args, **keys):
         self.errors += 1
         if self.verbose_level > -3:
-            self.logger.error(self.eformat(self.msg_count, *args, **keys))
+            self.logger.error(self.eformat(*args, **keys))
 
     def debug(self, *args, **keys):
         self.debugs += 1
-        self.logger.debug(self.eformat(self.msg_count, *args, **keys))
+        self.logger.debug(self.eformat(*args, **keys))
 
     def should_output(self, *args, **keys):
         verbosity = keys.get("verbosity", DEFAULT_VERBOSITY_LEVEL)
@@ -173,9 +169,9 @@ class CaldpLogger:
     def set_verbose(self, level=True):
         assert -3 <= level <= 100,  "verbosity level must be in range -3..100"
         old_verbose = self.verbose_level
-        if level == True:
+        if level is True:
             level = DEFAULT_VERBOSITY_LEVEL
-        elif level == False:
+        elif level is False:
             level = 0
         self.verbose_level = level
         return old_verbose
@@ -185,7 +181,7 @@ class CaldpLogger:
 
     def add_console_handler(self, level=logging.DEBUG, stream=sys.stderr):
         if self.console is None:
-            self.console = self.add_stream_handler(stream)
+            self.console = self.add_stream_handler(stream, level=level)
 
     def remove_console_handler(self):
         if self.console is not None:
@@ -209,6 +205,7 @@ class CaldpLogger:
         error("(FATAL)", *args, **keys)
         sys.exit(-1)  # FATAL == totally unambiguous
 
+
 THE_LOGGER = CaldpLogger("CALDP")
 
 info = THE_LOGGER.info
@@ -231,21 +228,26 @@ remove_stream_handler = THE_LOGGER.remove_stream_handler
 
 format = THE_LOGGER.format
 
+
 def increment_errors(N=1):
     """Increment the error count by N without issuing a log message."""
     THE_LOGGER.errors += N
+
 
 def errors():
     """Return the global count of errors."""
     return THE_LOGGER.errors
 
+
 def warnings():
     """Return the global count of errors."""
     return THE_LOGGER.warnings
 
+
 def infos():
     """Return the global count of infos."""
     return THE_LOGGER.infos
+
 
 def set_test_mode():
     """Route log messages to standard output for testing with doctest."""
@@ -253,22 +255,11 @@ def set_test_mode():
     add_console_handler(stream=sys.stdout)
     set_log_time(False)
 
+
 def set_log_time(enable_time=False):
     """Set the flag for including time in log messages.  Ignore CALDP_LOG_TIME."""
     THE_LOGGER.set_formatter(enable_time)
 
-# ===========================================================================
-
-ADD_LOG_MSG_COUNT = False
-
-def set_add_log_msg_count(flag):
-    global ADD_LOG_MSG_COUNT
-    old_flag = ADD_LOG_MSG_COUNT
-    ADD_LOG_MSG_COUNT = flag
-    return old_flag
-
-def get_add_log_msg_count():
-    return ADD_LOG_MSG_COUNT
 
 # ===========================================================================
 
@@ -282,6 +273,7 @@ class PP:
     def __str__(self):
         return pprint.pformat(self.ppobj)
 
+
 class Deferred:
     """A wrapper to delay calling a callable until after it's known a verbose
     message will definitely be output.
@@ -294,6 +286,7 @@ class Deferred:
 
 # ===========================================================================
 
+
 def standard_status():
     """Print out errors, warnings, and infos."""
     errors, warnings, infos = THE_LOGGER.status()
@@ -303,11 +296,13 @@ def standard_status():
 
 # ==============================================================================
 
+
 def srepr(obj):
     """Return the repr() of the str() of obj"""
     return repr(str(obj))
 
 # ==============================================================================
+
 
 def divider(name="", char="-", n=75, func=info, **keys):
     """Create a log divider line consisting of `char` repeated `n` times
@@ -320,12 +315,15 @@ def divider(name="", char="-", n=75, func=info, **keys):
     else:
         func(char*n, **keys)
 
+
 # ===================================================================
+
 
 def test():
     from caldp import log
     import doctest
     return doctest.testmod(log)
+
 
 if __name__ == "__main__":
     print(test())
