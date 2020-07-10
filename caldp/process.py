@@ -259,7 +259,7 @@ class InstrumentManager:
             log.info("Ignoring error status =", err)
         elif err:
             log.error(self.ipppssoot, "Command:", repr(cmd), "exited with error status:", err)
-            sys.exit(1) # should be 0-127, higher err val's like 512 are truncated to 0 by shells
+            sys.exit(1)  # should be 0-127, higher val's like 512 are set to 0 by shells
 
     # .............................................................
 
@@ -469,6 +469,7 @@ def get_instrument_manager(ipppssoot, output_uri):
     instrument = get_instrument(ipppssoot)
     manager = MANAGERS[instrument](ipppssoot, output_uri)
     return manager
+
 
 # -----------------------------------------------------------------------------
 

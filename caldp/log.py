@@ -93,7 +93,8 @@ class CaldpLogger:
             self.verbose_level = int(verbose_level)
         except Exception:
             warning("Bad format for CALDP_VERBOSITY =", repr(verbose_level),
-                        "Use e.g. -1 to squelch info, 0 for no debug,  50 for default debug output. 100 max debug.")
+                    "Use e.g. -1 to squelch info, 0 for no debug,  "
+                    "50 for default debug output. 100 max debug.")
             self.verbose_level = DEFAULT_VERBOSITY_LEVEL
 
     def set_formatter(self, enable_time=True):
@@ -168,9 +169,9 @@ class CaldpLogger:
     def set_verbose(self, level=True):
         assert -3 <= level <= 100,  "verbosity level must be in range -3..100"
         old_verbose = self.verbose_level
-        if level == True:
+        if level is True:
             level = DEFAULT_VERBOSITY_LEVEL
-        elif level == False:
+        elif level is False:
             level = 0
         self.verbose_level = level
         return old_verbose
@@ -226,6 +227,7 @@ add_stream_handler = THE_LOGGER.add_stream_handler
 remove_stream_handler = THE_LOGGER.remove_stream_handler
 
 format = THE_LOGGER.format
+
 
 def increment_errors(N=1):
     """Increment the error count by N without issuing a log message."""
@@ -321,6 +323,7 @@ def test():
     from caldp import log
     import doctest
     return doctest.testmod(log)
+
 
 if __name__ == "__main__":
     print(test())

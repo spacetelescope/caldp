@@ -98,7 +98,7 @@ def generate_previews(input_path, output_dir, filename_base):
 
     if naxis == 2 and ext == "BINTABLE" and extname != "ASN":
         return generate_spectral_previews(input_path, output_dir, filename_base)
-    elif naxis >= 2 and ext == "IMAGE" and instr_char not in ["l","o"]:
+    elif naxis >= 2 and ext == "IMAGE" and instr_char not in ["l", "o"]:
         return generate_image_previews(input_path, output_dir, filename_base)
     else:
         log.warning("Unable to determine FITS file type")
