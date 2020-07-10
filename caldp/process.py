@@ -259,7 +259,7 @@ class InstrumentManager:
             log.info("Ignoring error status =", err)
         elif err:
             log.error(self.ipppssoot, "Command:", repr(cmd), "exited with error status:", err)
-            sys.exit(1)     # should be 0-127,  higher err val's like 512 are truncated to 0 by shells
+            sys.exit(1) # should be 0-127, higher err val's like 512 are truncated to 0 by shells
 
     # .............................................................
 
@@ -435,7 +435,8 @@ class StisManager(InstrumentManager):
 
     def raw_files(self, files):
         """Returns only '_raw.fits', '_wav.fits', or '_tag.fits' members of `files`."""
-        return [f for f in files if f.endswith(('_raw.fits','_wav.fits','_tag.fits'))]
+        return [f for f in files if f.endswith(('_raw.fits', '_wav.fits', '_tag.fits'))]
+
 
 # ............................................................................
 
@@ -490,8 +491,8 @@ def process(ipppssoot, output_uri):
     manager = get_instrument_manager(ipppssoot, output_uri)
     manager.main()
 
-# -----------------------------------------------------------------------------
 
+# -----------------------------------------------------------------------------
 
 def process_ipppssoots(ipppssoots, output_uri=None):
     """Given a list of `ipppssoots` dataset names,  and an S3 `output_uri` defining
@@ -530,11 +531,11 @@ def test():
     import doctest
     return doctest.testmod(process)
 
+
 # -----------------------------------------------------------------------------
 
-
 if __name__ == "__main__":
-    if  len(sys.argv) < 3:
+    if len(sys.argv) < 3:
         print("usage:  process.py  <output_uri>   <ipppssoot's...>")
         sys.exit(1)
     output_uri = sys.argv[1]

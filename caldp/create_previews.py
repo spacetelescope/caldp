@@ -1,3 +1,5 @@
+"""This module creates preview images from reprocessing output data."""
+
 import argparse
 import os
 import subprocess
@@ -13,7 +15,7 @@ from . import log
 
 LOGGER = logging.getLogger(__name__)
 
-AUTOSCALE=99.5
+AUTOSCALE = 99.5
 
 OUTPUT_FORMATS = [
     ("_thumb", 128),
@@ -39,7 +41,8 @@ def generate_image_preview(input_path, output_path, size):
     stdout, stderr = process.communicate()
 
     if process.returncode > 0:
-        LOGGER.error("fitscut failed for %s with status %s: %s", input_path, process.returncode, stderr)
+        LOGGER.error("fitscut failed for %s with status %s: %s",
+                     input_path, process.returncode, stderr)
         raise RuntimeError()
 
     with open(output_path, "wb") as f:
@@ -57,6 +60,7 @@ def generate_image_previews(input_path, output_dir, filename_base):
         else:
             output_paths.append(output_path)
     return output_paths
+
 
 def generate_spectral_previews(input_path, output_dir, filename_base):
     before_files = [f for f in os.listdir(output_dir) if os.path.isfile(f)]
@@ -77,6 +81,7 @@ def generate_spectral_previews(input_path, output_dir, filename_base):
     else:
         after_files = [f for f in os.listdir(output_dir) if os.path.isfile(f)]
         return [f for f in after_files if f not in before_files]
+
 
 def generate_previews(input_path, output_dir, filename_base):
     with fits.open(input_path) as hdul:
@@ -116,6 +121,7 @@ def list_fits_uris(uri_prefix):
     ])
     return [f"s3://{bucket_name}/{k}" for k in json.loads(result) if k.lower().endswith(".fits")]
 
+
 def main(args, outdir=None):
     """Generates previews based on a file system or S3 input directory
     and an S3 output directory both specified in args.
@@ -150,12 +156,15 @@ def main(args, outdir=None):
                     "aws", "s3", "cp", "--quiet", output_path, output_uri
                 ])
 
+
 def parse_args():
     parser = argparse.ArgumentParser(description="Create image and spectral previews")
-
-    parser.add_argument("input_uri_prefix", help="S3 URI prefix or local directory containing FITS images that require previews")
-    parser.add_argument("output_uri_prefix", help="S3 URI prefix for writing previews")
-
+    parser.add_argument(
+        "input_uri_prefix",
+        help="S3 URI prefix or local directory containing FITS images that require previews")
+    parser.add_argument(
+        "output_uri_prefix",
+        help="S3 URI prefix for writing previews")
     return parser.parse_args()
 
 
