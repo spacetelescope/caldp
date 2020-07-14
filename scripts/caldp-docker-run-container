@@ -4,4 +4,6 @@
 # Expose $HOME as $HOME in the container.
 # Map (jupyter lab) container port 8888 to docker host port 8888.
 
+source caldp-image-config latest
+
 docker run --rm -it -p 8888:8888 --mount type=bind,source=$HOME,target=/home/developer $CALDP_DOCKER_IMAGE $*
