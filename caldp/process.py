@@ -10,6 +10,7 @@ output to an S3 bucket with IPPPSSOOT and batch name specific subdirectories.
 Notably,  previews are not currently computed here but rather in a seperate program run.
 """
 import sys
+import os
 import glob
 import re
 import subprocess
@@ -75,7 +76,7 @@ def get_instrument(ipppssoot):
 # -----------------------------------------------------------------------------
 
 
-def get_output_path(output_uri,  ipppssoot):
+def get_output_path(output_uri, ipppssoot):
     """Given an `output_uri` string which nominally defines an S3 bucket and
     directory base path,  and an `ipppssoot` dataset name,  generate a full
     S3 output path where outputs from processing `ipppssoot` should be stored.
@@ -140,6 +141,8 @@ class InstrumentManager:
     download_suffixes : list of str
         (class) Suffixes of files downloaded for each IPPPSSOOT as required by the
         astroquery `retrieve_observation` function.
+    delete_endings : list of str
+        (class) Endings of filenames to remove prior to previews or S3 uploads.
     ignore_err_nums : list of int
         (class) Nonzero calibration error codes which should be ignored.
     stage1 : str
@@ -178,6 +181,7 @@ class InstrumentManager:
     """
     instrument_name = None     # abstract class
     download_suffixes = None   # abstract class
+    delete_endings = []        # abstract class
     ignore_err_nums = []       # abstract class
     stage1 = None              # abstract class
     stage2 = None              # abstract class
@@ -220,7 +224,7 @@ class InstrumentManager:
         assert len(dash) == 1
         msg = " ".join([str(a) for a in args])
         dashes = (100-len(msg)-2)
-        log.info(dash * dashes)
+        log.info(dash * 80)
         log.info(
             dash*5,
             self.ipppssoot, msg,
@@ -268,6 +272,7 @@ class InstrumentManager:
         1. Download uncalibrated data
         2. Assign bestrefs (and potentially download reference files)
         3. Perform stage1 and stage2 CAL processing
+        4. Optionally remove files prior to S3 uploads or previews
         4. Copy outputs to S3
         5. Issues start and stop dividers
         """
@@ -347,16 +352,21 @@ class InstrumentManager:
     def output_files(self):
         """Selects files from the current working directory and uploads them
         to the `output_uri`.   If `output_uri` is None or "none",  returns
-        immediately without copying files.
+        without copying files.
 
         Returns
         -------
         None
         """
-        if self.output_uri in [None, "none"]:
+        outputs = glob.glob("*.fits") + glob.glob("*.tra")
+        delete = [output for output in outputs
+                  if output.endswith(tuple(self.delete_endings))]
+        self.divider("Deleting files:", delete)
+        for filename in delete:
+            os.remove(filename)
+        outputs = glob.glob("*.fits") + glob.glob("*.tra")  # get again
+        if self.output_uri is None or self.output_uri.startswith("none"):
             return
-        outputs = glob.glob("*.fits")
-        outputs += glob.glob("*.tra")
         self.divider("Saving outputs:", self.output_uri, outputs)
         output_path = get_output_path(self.output_uri, self.ipppssoot)
         for filename in outputs:
@@ -411,6 +421,7 @@ class StisManager(InstrumentManager):
     """Manages calibration for one"""
     instrument_name = "stis"
     download_suffixes = ["ASN", "RAW", "EPC", "TAG", "WAV"]
+    delete_endings = ["_epc.fits"]
     stage1 = "cs0.e -tv"
     stage2 = None
 
@@ -535,12 +546,16 @@ def test():
 
 # -----------------------------------------------------------------------------
 
+def main(argv):
+    """Top level function, process args <output_uri>   <ipppssoot's...>"""
+    output_uri = argv[1]
+    ipppssoots = argv[2:]
+    if output_uri.lower() .startswith("none"):
+        output_uri = None
+    process_ipppssoots(ipppssoots, output_uri)
+
 if __name__ == "__main__":
     if len(sys.argv) < 3:
         print("usage:  process.py  <output_uri>   <ipppssoot's...>")
         sys.exit(1)
-    output_uri = sys.argv[1]
-    ipppssoots = sys.argv[2:]
-    if output_uri.lower() == "none":
-        output_uri = None
-    process_ipppssoots(ipppssoots, output_uri)
+    main(sys.argv)

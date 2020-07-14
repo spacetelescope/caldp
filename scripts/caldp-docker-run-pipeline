@@ -14,7 +14,4 @@
 #
 # $ caldp-docker-run-pipeline  none <ipppssoot's...>
 
-source  caldp-image-config $1
-shift;
-
 caldp-docker-run-container caldp-process $*
