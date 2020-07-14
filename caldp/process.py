@@ -396,10 +396,10 @@ class CosManager(InstrumentManager):
     ]
 
     def raw_files(self, files):
-        """Customize to set RANSEED to 1 in raw files for consistent outputs."""
+        """Customize to set RANDSEED to 1 in raw files for consistent outputs."""
         raw = super(CosManager, self).raw_files(files)
         for f in raw:
-            fits.setval(f, "RANSEED", value=1)
+            fits.setval(f, "RANDSEED", value=1)
         return raw
 
     def unassoc_files(self, files):
