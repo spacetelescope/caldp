@@ -4,6 +4,7 @@
 # DATB's HST CAL code build for the pipeline
 # FROM astroconda/buildsys-pipeline:HCALDP-atodsat-CAL-rc1
 FROM astroconda/buildsys-pipeline:HCALDP_20200708_CAL
+ENV CSYS_VER caldp_20200708
 
 LABEL maintainer="dmd_octarine@stsci.edu" \
       vendor="Space Telescope Science Institute"
