@@ -25,6 +25,7 @@ from drizzlepac.hlautils.astroquery_utils import retrieve_observation
 from crds.bestrefs import bestrefs
 
 from . import log
+# import caldp     (see track_versions)
 
 # -----------------------------------------------------------------------------
 
@@ -328,7 +329,8 @@ class InstrumentManager:
     def process(self, files):
         """Runs each filepath in `files` through calibration processing.   Association
         files are run through both stage1 and stage2 calibration programs,
-        Unassociated files are run through only the stage1 program.
+        Unassociated files are run through only the stage1 program.  Version keywords
+        are set for all raw files.
 
         Parameters
         ----------
@@ -339,6 +341,7 @@ class InstrumentManager:
         -------
         None
         """
+        self.track_versions(files)
         assoc = self.assoc_files(files)
         if assoc:
             self.run(self.stage1, *assoc)
@@ -361,10 +364,11 @@ class InstrumentManager:
         outputs = glob.glob("*.fits") + glob.glob("*.tra")
         delete = [output for output in outputs
                   if output.endswith(tuple(self.delete_endings))]
-        self.divider("Deleting files:", delete)
-        for filename in delete:
-            os.remove(filename)
-        outputs = glob.glob("*.fits") + glob.glob("*.tra")  # get again
+        if delete:
+            self.divider("Deleting files:", delete)
+            for filename in delete:
+                os.remove(filename)
+            outputs = glob.glob("*.fits") + glob.glob("*.tra")  # get again
         if self.output_uri is None or self.output_uri.startswith("none"):
             return
         self.divider("Saving outputs:", self.output_uri, outputs)
@@ -372,6 +376,15 @@ class InstrumentManager:
         for filename in outputs:
             upload_filepath(filename, output_path + "/" + filename)
         self.divider("Saving outputs complete.")
+
+    def track_versions(self, files):
+        """Add version keywords to raw_files(files)."""
+        import caldp
+        csys_ver = os.environ.get("CSYS_VER", "UNDEFINED")
+        for filename in self.raw_files(files):
+            if "_raw" in filename:
+                fits.setval(filename, "CSYS_VER", value=csys_ver)
+                fits.setval(filename, "CALDPVER", value=caldp.__version__)
 
 # -----------------------------------------------------------------------------
 
@@ -405,16 +418,15 @@ class CosManager(InstrumentManager):
         5,    # Ignore calcos errors from RAWACQ
     ]
 
-    def raw_files(self, files):
-        """Customize to set RANDSEED to 1 in raw files for consistent outputs."""
-        raw = super(CosManager, self).raw_files(files)
-        for f in raw:
-            fits.setval(f, "RANDSEED", value=1)
-        return raw
-
     def unassoc_files(self, files):
         """Returns only the first file returned by raw_files()."""
-        return super(CosManager, self).raw_files(files)[:1]   # return only first file
+        return super().raw_files(files)[:1]   # return only first file
+
+    def process(self, files):
+        """Set keyword RANDSEED=1 in each raw file and process normally."""
+        for filename in self.raw_files(files):
+            fits.setval(filename, "RANDSEED", value=1)
+        return super().process(files)
 
 
 class StisManager(InstrumentManager):
@@ -553,6 +565,7 @@ def main(argv):
     if output_uri.lower() .startswith("none"):
         output_uri = None
     process_ipppssoots(ipppssoots, output_uri)
+
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:
