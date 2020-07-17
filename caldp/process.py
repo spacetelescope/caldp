@@ -411,7 +411,8 @@ class CosManager(InstrumentManager):
     download_suffixes = ["ASN", "RAW", "EPC", "SPT",
                          "RAWACCUM", "RAWACCUM_A", "RAWACCUM_B",
                          "RAWACQ",
-                         "RAWTAG", "RAWTAG_A", "RAWTAG_B"]
+                         "RAWTAG", "RAWTAG_A", "RAWTAG_B",
+                         "PHA_A", "PHA_B"]
     stage1 = "calcos"
     stage2 = None
     ignore_err_nums = [
