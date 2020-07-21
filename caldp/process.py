@@ -11,6 +11,7 @@ Notably,  previews are not currently computed here but rather in a seperate prog
 """
 import sys
 import os
+import shutil
 import glob
 import re
 import subprocess
@@ -98,7 +99,11 @@ def get_output_path(output_uri, ipppssoot):
     's3://temp/batch-2020-02-13T10:33:00/wfc3/IC0B02020'
     """
     instrument_name = get_instrument(ipppssoot)
-    return output_uri + "/" + instrument_name + "/" + ipppssoot
+    if output_uri.startswith("local"):
+        output_prefix=output_uri.split(':')[-1]
+    elif output_uri.startswith("s3"):
+        output_prefix=output_uri
+    return output_prefix + "/" + instrument_name + "/" + ipppssoot
 
 # -------------------------------------------------------------
 
@@ -118,13 +123,18 @@ def upload_filepath(filepath, s3_filepath):
     ------
     None
     """
-    client = boto3.client('s3')
-    if s3_filepath.startswith("s3://"):
-        s3_filepath = s3_filepath[5:]
-    parts = s3_filepath.split("/")
-    bucket, objectname = parts[0], "/".join(parts[1:])
-    with open(filepath, "rb") as f:
-        client.upload_fileobj(f, bucket, objectname)
+    if filepath.startswith("s3"):
+        client = boto3.client('s3')
+        if s3_filepath.startswith("s3://"):
+            s3_filepath = s3_filepath[5:]
+        parts = s3_filepath.split("/")
+        bucket, objectname = parts[0], "/".join(parts[1:])
+        with open(filepath, "rb") as f:
+            client.upload_fileobj(f, bucket, objectname)
+    else:
+        print(os.path.dirname(s3_filepath))
+        os.makedirs(os.path.dirname(s3_filepath), exist_ok=True)
+        shutil.copy(filepath, s3_filepath)
 
 # -----------------------------------------------------------------------------
 
