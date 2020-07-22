@@ -4,9 +4,11 @@
 
 # caldp-process  s3_output_path  ipppssoots...
 
-s3_output=$1
-shift;
+input=$1
+s3_output=$2
+
+shift 2;
 
 for ipppssoot in $*; do
-    caldp-process-core $s3_output $ipppssoot
+    caldp-process-core $input $s3_output $ipppssoot
 done

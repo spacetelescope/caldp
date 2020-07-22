@@ -4,10 +4,11 @@
 
 # caldp-process  s3_output_path  ipppssoot
 
-s3_output_path=$1
-ipppssoot=$2
+input=$1
+s3_output_path=$2
+ipppssoot=$3
 
-echo "Starting caldp-process at ${s3_output_path} for ${ipppssoot}."
+echo "Starting caldp-process at (input) ${input} (output) ${s3_output_path} for ${ipppssoot}."
 
 source caldp-s3-env
 source caldp-cal-env
@@ -31,8 +32,9 @@ if [ $s3_output_path != "none" -a $output_location == 's3' ]; then
 fi
 
 echo ........................................ processing log ..............................................
+pwd
 set -o pipefail && /usr/bin/time --verbose -o process_metrics.txt \
-    python -m caldp.process $s3_output_path/data $ipppssoot \
+    python -m caldp.process $input $s3_output_path/data $ipppssoot \
     |& tee process.txt
 process_exit_status=$?
 echo "Processing exit status ${process_exit_status}"
@@ -50,12 +52,15 @@ messages_output_dir=`caldp-get-output-path $s3_output_path/messages $ipppssoot`
 echo "Messages output dir is" $messages_output_dir
 
 echo ........................................ previews log ................................................
-previews_input_dir=.  # to run from local output files already present
+previews_input_dir=${input}  # to run from local output files already present
+cwd="`pwd`"
+cd previews_input_dir
 set -o pipefail && /usr/bin/time --verbose -o preview_metrics.txt \
     python -m caldp.create_previews ${previews_input_dir}  ${previews_s3_output_dir} \
     |& tee preview.txt
 preview_exit_status=$?
 echo "Preview exit status ${preview_exit_status}"
+cd $cwd
 
 echo ........................................ process metrics .............................................
 cat process_metrics.txt
@@ -83,7 +88,7 @@ if [ $s3_output_path != "none" -a $output_location == "s3" ]; then
     echo "${message_type} ${ipppssoot}" >${ipppssoot}
     aws s3 cp --quiet ${ipppssoot}  ${s3_output_path}/messages/${message_type}/${ipppssoot}
 fi
-if [ $output_location == "local" ]; then
+if [ $output_location == "file" ]; then
     mkdir -p ${logs_s3_output_dir}
     # Copy out processing log and metrics
     cp  process.txt          ${logs_s3_output_dir}/

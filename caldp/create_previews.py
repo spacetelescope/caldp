@@ -6,6 +6,7 @@ import subprocess
 import logging
 import json
 import glob
+import shutil
 
 from astropy.io import fits
 
@@ -139,14 +140,13 @@ def main(args, outdir=None):
                 "aws", "s3", "cp", input_uri, input_path
             ])
     else:
-        input_uris = glob.glob(args.input_uri_prefix + "/*.fits")
+        input_uris = glob.glob(args.input_uri_prefix.split(":")[-1] + "/*.fits")
         log.info("Processing", len(input_uris), "FITS files from prefix", args.input_uri_prefix)
     for input_uri in input_uris:
-        filename = os.path.basename(input_uri)
-        input_path = os.path.join(outdir, filename)
+        outbase, filename = os.path.split(input_uri)
         filename_base, _ = os.path.splitext(filename)
-        log.info("Geneating previews for", input_path)
-        output_paths = generate_previews(input_path, outdir, filename_base)
+        log.info("Generating previews for", input_uri)
+        output_paths = generate_previews(input_uri, outbase, filename_base)
         log.info("Generated", len(output_paths), "output files")
         for output_path in output_paths:
             output_uri = os.path.join(args.output_uri_prefix, os.path.basename(output_path))
@@ -155,6 +155,12 @@ def main(args, outdir=None):
                 subprocess.check_call([
                     "aws", "s3", "cp", "--quiet", output_path, output_uri
                 ])
+            else:
+                log.info(f"Copying {output_path} to {output_uri}")
+                os.makedirs(os.path.dirname(output_uri), exist_ok=True)
+                shutil.copy(output_path, output_uri)
+            
+
 
 
 def parse_args():
