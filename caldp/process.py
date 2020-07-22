@@ -26,6 +26,7 @@ from drizzlepac.hlautils.astroquery_utils import retrieve_observation
 from crds.bestrefs import bestrefs
 
 from . import log
+
 # import caldp     (see track_versions)
 
 # -----------------------------------------------------------------------------
@@ -75,6 +76,7 @@ def get_instrument(ipppssoot):
     else:
         return IPPPSSOOT_INSTR.get(ipppssoot.upper()[0])
 
+
 # -----------------------------------------------------------------------------
 
 
@@ -100,10 +102,11 @@ def get_output_path(output_uri, ipppssoot):
     """
     instrument_name = get_instrument(ipppssoot)
     if output_uri.startswith("file"):
-        output_prefix=output_uri.split(':')[-1]
+        output_prefix = output_uri.split(":")[-1]
     elif output_uri.startswith("s3"):
-        output_prefix=output_uri
+        output_prefix = output_uri
     return output_prefix + "/" + instrument_name + "/" + ipppssoot
+
 
 # -------------------------------------------------------------
 
@@ -124,7 +127,7 @@ def upload_filepath(filepath, s3_filepath):
     None
     """
     if filepath.startswith("s3"):
-        client = boto3.client('s3')
+        client = boto3.client("s3")
         if s3_filepath.startswith("s3://"):
             s3_filepath = s3_filepath[5:]
         parts = s3_filepath.split("/")
@@ -134,6 +137,7 @@ def upload_filepath(filepath, s3_filepath):
     else:
         os.makedirs(os.path.dirname(s3_filepath), exist_ok=True)
         shutil.copy(filepath, s3_filepath)
+
 
 # -----------------------------------------------------------------------------
 
@@ -191,12 +195,13 @@ class InstrumentManager:
     output_files()
         Copies files to `output_uri` (and subdirs) unless `output_uri` is None or "none".
     """
-    instrument_name = None     # abstract class
-    download_suffixes = None   # abstract class
-    delete_endings = []        # abstract class
-    ignore_err_nums = []       # abstract class
-    stage1 = None              # abstract class
-    stage2 = None              # abstract class
+
+    instrument_name = None  # abstract class
+    download_suffixes = None  # abstract class
+    delete_endings = []  # abstract class
+    ignore_err_nums = []  # abstract class
+    stage1 = None  # abstract class
+    stage2 = None  # abstract class
 
     def __init__(self, ipppssoot, input_uri, output_uri):
         self.ipppssoot = ipppssoot
@@ -236,12 +241,9 @@ class InstrumentManager:
         """
         assert len(dash) == 1
         msg = " ".join([str(a) for a in args])
-        dashes = (100-len(msg)-2)
+        dashes = 100 - len(msg) - 2
         log.info(dash * 80)
-        log.info(
-            dash*5,
-            self.ipppssoot, msg,
-            dash*(dashes-6-len(self.ipppssoot)-len(msg)-1))
+        log.info(dash * 5, self.ipppssoot, msg, dash * (dashes - 6 - len(self.ipppssoot) - len(msg) - 1))
 
     def run(self, cmd, *args):
         """Run the subprocess string `cmd`,  appending any extra values
@@ -289,17 +291,15 @@ class InstrumentManager:
         4. Copy outputs to S3
         5. Issues start and stop dividers
         """
-        self.divider(
-            "Started processing for", self.instrument_name, self.ipppssoot)
+        self.divider("Started processing for", self.instrument_name, self.ipppssoot)
 
-        
         if self.input_uri.startswith("astroquery"):
             input_files = self.dowload()
         elif self.input_uri.startswith("file"):
             input_files = self.find_input_files()
             os.chdir(self.input_uri.split(":")[-1])
         else:
-            raise ValueError('input_uri should either start with astroquery or file')
+            raise ValueError("input_uri should either start with astroquery or file")
 
         self.assign_bestrefs(input_files)
 
@@ -307,8 +307,7 @@ class InstrumentManager:
 
         self.output_files()
 
-        self.divider(
-            "Completed processing for", self.instrument_name, self.ipppssoot)
+        self.divider("Completed processing for", self.instrument_name, self.ipppssoot)
 
     def dowload(self):
         """Download any data files for the `ipppssoot`,  issuing start and
@@ -325,10 +324,9 @@ class InstrumentManager:
         self.divider("Download data complete.")
         return list(sorted(files))
 
-    
     def find_input_files(self):
         """Scrape the input_uri for the needed input_files.
-        
+
         Returns
         -------
         filepaths : sorted list
@@ -337,11 +335,10 @@ class InstrumentManager:
         """
         self.divider("Finding data files with glob *.fits for:", self.ipppssoot)
         base_path = self.input_uri.split(":")[-1]
-        search_str = f'{base_path}/{self.ipppssoot.lower()[0:5]}*.fits'
+        search_str = f"{base_path}/{self.ipppssoot.lower()[0:5]}*.fits"
         print(search_str)
         files = glob.glob(search_str)
         return list(sorted(files))
-
 
     def assign_bestrefs(self, files):
         """Assign best references to dataset `files`,  updating their header keywords
@@ -399,8 +396,7 @@ class InstrumentManager:
         None
         """
         outputs = glob.glob("*.fits") + glob.glob("*.tra")
-        delete = [output for output in outputs
-                  if output.endswith(tuple(self.delete_endings))]
+        delete = [output for output in outputs if output.endswith(tuple(self.delete_endings))]
         if delete:
             self.divider("Deleting files:", delete)
             for filename in delete:
@@ -417,17 +413,20 @@ class InstrumentManager:
     def track_versions(self, files):
         """Add version keywords to raw_files(files)."""
         import caldp
+
         csys_ver = os.environ.get("CSYS_VER", "UNDEFINED")
         for filename in self.raw_files(files):
             if "_raw" in filename:
                 fits.setval(filename, "CSYS_VER", value=csys_ver)
                 fits.setval(filename, "CALDPVER", value=caldp.__version__)
 
+
 # -----------------------------------------------------------------------------
 
 
 class AcsManager(InstrumentManager):
     """Manages calibration for one ACS IPPPSSOOT."""
+
     instrument_name = "acs"
     download_suffixes = ["ASN", "RAW"]
     stage1 = "calacs.e"
@@ -436,6 +435,7 @@ class AcsManager(InstrumentManager):
 
 class Wfc3Manager(InstrumentManager):
     """Manages calibration for one WFC3 IPPPSSOOT."""
+
     instrument_name = "wfc3"
     download_suffixes = ["ASN", "RAW"]
     stage1 = "calwf3.e"
@@ -444,21 +444,30 @@ class Wfc3Manager(InstrumentManager):
 
 class CosManager(InstrumentManager):
     """Manages calibration for one COS IPPPSSOOT."""
+
     instrument_name = "cos"
-    download_suffixes = ["ASN", "RAW", "EPC", "SPT",
-                         "RAWACCUM", "RAWACCUM_A", "RAWACCUM_B",
-                         "RAWACQ",
-                         "RAWTAG", "RAWTAG_A", "RAWTAG_B",
-                         "PHA_A", "PHA_B"]
+    download_suffixes = [
+        "ASN",
+        "RAW",
+        "EPC",
+        "SPT",
+        "RAWACCUM",
+        "RAWACCUM_A",
+        "RAWACCUM_B",
+        "RAWACQ",
+        "RAWTAG",
+        "RAWTAG_A",
+        "RAWTAG_B",
+        "PHA_A",
+        "PHA_B",
+    ]
     stage1 = "calcos"
     stage2 = None
-    ignore_err_nums = [
-        5,    # Ignore calcos errors from RAWACQ
-    ]
+    ignore_err_nums = [5]  # Ignore calcos errors from RAWACQ
 
     def unassoc_files(self, files):
         """Returns only the first file returned by raw_files()."""
-        return super().raw_files(files)[:1]   # return only first file
+        return super().raw_files(files)[:1]  # return only first file
 
     def process(self, files):
         """Set keyword RANDSEED=1 in each raw file and process normally."""
@@ -469,6 +478,7 @@ class CosManager(InstrumentManager):
 
 class StisManager(InstrumentManager):
     """Manages calibration for one"""
+
     instrument_name = "stis"
     download_suffixes = ["ASN", "RAW", "EPC", "TAG", "WAV"]
     delete_endings = ["_epc.fits"]
@@ -496,17 +506,12 @@ class StisManager(InstrumentManager):
 
     def raw_files(self, files):
         """Returns only '_raw.fits', '_wav.fits', or '_tag.fits' members of `files`."""
-        return [f for f in files if f.endswith(('_raw.fits', '_wav.fits', '_tag.fits'))]
+        return [f for f in files if f.endswith(("_raw.fits", "_wav.fits", "_tag.fits"))]
 
 
 # ............................................................................
 
-MANAGERS = {
-    "acs": AcsManager,
-    "cos": CosManager,
-    "stis": StisManager,
-    "wfc3": Wfc3Manager,
-}
+MANAGERS = {"acs": AcsManager, "cos": CosManager, "stis": StisManager, "wfc3": Wfc3Manager}
 
 
 def get_instrument_manager(ipppssoot, input_uri, output_uri):
@@ -536,6 +541,7 @@ def get_instrument_manager(ipppssoot, input_uri, output_uri):
 
 # -----------------------------------------------------------------------------
 
+
 def process(ipppssoot, input_uri, output_uri):
     """Given an `ipppssoot`, `input_uri`, and `output_uri` where products should be stored,
     perform all required processing steps for the `ipppssoot` and store all
@@ -560,6 +566,7 @@ def process(ipppssoot, input_uri, output_uri):
 
 # -----------------------------------------------------------------------------
 
+
 def process_ipppssoots(ipppssoots, input_uri=None, output_uri=None):
     """Given a list of `ipppssoots`, and `input_uri`,  and an `output_uri` defining
     the base path at which to store outputs,  calibrate data corresponding to
@@ -575,7 +582,7 @@ def process_ipppssoots(ipppssoots, input_uri=None, output_uri=None):
         e.g. 's3://hstdp-batch-outputs/batch-1-2020-06-11T19-35-51'
         or local path within the container
         e.g. 'file:/home/developer/caldp-outputs
-    
+
     input_uri: str
         either astroquery:// or file:/path/to/files
 
@@ -594,16 +601,19 @@ def process_ipppssoots(ipppssoots, input_uri=None, output_uri=None):
     for ipppssoot in ipppssoots:
         process(ipppssoot, input_uri, output_uri)
 
+
 # -----------------------------------------------------------------------------
 
 
 def test():
     from caldp import process
     import doctest
+
     return doctest.testmod(process)
 
 
 # -----------------------------------------------------------------------------
+
 
 def main(argv):
     """Top level function, process args <input_uri> <output_uri>  <ipppssoot's...>"""
