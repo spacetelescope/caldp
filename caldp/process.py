@@ -99,7 +99,7 @@ def get_output_path(output_uri, ipppssoot):
     's3://temp/batch-2020-02-13T10:33:00/wfc3/IC0B02020'
     """
     instrument_name = get_instrument(ipppssoot)
-    if output_uri.startswith("local"):
+    if output_uri.startswith("file"):
         output_prefix=output_uri.split(':')[-1]
     elif output_uri.startswith("s3"):
         output_prefix=output_uri
@@ -295,11 +295,11 @@ class InstrumentManager:
         
         if self.input_uri.startswith("astroquery"):
             input_files = self.dowload()
-        elif self.input_uri.startswith("local"):
+        elif self.input_uri.startswith("file"):
             input_files = self.find_input_files()
             os.chdir(self.input_uri.split(":")[-1])
         else:
-            raise ValueError('input_uri should either start with astroquery or local')
+            raise ValueError('input_uri should either start with astroquery or file')
 
         self.assign_bestrefs(input_files)
 
@@ -574,10 +574,10 @@ def process_ipppssoots(ipppssoots, input_uri=None, output_uri=None):
         S3 bucket and object prefix
         e.g. 's3://hstdp-batch-outputs/batch-1-2020-06-11T19-35-51'
         or local path within the container
-        e.g. 'local:/home/developer/caldp-outputs
+        e.g. 'file:/home/developer/caldp-outputs
     
     input_uri: str
-        either astroquery:// or local:/path/to/files
+        either astroquery:// or file:/path/to/files
 
     Notes
     -----
