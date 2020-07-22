@@ -51,5 +51,9 @@ ADD . caldp-install/
 RUN pip install caldp-install/ \
     && rm -rf caldp-install/
 
+RUN mkdir -p /grp/crds/cache
+
+# RUN yum install -y nfs-utils
+
 WORKDIR /home/developer
 USER developer

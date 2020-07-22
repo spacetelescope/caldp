@@ -1,9 +1,55 @@
-#! /bin/bash
+#! /bin/bash -eux
 
-# Run commands in the CALDP container.
-# Expose $HOME as $HOME in the container.
+#
+# Does Docker setup and runs commands in the CALDP container on a
+# local (non-cloud) system.
+#
+# Define the native Docker working directory using CALDP_HOME if you want
+#  something other than the default.
+#
 # Map (jupyter lab) container port 8888 to docker host port 8888.
 
+# Choose the CALDP docker image configured by an installed
+# caldp-image-config
 source caldp-image-config latest
 
-docker run --rm -it -p 8888:8888 --mount type=bind,source=$HOME,target=/home/developer $CALDP_DOCKER_IMAGE $*
+#
+# Mount native file systems into the Docker container:
+# 1. $CALDP_HOME or `pwd`/caldp-process is mounted as /home/developer
+#     inside Docker, and is r/w.
+# 2. $CRDS_PATH (or /grp/crds/cache) is mounted if visible natively, readonly.
+#
+# To support use of AWS, consider copying or linking ~/.aws into whatever
+# native directory you mount at /home/developer.
+#
+# If $CALDP_HOME is defined in the environment, mount that directory at
+# /home/developer when Docker is run. By default, when $CALDP_HOME is not
+# defined, mount the current working directory at /home/developer inside the
+# container.
+#
+# Paths specified on the command line are interpreted within the context of the
+# running container.  Hence relative paths are relative to /home/developer
+# and/or relative to whatever native directory is mounted at /home/developer.
+#
+DEV_HOME=${CALDP_HOME:-`pwd`}
+mkdir -p $DEV_HOME
+MOUNTS="--mount type=bind,source=$DEV_HOME,target=/home/developer"
+
+#
+# Mount CRDS_PATH inside container at /grp/crds/cache, defaulting CRDS_PATH to
+# /grp/crds/cache on Central Store if the user does not define it in their
+# environment.
+#
+# NOTE: The file system at CRDS_PATH must be "shared" in Docker, use the Docker
+# GUI to share it so that it is accessible to the mount switch below and thereby
+# visible inside the container.
+#
+CRDS_SRC=${CRDS_PATH:-/grp/crds/cache}
+CRDS_DST=/grp/crds/cache
+if [[ -d $CRDS_SRC ]]; then
+    MOUNTS="${MOUNTS} --volume type=bind,source=/grp/crds/cache/config/hst,target=/grp/crds/cache/config/hst,readonly"
+    MOUNTS="${MOUNTS} --volume type=bind,source=/grp/crds/cache/references/hst,target=/grp/crds/cache/references/hst,readonly"
+    MOUNTS="${MOUNTS} --volume type=bind,source=/grp/crds/cache/mappings/hst,target=/grp/crds/cache/mappings/hst,readonly"
+fi
+
+docker run --rm -it -p 8888:8888 $MOUNTS $CALDP_DOCKER_IMAGE $*
