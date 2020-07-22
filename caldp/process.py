@@ -132,7 +132,6 @@ def upload_filepath(filepath, s3_filepath):
         with open(filepath, "rb") as f:
             client.upload_fileobj(f, bucket, objectname)
     else:
-        print(os.path.dirname(s3_filepath))
         os.makedirs(os.path.dirname(s3_filepath), exist_ok=True)
         shutil.copy(filepath, s3_filepath)
 
@@ -165,6 +164,8 @@ class InstrumentManager:
         (instance) Name of dataset being processed
     output_uri : str
         (instance) Root output path,  e.g. s3://bucket/subdir/subdir/.../subdir
+    input_uri : str
+        (instance) root input path, or astroquery:// to download from MAST
 
     Notes
     -----
@@ -197,8 +198,9 @@ class InstrumentManager:
     stage1 = None              # abstract class
     stage2 = None              # abstract class
 
-    def __init__(self, ipppssoot, output_uri):
+    def __init__(self, ipppssoot, input_uri, output_uri):
         self.ipppssoot = ipppssoot
+        self.input_uri = input_uri
         self.output_uri = output_uri
 
     # .............................................................
@@ -290,7 +292,14 @@ class InstrumentManager:
         self.divider(
             "Started processing for", self.instrument_name, self.ipppssoot)
 
-        input_files = self.dowload()
+        
+        if self.input_uri.startswith("astroquery"):
+            input_files = self.dowload()
+        elif self.input_uri.startswith("local"):
+            input_files = self.find_input_files()
+            os.chdir(self.input_uri.split(":")[-1])
+        else:
+            raise ValueError('input_uri should either start with astroquery or local')
 
         self.assign_bestrefs(input_files)
 
@@ -315,6 +324,23 @@ class InstrumentManager:
         files = retrieve_observation(self.ipppssoot, suffix=self.download_suffixes)
         self.divider("Download data complete.")
         return list(sorted(files))
+
+    
+    def find_input_files(self):
+        """Scrape the input_uri for the needed input_files.
+        
+        Returns
+        -------
+        filepaths : sorted list
+            Local file system paths of files which were found for `ipppssoot`,
+            some of which will be selected for calibration processing.
+        """
+        self.divider("Finding data files with glob *.fits for:", self.ipppssoot)
+        base_path = self.input_uri.split(":")[-1]
+        search_str = f'{base_path}/*.fits'
+        files = glob.glob(search_str)
+        return list(sorted(files))
+
 
     def assign_bestrefs(self, files):
         """Assign best references to dataset `files`,  updating their header keywords
@@ -482,8 +508,8 @@ MANAGERS = {
 }
 
 
-def get_instrument_manager(ipppssoot, output_uri):
-    """Given and `ipppssoot` and `output_uri`,  determine
+def get_instrument_manager(ipppssoot, input_uri, output_uri):
+    """Given and `ipppssoot`, `input_uri`, and `output_uri`,  determine
     the appropriate instrument manager from the `ipppssoot`
     and construct and return it.
 
@@ -493,6 +519,8 @@ def get_instrument_manager(ipppssoot, output_uri):
         The HST dataset name to be processed.
     output_uri : str
         The base path to which outputs will be copied, nominally S3://bucket/subdir/.../subdir
+    input_uri : str
+        either a local directory (path in the container) or astroquery to download from MAST
 
     Returns
     -------
@@ -501,14 +529,14 @@ def get_instrument_manager(ipppssoot, output_uri):
         processing dataset name `ipppssoot`.
     """
     instrument = get_instrument(ipppssoot)
-    manager = MANAGERS[instrument](ipppssoot, output_uri)
+    manager = MANAGERS[instrument](ipppssoot, input_uri, output_uri)
     return manager
 
 
 # -----------------------------------------------------------------------------
 
-def process(ipppssoot, output_uri):
-    """Given an `ipppssoot` and `output_uri` where products should be stored,
+def process(ipppssoot, input_uri, output_uri):
+    """Given an `ipppssoot`, `input_uri`, and `output_uri` where products should be stored,
     perform all required processing steps for the `ipppssoot` and store all
     products to `output_uri`.
 
@@ -518,20 +546,22 @@ def process(ipppssoot, output_uri):
         The HST dataset name to be processed.
     output_uri : str
         The base path to which outputs will be copied, nominally S3://bucket/subdir/.../subdir
+    input_uri : str
+        either a local directory (path in the container) or astroquery to download from MAST
 
     Returns
     -------
     None
     """
-    manager = get_instrument_manager(ipppssoot, output_uri)
+    manager = get_instrument_manager(ipppssoot, input_uri, output_uri)
     manager.main()
 
 
 # -----------------------------------------------------------------------------
 
-def process_ipppssoots(ipppssoots, output_uri=None):
-    """Given a list of `ipppssoots` dataset names,  and an S3 `output_uri` defining
-    the S3 base path at which to store outputs,  calibrate data corresponding to
+def process_ipppssoots(ipppssoots, input_uri=None, output_uri=None):
+    """Given a list of `ipppssoots`, and `input_uri`,  and an `output_uri` defining
+    the base path at which to store outputs,  calibrate data corresponding to
     each of the ipppssoots,  including any association members.
 
     Parameters
@@ -542,6 +572,11 @@ def process_ipppssoots(ipppssoots, output_uri=None):
     output_uri:  str
         S3 bucket and object prefix
         e.g. 's3://hstdp-batch-outputs/batch-1-2020-06-11T19-35-51'
+        or local path within the container
+        e.g. 'local:/home/developer/caldp-outputs
+    
+    input_uri: str
+        either astroquery:// or local:/path/to/files
 
     Notes
     -----
@@ -556,7 +591,7 @@ def process_ipppssoots(ipppssoots, output_uri=None):
     None
     """
     for ipppssoot in ipppssoots:
-        process(ipppssoot, output_uri)
+        process(ipppssoot, input_uri, output_uri)
 
 # -----------------------------------------------------------------------------
 
@@ -570,16 +605,17 @@ def test():
 # -----------------------------------------------------------------------------
 
 def main(argv):
-    """Top level function, process args <output_uri>   <ipppssoot's...>"""
-    output_uri = argv[1]
-    ipppssoots = argv[2:]
-    if output_uri.lower() .startswith("none"):
+    """Top level function, process args <input_uri> <output_uri>  <ipppssoot's...>"""
+    input_uri = argv[1]
+    output_uri = argv[2]
+    ipppssoots = argv[3:]
+    if output_uri.lower().startswith("none"):
         output_uri = None
-    process_ipppssoots(ipppssoots, output_uri)
+    process_ipppssoots(ipppssoots, input_uri, output_uri)
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 3:
-        print("usage:  process.py  <output_uri>   <ipppssoot's...>")
+    if len(sys.argv) < 4:
+        print("usage:  process.py <input_uri>  <output_uri>  <ipppssoot's...>")
         sys.exit(1)
     main(sys.argv)
