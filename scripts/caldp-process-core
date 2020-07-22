@@ -88,7 +88,7 @@ if [ $s3_output_path != "none" -a $output_location == "s3" ]; then
     echo "${message_type} ${ipppssoot}" >${ipppssoot}
     aws s3 cp --quiet ${ipppssoot}  ${s3_output_path}/messages/${message_type}/${ipppssoot}
 fi
-if [ $output_location == "local" ]; then
+if [ $output_location == "file" ]; then
     mkdir -p ${logs_s3_output_dir}
     # Copy out processing log and metrics
     cp  process.txt          ${logs_s3_output_dir}/
