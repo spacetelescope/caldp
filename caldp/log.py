@@ -69,7 +69,7 @@ class CaldpLogger:
         self.name = name
 
         self.handlers = []  # logging handlers, used e.g. to add console or file output streams
-        self.filters = []   # simple CALDP filters, used e.g. to mutate message text
+        self.filters = []  # simple CALDP filters, used e.g. to mutate message text
 
         self.logger = logging.getLogger(name)
         self.logger.setLevel(level)
@@ -92,15 +92,17 @@ class CaldpLogger:
             verbose_level = os.environ.get("CALDP_VERBOSITY", 0)
             self.verbose_level = int(verbose_level)
         except Exception:
-            warning("Bad format for CALDP_VERBOSITY =", repr(verbose_level),
-                    "Use e.g. -1 to squelch info, 0 for no debug,  "
-                    "50 for default debug output. 100 max debug.")
+            warning(
+                "Bad format for CALDP_VERBOSITY =",
+                repr(verbose_level),
+                "Use e.g. -1 to squelch info, 0 for no debug,  " "50 for default debug output. 100 max debug.",
+            )
             self.verbose_level = DEFAULT_VERBOSITY_LEVEL
 
     def set_formatter(self, enable_time=True):
         """Set the formatter attribute of `self` to a logging.Formatter and return it."""
         prefix = "%(asctime)s - " if enable_time else ""
-        self.formatter = logging.Formatter(f'{prefix}%(levelname)s - %(message)s')
+        self.formatter = logging.Formatter(f"{prefix}%(levelname)s - %(message)s")
         for handler in self.handlers:
             handler.setFormatter(self.formatter)
         return self.formatter
@@ -167,7 +169,7 @@ class CaldpLogger:
         self.errors = self.warnings = self.infos = self.debugs = 0
 
     def set_verbose(self, level=True):
-        assert -3 <= level <= 100,  "verbosity level must be in range -3..100"
+        assert -3 <= level <= 100, "verbosity level must be in range -3..100"
         old_verbose = self.verbose_level
         if level is True:
             level = DEFAULT_VERBOSITY_LEVEL
@@ -263,10 +265,12 @@ def set_log_time(enable_time=False):
 
 # ===========================================================================
 
+
 class PP:
     """A wrapper to defer pretty printing until after it's known a verbose
     message will definitely be output.
     """
+
     def __init__(self, ppobj):
         self.ppobj = ppobj
 
@@ -278,11 +282,13 @@ class Deferred:
     """A wrapper to delay calling a callable until after it's known a verbose
     message will definitely be output.
     """
+
     def __init__(self, ppobj):
         self.ppobj = ppobj
 
     def __str__(self):
         return str(self.ppobj())
+
 
 # ===========================================================================
 
@@ -294,12 +300,14 @@ def standard_status():
     info(warnings, "warnings")
     info(infos, "infos")
 
+
 # ==============================================================================
 
 
 def srepr(obj):
     """Return the repr() of the str() of obj"""
     return repr(str(obj))
+
 
 # ==============================================================================
 
@@ -311,9 +319,9 @@ def divider(name="", char="-", n=75, func=info, **keys):
     """
     if name:
         n2 = (n - len(name) - 2) // 2
-        func(char*n2, name, char*n2, **keys)
+        func(char * n2, name, char * n2, **keys)
     else:
-        func(char*n, **keys)
+        func(char * n, **keys)
 
 
 # ===================================================================
@@ -322,6 +330,7 @@ def divider(name="", char="-", n=75, func=info, **keys):
 def test():
     from caldp import log
     import doctest
+
     return doctest.testmod(log)
 
 
