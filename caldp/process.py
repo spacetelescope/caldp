@@ -337,7 +337,7 @@ class InstrumentManager:
         """
         self.divider("Finding data files with glob *.fits for:", self.ipppssoot)
         base_path = self.input_uri.split(":")[-1]
-        search_str = f'{base_path}/{self.ipppssoot.lower()}*.fits'
+        search_str = f'{base_path}/{self.ipppssoot.lower()[0:5]}*.fits'
         print(search_str)
         files = glob.glob(search_str)
         return list(sorted(files))
