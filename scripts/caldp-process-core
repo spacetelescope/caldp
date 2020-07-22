@@ -52,13 +52,15 @@ messages_output_dir=`caldp-get-output-path $s3_output_path/messages $ipppssoot`
 echo "Messages output dir is" $messages_output_dir
 
 echo ........................................ previews log ................................................
-previews_input_dir=.  # to run from local output files already present
-pwd
+previews_input_dir=${input}  # to run from local output files already present
+cwd="`pwd`"
+cd previews_input_dir
 set -o pipefail && /usr/bin/time --verbose -o preview_metrics.txt \
     python -m caldp.create_previews ${previews_input_dir}  ${previews_s3_output_dir} \
     |& tee preview.txt
 preview_exit_status=$?
 echo "Preview exit status ${preview_exit_status}"
+cd $cwd
 
 echo ........................................ process metrics .............................................
 cat process_metrics.txt
