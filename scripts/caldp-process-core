@@ -4,10 +4,11 @@
 
 # caldp-process  s3_output_path  ipppssoot
 
-s3_output_path=$1
-ipppssoot=$2
+input=$1
+s3_output_path=$2
+ipppssoot=$3
 
-echo "Starting caldp-process at ${s3_output_path} for ${ipppssoot}."
+echo "Starting caldp-process at (input) ${input} (output) ${s3_output_path} for ${ipppssoot}."
 
 source caldp-s3-env
 source caldp-cal-env
@@ -31,8 +32,9 @@ if [ $s3_output_path != "none" -a $output_location == 's3' ]; then
 fi
 
 echo ........................................ processing log ..............................................
+pwd
 set -o pipefail && /usr/bin/time --verbose -o process_metrics.txt \
-    python -m caldp.process $s3_output_path/data $ipppssoot \
+    python -m caldp.process $input $s3_output_path/data $ipppssoot \
     |& tee process.txt
 process_exit_status=$?
 echo "Processing exit status ${process_exit_status}"
@@ -51,6 +53,7 @@ echo "Messages output dir is" $messages_output_dir
 
 echo ........................................ previews log ................................................
 previews_input_dir=.  # to run from local output files already present
+pwd
 set -o pipefail && /usr/bin/time --verbose -o preview_metrics.txt \
     python -m caldp.create_previews ${previews_input_dir}  ${previews_s3_output_dir} \
     |& tee preview.txt
