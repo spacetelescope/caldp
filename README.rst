@@ -5,6 +5,9 @@ Calibration data pipeline for Hubble Space Telescope Observations
     :target: http://www.astropy.org
     :alt: Powered by Astropy Badge
 
+This repository provides a pipeline for processing observations from the 
+Hubble Space Telescope.
+
 
 License
 -------
