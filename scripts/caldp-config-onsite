@@ -1,0 +1,18 @@
+#
+# Configure CRDS for HST serverless mode using readonly /grp/crds/cache
+#
+# This is most useful onsite at STScI. This mode should be as scalable as the
+# Central Store but will suffer from repeat downloads via VPN if Central Store
+# files are not effectively cached on offsite computers.
+#
+export CRDS_SERVER_URL=https://hst-serverless-mode.stsci.edu
+export CRDS_PATH=/grp/crds/cache
+# export CRDS_READONLY_CACHE=1
+
+export iref=${CRDS_PATH}/references/hst/
+export jref=${CRDS_PATH}/references/hst/
+export oref=${CRDS_PATH}/references/hst/
+export lref=${CRDS_PATH}/references/hst/
+export nref=${CRDS_PATH}/references/hst/
+export uref=${CRDS_PATH}/references/hst/
+export uref_linux=$uref
