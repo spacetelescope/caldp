@@ -126,7 +126,7 @@ def upload_filepath(filepath, s3_filepath):
     ------
     None
     """
-    if filepath.startswith("s3"):
+    if s3_filepath.startswith("s3"):
         client = boto3.client("s3")
         if s3_filepath.startswith("s3://"):
             s3_filepath = s3_filepath[5:]
@@ -336,7 +336,6 @@ class InstrumentManager:
         self.divider("Finding data files with glob *.fits for:", self.ipppssoot)
         base_path = self.input_uri.split(":")[-1]
         search_str = f"{base_path}/{self.ipppssoot.lower()[0:5]}*.fits"
-        print(search_str)
         files = glob.glob(search_str)
         return list(sorted(files))
 
