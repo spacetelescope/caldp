@@ -314,7 +314,6 @@ class InstrumentManager:
 
         # for moving files around, we need to chdir back for relative output path to work
         os.chdir(orig_wd)
-
         self.output_files()
 
         self.divider("Completed processing for", self.instrument_name, self.ipppssoot)
@@ -374,7 +373,7 @@ class InstrumentManager:
         elif os.path.isdir(os.path.join(os.getcwd(), test_path)):
             base_path = os.path.join(os.getcwd(), test_path)
         else:
-            raise ValueError(f"input path {test_path} does not exist")
+            raise ValueError(f"output path {test_path} does not exist")
 
         search_str = f"{base_path}/{self.ipppssoot.lower()[0:5]}*.fits"
         files = glob.glob(search_str)
