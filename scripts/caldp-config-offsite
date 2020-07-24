@@ -1,0 +1,22 @@
+# Configure CRDS for offsite use with a dynamic reference file cache.
+#
+# This is useful offsite when working on a small scale with a personal computer.
+# Because this downloads CRDS files directly to a local cache,  once downloaded
+# files are accessed from local disk rather than from VPN or the CRDS server,
+# avoiding repeat downloads of potentially gigabytes of data.
+#
+# Since CRDS does check for updates with the CRDS server,   this configuration
+# could eventually lead to scalability issues and probably would if run using
+# arbitrary numbers of AWS virtual machines.
+#
+export CRDS_SERVER_URL=https://hst-crds.stsci.edu
+export CRDS_PATH=${HOME}/crds_cache
+export CRDS_READONLY_CACHE=0
+
+export iref=${CRDS_PATH}/references/hst/wfc3/
+export jref=${CRDS_PATH}/references/hst/acs/
+export oref=${CRDS_PATH}/references/hst/stis/
+export lref=${CRDS_PATH}/references/hst/cos/
+export nref=${CRDS_PATH}/references/hst/nicmos/
+export uref=${CRDS_PATH}/references/hst/wfcpc2/
+export uref_linux=$uref

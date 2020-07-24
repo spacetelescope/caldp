@@ -2,16 +2,10 @@
 
 # For testing with Docker image prior to submitting actual workflow jobs.
 #
-# For AWS usage including S3:
-#
-# $ caldp-docker-run-pipeline <tag> <s3_output_path> <ipppssoot>
-#
-# s3_output_path -- fully specified path for outputs to S3,
-#                   includes both s3 bucket and batch subdirectory
-#                   does not include instrument or ipppssoot subdirs.
-#
-# For laptop usage bypassing S3 actions:
-#
-# $ caldp-docker-run-pipeline  none <ipppssoot's...>
 
-caldp-docker-run-container caldp-process $*
+ipppssoot=$1
+input_path=${2:-"file:."}
+output_path=${3:-"file:."}
+caldp_config=${4:-"caldp-config-offsite"}
+
+caldp-docker-run-container caldp-process   $ipppssoot  $input_path  $output_path  $caldp_config
