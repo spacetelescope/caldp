@@ -102,7 +102,11 @@ def get_output_path(output_uri, ipppssoot):
     """
     instrument_name = get_instrument(ipppssoot)
     if output_uri.startswith("file"):
-        output_prefix = output_uri.split(":")[-1]
+        test_prefix = output_uri.split(":")[-1]
+        if test_prefix.startswith("/"):
+            output_prefix = test_prefix
+        else:
+            output_prefix = os.path.join(os.getcwd(), test_prefix)
     elif output_uri.startswith("s3"):
         output_prefix = output_uri
     return output_prefix + "/" + instrument_name + "/" + ipppssoot
@@ -293,10 +297,13 @@ class InstrumentManager:
         """
         self.divider("Started processing for", self.instrument_name, self.ipppssoot)
 
+        # we'll need to move around a couple of times to get the cal code and local file movements working
+        orig_wd = os.getcwd()
         if self.input_uri.startswith("astroquery"):
             input_files = self.dowload()
         elif self.input_uri.startswith("file"):
             input_files = self.find_input_files()
+            # mainly due to association processing, we need to be in the same place as the asn's
             os.chdir(self.input_uri.split(":")[-1])
         else:
             raise ValueError("input_uri should either start with astroquery or file")
@@ -305,6 +312,8 @@ class InstrumentManager:
 
         self.process(input_files)
 
+        # for moving files around, we need to chdir back for relative output path to work
+        os.chdir(orig_wd)
         self.output_files()
 
         self.divider("Completed processing for", self.instrument_name, self.ipppssoot)
@@ -334,9 +343,45 @@ class InstrumentManager:
             some of which will be selected for calibration processing.
         """
         self.divider("Finding data files with glob *.fits for:", self.ipppssoot)
-        base_path = self.input_uri.split(":")[-1]
+        # find the base path to the files
+        test_path = self.input_uri.split(":")[-1]
+        if os.path.isdir(test_path):
+            base_path = os.path.abspath(test_path)
+        elif os.path.isdir(os.path.join(os.getcwd(), test_path)):
+            base_path = os.path.join(os.getcwd(), test_path)
+        else:
+            raise ValueError(f"input path {test_path} does not exist")
+
         search_str = f"{base_path}/{self.ipppssoot.lower()[0:5]}*.fits"
         files = glob.glob(search_str)
+        return list(sorted(files))
+
+    def find_output_files(self):
+        """Scrape the input_uri for the needed output_files, to be run after calibration is finished.
+
+        Returns
+        -------
+        filepaths : sorted list
+            Local file system paths of files which were found for `ipppssoot`,
+            post-calibration
+        """
+        self.divider("Finding data files for output with glob *.fits for:", self.ipppssoot)
+        # find the base path to the files
+        test_path = self.input_uri.split(":")[-1]
+        if os.path.isdir(test_path):
+            base_path = os.path.abspath(test_path)
+        elif os.path.isdir(os.path.join(os.getcwd(), test_path)):
+            base_path = os.path.join(os.getcwd(), test_path)
+        else:
+            raise ValueError(f"output path {test_path} does not exist")
+
+        search_str = f"{base_path}/{self.ipppssoot.lower()[0:5]}*.fits"
+        files = glob.glob(search_str)
+
+        # trailer files
+        search_str = f"{base_path}/{self.ipppssoot.lower()[0:5]}*.tra"
+        files.extend(glob.glob(search_str))
+
         return list(sorted(files))
 
     def assign_bestrefs(self, files):
@@ -394,7 +439,7 @@ class InstrumentManager:
         -------
         None
         """
-        outputs = glob.glob("*.fits") + glob.glob("*.tra")
+        outputs = self.find_output_files()
         delete = [output for output in outputs if output.endswith(tuple(self.delete_endings))]
         if delete:
             self.divider("Deleting files:", delete)
@@ -405,8 +450,9 @@ class InstrumentManager:
             return
         self.divider("Saving outputs:", self.output_uri, outputs)
         output_path = get_output_path(self.output_uri, self.ipppssoot)
-        for filename in outputs:
-            upload_filepath(filename, output_path + "/" + filename)
+        for filepath in outputs:
+            output_filename = f"{output_path}/{os.path.basename(filepath)}"
+            upload_filepath(filepath, output_filename)
         self.divider("Saving outputs complete.")
 
     def track_versions(self, files):
