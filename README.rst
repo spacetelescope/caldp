@@ -112,7 +112,7 @@ The abstract command for running CALDP natively is:
 
     ipppssoot, N/A, "HST dataset identifier,  you must always specify this"
     input_path, file:., "can be file:<relative_path> or astroquery: or (probably coming s3://input-bucket/subdirs...)"
-    output_path, file:., "can be file:<relative_path> os s3://output-bucket/subdirs..."
+    output_path, file:., "can be file:<relative_path> or s3://output-bucket/subdirs..."
     config, caldp-config-onsite, "can be caldp-config-offsite,  caldp-config-onsite,  caldp-config-aws,  <custom>"
 
 Running natively,  file paths for CALDP work normally with the exception that they're
@@ -275,7 +275,7 @@ will be reflected back out of the Docker container to CALDP_HOME,  defaulting to
 directory.
 
 **NOTE:**  Running the final cloud-like configuration above does not produce results idenitical to AWS Batch processing
-because it is only processing a single dataset and skips batch tracking and organizartion actions normally performed by
+because it is only processing a single dataset and skips batch tracking and organization actions normally performed by
 the batch trigger lambda which operates on a list of datasets.
 
 Example Docker Commands (AWS Batch)
