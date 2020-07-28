@@ -377,7 +377,8 @@ Data Subdirectory
 The *data* subdirectory parallels but has a different structure than the *messages*
 subdirectory.   For every ipppssoot message,  there is a data directory and subdirectories
 which contain output files from processsing that ipppssoot.   In the current implementation,
-the ipppssoot message file is empty,  it is normally populated by the
+the ipppssoot message file is empty,  it is normally populated by CALCLOUD's downloader
+with the paths of files to archive when it is output to dataset-synced.
 
 .. code-block:: sh
 
