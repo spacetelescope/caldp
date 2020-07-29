@@ -57,9 +57,6 @@ echo "Logs s3_output_dir is" $logs_s3_output_dir
 previews_s3_output_dir="${processing_s3_output_dir}/previews"
 echo "Previews s3_output_dir is" $previews_s3_output_dir
 
-messages_output_dir=`caldp-get-output-path $output_path/messages $ipppssoot`
-echo "Messages output dir is" $messages_output_dir
-
 echo ........................................ previews log ................................................
 previews_input_dir=${input_path}  # to run from local output files already present
 set -o pipefail && $TIME --verbose -o preview_metrics.txt \
@@ -95,6 +92,10 @@ if [ $output_path != "none" -a $output_location == "s3" ]; then
     aws s3 cp --quiet ${ipppssoot}  ${output_path}/messages/${message_type}/${ipppssoot}
 fi
 if [ $output_location == "file" ]; then
+    stripped_output=`echo $output_path | cut -d':' -f2`
+    messages_output_dir="${stripped_output}/messages"
+    echo "Messages output dir is" $messages_output_dir
+
     mkdir -p ${logs_s3_output_dir}
     # Copy out processing log and metrics
     cp  process.txt          ${logs_s3_output_dir}/
@@ -111,8 +112,13 @@ if [ $output_location == "file" ]; then
     fi
     echo "Messaging ${message_type}"
     echo "${message_type} ${ipppssoot}" >${ipppssoot}
-    mkdir -p ${messages_output_dir}
-    cp ${ipppssoot}  ${messages_output_dir}/${ipppssoot}
+
+    mkdir -p ${messages_output_dir}/${message_type}
+    cp ${ipppssoot}  ${messages_output_dir}/${message_type}/${ipppssoot}
+    if [[ $message_type == "dataset-processed" ]]; then
+        mkdir -p ${messages_output_dir}/dataset-synced
+        cp ${ipppssoot}  ${messages_output_dir}/dataset-synced
+    fi
 fi
 
 [[ $process_exit_status -eq 0 && $preview_exit_status -eq 0 ]] || exit 1
