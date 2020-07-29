@@ -52,4 +52,7 @@ if [[ -d $CRDS_SRC ]]; then
     MOUNTS="${MOUNTS} --volume type=bind,source=/grp/crds/cache/mappings/hst,target=/grp/crds/cache/mappings/hst,readonly"
 fi
 
-docker run --rm -it -p 8888:8888 $MOUNTS $CALDP_DOCKER_IMAGE $*
+
+# we pass DEV_HOME into the container as an env variable so that the output paths in the message
+# can refer to the local, out-of-container path.
+docker run --rm -it -p 8888:8888 --env DEV_HOME=$DEV_HOME $MOUNTS $CALDP_DOCKER_IMAGE $*

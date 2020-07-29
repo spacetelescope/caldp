@@ -112,6 +112,10 @@ if [ $output_location == "file" ]; then
     fi
     echo "Messaging ${message_type}"
     echo "${message_type} ${ipppssoot}" >${ipppssoot}
+    # outputs file paths to 
+    find ${stripped_output}/data -mindepth 1 -type f | grep ${ipppssoot:0:6} | while read file; do
+        echo "${DEV_HOME}/${file}" >> ${ipppssoot}
+    done
 
     mkdir -p ${messages_output_dir}/${message_type}
     cp ${ipppssoot}  ${messages_output_dir}/${message_type}/${ipppssoot}
