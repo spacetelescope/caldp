@@ -176,7 +176,7 @@ as naturally as possible.   By default,  your current working directory becomes 
 Docker Build
 ============
 If you want to run CALDP as a container then the equivalent of installing it
-is either building or pulling the container.  This section will cover building
+is either building or pulling the container (i.e. from an AWS elastic container registry, ECR).  This section will cover building
 your own CALDP image.   To complete this section for personal use,  all you need
 is a local installation of Docker and the supplied scripts should run it for you
 even more easily than normal.   This section doesn't cover using Docker in general,
