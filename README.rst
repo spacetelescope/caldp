@@ -53,9 +53,9 @@ Overview of CALDP
 -----------------
 
 CALDP is used to integrate fundamental HST calibration programs (e.g. calacs.e)
-with input data,  output data, and calibration reference files (CRDS).  Ultimately,
+with input data, output data, and calibration reference files (CRDS). Ultimately,
 CALDP does end-to-end calibration of HST data in a manner similar to the
-archive pipeline,  including the generation of preview images.
+archive pipeline, including the generation of preview images.
 
 CALDP is primarily a Python package with some installable scripts, but also includes
 infrastructure for building a Docker container with everything needed to fully calibrate
@@ -63,27 +63,27 @@ raw HST data to produce pipeline-like products.
 
 CALDP has two basic ways it can be run:
 
-1. CALDP can be run a native conda environment.
+1. CALDP can be run native in a conda environment.
 2. CALDP can be run inside a Docker container.
 
 A variation of running CALDP inside the Docker container is:
 
 3. Run arbitrary numbers of CALDP containers on AWS compute clusters, pulling inputs
-from Astroquery, and writing outputs to AWS S3 storage.   This can vastly accelerate
+from Astroquery, and writing outputs to AWS S3 storage. This can vastly accelerate
 large processing runs.
 
 Native CALDP
 ------------
 
 The core logic of CALDP is implemented in the caldp Python package in the
-process and preview modules.  CALDP also includes convenience scripts to
-make it simpler to configure and call these modules.   Since it is primarily
-Python,   nothing precludes running CALDP outside a container provided you
+process and preview modules. CALDP also includes convenience scripts to
+make it simpler to configure and call these modules. Since it is primarily
+Python, nothing precludes running CALDP outside a container provided you
 install prerequisites which normally come from a base container image.
 
 Native Install
 ==============
-1. Install a base HST Calibration S/W environment,  including CRDS.
+1. Install a base HST Calibration S/W environment, including CRDS.
 
 2. From a CALDP github checkout, do:
 
@@ -115,62 +115,62 @@ The abstract command for running CALDP natively is:
     output_path, file:., "can be file:<relative_path> or s3://output-bucket/subdirs..."
     config, caldp-config-onsite, "can be caldp-config-offsite,  caldp-config-onsite,  caldp-config-aws,  <custom>"
 
-Running natively,  file paths for CALDP work normally with the exception that they're
-specified using a URI-like notation which begins with **file:**.   Absolute paths work here.
+Running natively, file paths for CALDP work normally with the exception that they're
+specified using a URI-like notation which begins with **file:**. Absolute paths work here.
 
 Example Native Commands
 +++++++++++++++++++++++
 Below are some parameter examples for running CALDP natively with different input
-and output modes.   caldp-process is configured to run using local files by default.
+and output modes. caldp-process is configured to run using local files by default.
 
 .. code-block:: sh
 
-     # All file access defaults to current working directory.   Inputs must pre-exist.
-    # Inputs:  Finds raw files matching j8cb010b0 in current working directory
-    # Outputs: Puts output product trees under current working directory as data and  messages subdirectories.
-    # CRDS configuration:  VPN configuration, no CRDS server required,  /grp/crds/cache must be visible.
-    # Scratch files:  Extra processing artifacts appear in the current working directory.   Export CALDP_HOME to move them somewhere else.
+    # All file access defaults to current working directory. Inputs must pre-exist.
+    # Inputs: Finds raw files matching j8cb010b0 in current working directory
+    # Outputs: Puts output product trees under current working directory as data and messages subdirectories.
+    # CRDS configuration: VPN configuration, no CRDS server required, /grp/crds/cache must be visible.
+    # Scratch files: Extra processing artifacts appear in the current working directory. Export CALDP_HOME to move them somewhere else.
 
     caldp-process j8cb010b0
 
     # ----------------------------------------------------------------------------------------
     # File access in subdirectories, inputs must pre-exist.
-    # Inputs:  Finds raw files matching j8cb010b0 in subdirectory j8cb010b0_inputs.
+    # Inputs: Finds raw files matching j8cb010b0 in subdirectory j8cb010b0_inputs.
     # Outputs: Copies output product tree under subdirectory j8cb010b0_outputs.
-    # CRDS configuration:  VPN configuration, no CRDS server required,  /grp/crds/cache must be visible.
-    # Scratch files:  Extra processing artifacts appear in the current working directory.   Export CALDP_HOME to move them somewhere else.
+    # CRDS configuration: VPN configuration, no CRDS server required, /grp/crds/cache must be visible.
+    # Scratch files: Extra processing artifacts appear in the current working directory. Export CALDP_HOME to move them somewhere else.
 
     caldp-process j8cb010b0  file:j8cb010b0_inputs  file:j8cb010b0_outputs
 
 
     # ----------------------------------------------------------------------------------------
     # Download inputs from astroquery as neeed
-    # Inputs:  Downloads raw files matching j8cb010b0 from astroquery to current working directory / CALDP_HOME.
+    # Inputs: Downloads raw files matching j8cb010b0 from astroquery to current working directory / CALDP_HOME.
     # Outputs: Copies output product tree under subdirectory j8cb010b0_outputs.
-    # CRDS configuration:  VPN configuration, no CRDS server required,  /grp/crds/cache must be visible.
-    # Scratch files:  Extra processing artifacts appear in the current working directory.   Export CALDP_HOME to move them somewhere else.
+    # CRDS configuration: VPN configuration, no CRDS server required, /grp/crds/cache must be visible.
+    # Scratch files: Extra processing artifacts appear in the current working directory. Export CALDP_HOME to move them somewhere else.
 
     caldp-process j8cb010b0  astroquery:   file:j8cb010b0_outputs
 
 
     # ----------------------------------------------------------------------------------------
-    # Download inputs from astroquery,  upload outputs to S3, current AWS Batch configuration minus Docker.
-    # Inputs:  Downloads raw files matching j8cb010b0 from astroquery to current working directory / CALDP_HOME.
-    # Outputs: Copies output product tree to AWS S3 storage bucket,  AWS credentials and permission required.
-    # CRDS configuration:  VPN configuration, no CRDS server required,  /grp/crds/cache must be visible.
-    # Scratch files:  Extra processing artifacts appear in the current working directory.   Export CALDP_HOME to move them somewhere else.
+    # Download inputs from astroquery, upload outputs to S3, current AWS Batch configuration minus Docker.
+    # Inputs: Downloads raw files matching j8cb010b0 from astroquery to current working directory / CALDP_HOME.
+    # Outputs: Copies output product tree to AWS S3 storage bucket, AWS credentials and permission required.
+    # CRDS configuration: VPN configuration, no CRDS server required, /grp/crds/cache must be visible.
+    # Scratch files: Extra processing artifacts appear in the current working directory. Export CALDP_HOME to move them somewhere else.
 
     caldp-process j8cb010b0  astroquery:  s3://calcloud-hst-pipeline-outputs
 
 
 Docker CALDP
 ------------
-While CALDP is a natively installable Python package,  its roots are as a Docker container
-used to perform HST calibrations on AWS Batch.  CALDP has subsequently been enhanced to run
+While CALDP is a natively installable Python package, its roots are as a Docker container
+used to perform HST calibrations on AWS Batch. CALDP has subsequently been enhanced to run
 using inputs and outputs from a local file system rather than cloud resources like Astroquery
-and AWS S3 storage.   The primary difference from running natively is that some portion
+and AWS S3 storage. The primary difference from running natively is that some portion
 of your native file system must be mounted inside the container to pass files in and out
-as naturally as possible.   By default,  your current working directory becomes $HOME
+as naturally as possible. By default, your current working directory becomes $HOME
 (/home/developer)
 
 Docker Build
@@ -179,14 +179,14 @@ If you want to run CALDP as a container then the equivalent of installing it
 is either building or pulling the container (i.e. from an AWS elastic container registry, ECR).  This section will cover building
 your own CALDP image.   To complete this section for personal use,  all you need
 is a local installation of Docker and the supplied scripts should run it for you
-even more easily than normal.   This section doesn't cover using Docker in general,
-or hosting your own images on Docker Hub or AWS Elastic Container  Registry (ECR)
+even more easily than normal. This section doesn't cover using Docker in general,
+or hosting your own images on Docker Hub or AWS Elastic Container Registry (ECR)
 where you can make them available to others.
 
 0. Clone this repo to a local directory and CD to it.
 
-1. Edit *scripts/caldp-image-config* to set your Docker repo and default tag.  Unless
-you're ready to push an image,  you can use any name for your respository.   Leave
+1. Edit *scripts/caldp-image-config* to set your Docker repo and default tag. Unless
+you're ready to push an image, you can use any name for your respository. Leave
 the default tag set to "latest" until you're familiar with the scripts and ready
 to modify or improve them.
 
@@ -201,7 +201,7 @@ to modify or improve them.
     caldp-image-build latest
 
 3. (optional) When you're ready to share your image with others and have done the corresponding
-Docker Hub or ECR setup,  you can log in from your shell and then:
+Docker Hub or ECR setup, you can log in from your shell and then:
 
 .. code-block:: sh
 
@@ -211,9 +211,9 @@ The tag you push should match the tag you built.
 
 Docker Run
 ==========
-The following command configures CALDP to run from a container locally.  It has the advantage
+The following command configures CALDP to run from a container locally. It has the advantage
 that the entire HST calibration environment is included within the container so there are no
-other preliminary setup steps other than setting up Docker.   The same container can be run
+other preliminary setup steps other than setting up Docker. The same container can be run
 locally or on pipeline cluster systems like AWS Batch.
 
 .. code-block:: sh
@@ -221,57 +221,57 @@ locally or on pipeline cluster systems like AWS Batch.
     caldp-docker-run-pipeline  <ipppssoot>  [<input_path>]  [<output_path>]   [<caldp_config>]
 
 This should look very similar to the caldp-process command shown in the *Native CALDP* section above
-because it is.  The primary **differences** are that absolute native paths do not work and CRDS is
+because it is. The primary **differences** are that absolute native paths do not work and CRDS is
 configured to download files from the HST OPS server rather than use /grp/crds/cache.
 
 Example Docker Commands (Local File System)
 +++++++++++++++++++++++++++++++++++++++++++
 Below are some parameter examples for running CALDP inside Docker with different input
-and output modes.   caldp-process is *still* configured to run using local files by default.
+and output modes. caldp-process is *still* configured to run using local files by default.
 
 .. code-block:: sh
 
-    # All file access defaults to current working directory.   Inputs must pre-exist.
-    # Inputs:  Finds raw files matching j8cb010b0 in current working directory
-    # Outputs: Puts output product trees under current working directory as data and  messages subdirectories.
-    # CRDS configuration:  Remote configuration, server https://hst-crds.stsci.edu must be up,  files downloaded to crds_cache.
-    # Scratch files:  Extra processing artifacts appear in the current working directory.   Export CALDP_HOME to move them somewhere else.
+    # All file access defaults to current working directory. Inputs must pre-exist.
+    # Inputs: Finds raw files matching j8cb010b0 in current working directory
+    # Outputs: Puts output product trees under current working directory as data and messages subdirectories.
+    # CRDS configuration: Remote configuration, server https://hst-crds.stsci.edu must be up, files downloaded to crds_cache.
+    # Scratch files: Extra processing artifacts appear in the current working directory. Export CALDP_HOME to move them somewhere else.
 
     caldp-docker-run-pipeline j8cb010b0
 
     # ----------------------------------------------------------------------------------------
     # File access in subdirectories, inputs must pre-exist.
-    # Inputs:  Finds raw files matching j8cb010b0 in subdirectory j8cb010b0_inputs.
+    # Inputs: Finds raw files matching j8cb010b0 in subdirectory j8cb010b0_inputs.
     # Outputs: Copies output product tree under subdirectory j8cb010b0_outputs.
-    # CRDS configuration:  Remote configuration, server https://hst-crds.stsci.edu must be up,  files downloaded to crds_cache.
-    # Scratch files:  Extra processing artifacts appear in the current working directory.   Export CALDP_HOME to move them somewhere else.
+    # CRDS configuration: Remote configuration, server https://hst-crds.stsci.edu must be up, files downloaded to crds_cache.
+    # Scratch files: Extra processing artifacts appear in the current working directory. Export CALDP_HOME to move them somewhere else.
 
     caldp-docker-run-pipeline j8cb010b0  file:j8cb010b0_inputs  file:j8cb010b0_outputs
 
 
     # ----------------------------------------------------------------------------------------
     # Download inputs from astroquery as neeed
-    # Inputs:  Downloads raw files matching j8cb010b0 from astroquery to current working directory / CALDP_HOME.
+    # Inputs: Downloads raw files matching j8cb010b0 from astroquery to current working directory / CALDP_HOME.
     # Outputs: Copies output product tree under subdirectory j8cb010b0_outputs.
-    # CRDS configuration:  Remote configuration, server https://hst-crds.stsci.edu must be up,  files downloaded to crds_cache.
-    # Scratch files:  Extra processing artifacts appear in the current working directory.   Export CALDP_HOME to move them somewhere else.
+    # CRDS configuration: Remote configuration, server https://hst-crds.stsci.edu must be up, files downloaded to crds_cache.
+    # Scratch files: Extra processing artifacts appear in the current working directory. Export CALDP_HOME to move them somewhere else.
 
     caldp-docker-run-pipeline j8cb010b0  astroquery:   file:j8cb010b0_outputs
 
 
     # ----------------------------------------------------------------------------------------
-    # Download inputs from astroquery,  upload outputs to S3, current AWS Batch configuration minus Docker.
-    # Inputs:  Downloads raw files matching j8cb010b0 from astroquery to current working directory / CALDP_HOME.
-    # CRDS configuration:  Remote configuration, server https://hst-crds.stsci.edu must be up,  files downloaded to crds_cache.
-    # Scratch files:  Extra processing artifacts appear in the current working directory.   Export CALDP_HOME to move them somewhere else.
+    # Download inputs from astroquery, upload outputs to S3, current AWS Batch configuration minus Docker.
+    # Inputs: Downloads raw files matching j8cb010b0 from astroquery to current working directory / CALDP_HOME.
+    # CRDS configuration: Remote configuration, server https://hst-crds.stsci.edu must be up, files downloaded to crds_cache.
+    # Scratch files: Extra processing artifacts appear in the current working directory. Export CALDP_HOME to move them somewhere else.
 
     caldp-docker-run-pipeline j8cb010b0  astroquery:  s3://calcloud-hst-pipeline-outputs/batch-22
 
-After configuring Docker,  caldp-docker-run-pipeline runs *caldp-process* inside the docker container
-with the parameters given on the command line.  While file: paths are defined relative to your native
-file system,  within the Docker container they will nominally be interpreted relative to */home/developer*.
-Since the CALDP_HOME directory is mounted read/write inside Docker,  files needed to process a dataset
-will be reflected back out of the Docker container to CALDP_HOME,  defaulting to your current working
+After configuring Docker, caldp-docker-run-pipeline runs *caldp-process* inside the docker container
+with the parameters given on the command line. While file: paths are defined relative to your native
+file system, within the Docker container they will nominally be interpreted relative to */home/developer*.
+Since the CALDP_HOME directory is mounted read/write inside Docker, files needed to process a dataset
+will be reflected back out of the Docker container to CALDP_HOME, defaulting to your current working
 directory.
 
 **NOTE:**  Running the final cloud-like configuration above does not produce results idenitical to AWS Batch processing
@@ -280,8 +280,8 @@ the batch trigger lambda which operates on a list of datasets.
 
 Example Docker Commands (AWS Batch)
 +++++++++++++++++++++++++++++++++++
-Below is the calling sequence used to run CALDP on AWS Batch.   This command is specified in the
-AWS Batch job definition and used to run all queued jobs.   The calling sequence uses more
+Below is the calling sequence used to run CALDP on AWS Batch. This command is specified in the
+AWS Batch job definition and used to run all queued jobs. The calling sequence uses more
 customized input parameters in the outermost wrapper script specifying only the S3 output
 bucket and dataset name.
 
@@ -296,18 +296,18 @@ Internally, *caldp-process-aws* runs *caldp-process* automatically configured to
 3. the specified dataset (ipppssoot) to define which data to fetch and process.
 4. a serverless CRDS configuration dependent only on S3 files.
 
-Despite supporting a containerized use case,  since AWS Batch (or equivalent) normally runs
-Docker,  *caldp-process-aws* is effectively a *native* mode command when run by itself.
+Despite supporting a containerized use case, since AWS Batch (or equivalent) normally runs
+Docker, *caldp-process-aws* is effectively a *native* mode command when run by itself.
 There is no wrapper script equivalent to *caldp-docker-run-pipeline* to configure and
-run *caldp-process-aws* inside Docker automatically,  but since it really requires no additional
-file mounts or ports,  it is simple to run with Docker.
+run *caldp-process-aws* inside Docker automatically, but since it really requires no additional
+file mounts or ports, it is simple to run with Docker.
 
 Running *caldp-process-aws* does require access to the CRDS and the output bucket on AWS S3 storage,
 i.e. appropriate credentials and permissions.
 
 Debugging in the Container
 ++++++++++++++++++++++++++
-Sometimes you want to execute commands in the container environment rather than *caldp-process*.  You
+Sometimes you want to execute commands in the container environment rather than *caldp-process*. You
 can run any command using *caldp-docker-run-container* which is itself wrapped by *caldp-docker-run-pipeline*.
 
 .. code-block:: sh
@@ -319,10 +319,10 @@ can run any command using *caldp-docker-run-container* which is itself wrapped b
 About CALDP_HOME
 ++++++++++++++++
 The CALDP_HOME environment variable defines which native directory *caldp-docker-run-pipeline* will
-mount inside the running Docker container at $HOME as read/write.  If not exported,  CALDP_HOME
-defaults to the directory you run caldp-docker-run-pipeline from.   Since *caldp-process*
+mount inside the running Docker container at $HOME as read/write. If not exported, CALDP_HOME
+defaults to the directory you run caldp-docker-run-pipeline from. Since *caldp-process*
 runs at $HOME within the Docker container, any scratch files used during processing will appear
-externally within CALDP_HOME.   Note that using caldp-docker-run-pipeline is not a requirement,
+externally within CALDP_HOME. Note that using caldp-docker-run-pipeline is not a requirement,
 it is just a script used to establish standard Docker configuration for local CALDP execution.
 
 Getting AWS Credentials Inside the Container
@@ -331,33 +331,33 @@ One technique for enabling AWS access inside the container is to put a *.aws* co
 *CALDP_HOME* directory.
 
 Since caldp-docker-run-pipeline mounts CALDP_HOME inside the container at *$HOME*, AWS will see them where it
-expects to find them.   AWS Batch nominally runs worker nodes which have the necessary permissions attached
+expects to find them. AWS Batch nominally runs worker nodes which have the necessary permissions attached
 so no .aws directory is needed on AWS Batch.
 
 Output Structure
 ----------------
 CALDP and CALCLOUD output data in a form desgined to help track the state of individual datasets.
 
-As such,  the output directory is organized into two subdirectories:
+As such, the output directory is organized into two subdirectories:
 
 1. *messages*
 2. *data*
 
-A key difference between CALDP and CALCLOUD is that the  former is designed for processing single
-datasets,  while the latter is designed for processing batches of datasets which are run individually
-by CALCLOUD.  In this context,  normally files downloaded from CALCLOUD's S3 storage to an onsite
-directory are placed in a "batch directory",  and the CALDP equivalent of that batch directory is
-the output directory.   The same messages and data appearing in the CALDP output directory would
+A key difference between CALDP and CALCLOUD is that the former is designed for processing single
+datasets, while the latter is designed for processing batches of datasets which are run individually
+by CALCLOUD. In this context, normally files downloaded from CALCLOUD's S3 storage to an onsite
+directory are placed in a "batch directory", and the CALDP equivalent of that batch directory is
+the output directory. The same messages and data appearing in the CALDP output directory would
 also appeaar in the sync'ed CALCLOUD batch directory.
 
 Messages Subdirectory
 =====================
 The *messages* subdirectory is used to record the status of individual datasets
-as they progress through processing, data transfer, and archiving.  Each dataset has a
+as they progress through processing, data transfer, and archiving. Each dataset has a
 similarly named state file which moves between state directories as it starts or completes
-various states.   The dataset file can be used to record metadata but its primary use
+various states. The dataset file can be used to record metadata but its primary use
 is to enable simple indentification dataset state without the use of a database, queues,
-etc.   Only a local file system is needed to track state using this scheme.   A mirror
+etc. Only a local file system is needed to track state using this scheme. A mirror
 of this same scheme is used on the cloud on S3 storage to help guide file downloads from
 AWS.
 
@@ -366,18 +366,18 @@ AWS.
     <output_path>/
         messages/
             datasets-processed/
-                <ipppssoots...>    # CALDP, normally running on AWS batch, leaves messages here.  they're empty.
+                <ipppssoots...>    # CALDP, normally running on AWS batch, leaves messages here. they're empty.
             dataset-synced/
                 <ipppssoots...>    # CALCLOUD's downloader leaves messages here, normally containing abspaths of files to archive.
             dataset-archived/
-                <ipppssoots...>    # The archive can acknowledge archive completion here,  file contents should be preserved.
+                <ipppssoots...>    # The archive can acknowledge archive completion here, file contents should be preserved.
 
 Data Subdirectory
 =================
 The *data* subdirectory parallels but has a different structure than the *messages*
-subdirectory.   For every ipppssoot message,  there is a data directory and subdirectories
-which contain output files from processsing that ipppssoot.   In the current implementation,
-the ipppssoot message file is empty,  it is normally populated by CALCLOUD's downloader
+subdirectory. For every ipppssoot message, there is a data directory and subdirectories
+which contain output files from processsing that ipppssoot. In the current implementation,
+the ipppssoot message file is empty, it is normally populated by CALCLOUD's downloader
 with the paths of files to archive when it is output to dataset-synced.
 
 .. code-block:: sh
@@ -394,21 +394,21 @@ with the paths of files to archive when it is output to dataset-synced.
 
 Configuring CALDP (advanced)
 ----------------------------
-As explained previously,  each of the 3 CALDP use cases has a different CRDS configuration.
+As explained previously, each of the 3 CALDP use cases has a different CRDS configuration.
 This implementation is described here in case it is necessary to write additional configurations
-or add variables to these.  At present, unlike *caldp-image-config*,  these config scripts
-don't generally need customization,  they are used as-is to support their use cases.
+or add variables to these. At present, unlike *caldp-image-config*, these config scripts
+don't generally need customization, they are used as-is to support their use cases.
 
 CALDP configuration scripts set environment variables which will be defined within the scope
-of *caldp-process*.  These configuration scripts are installed alongside other CALDP scripts so they
-can be sourced directly without knowing where they are installed.   The name of the
+of *caldp-process*. These configuration scripts are installed alongside other CALDP scripts so they
+can be sourced directly without knowing where they are installed. The name of the
 configuration script is passed as a 4th generally defaulted parameter to caldp-process:
 
 .. csv-table::
     :header: "Top Level Script",  "Config Script", "Description"
     :widths: 15, 15, 50
 
-    caldp-process, caldp-config-onsite, Configures CRDS to operate from Central Store /grp/crds/cache.  Should scale.
-    caldp-docker-run-pipeline, caldp-config-offsite, Configures CRDS to download from CRDS server.  This may not scale well.
-    caldp-process-aws, caldp-config-aws, Configures CRDS to operate from S3 storage with no server dependency.  Should scale.
+    caldp-process, caldp-config-onsite, Configures CRDS to operate from Central Store /grp/crds/cache. Should scale.
+    caldp-docker-run-pipeline, caldp-config-offsite, Configures CRDS to download from CRDS server. This may not scale well.
+    caldp-process-aws, caldp-config-aws, Configures CRDS to operate from S3 storage with no server dependency. Should scale.
 
