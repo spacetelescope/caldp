@@ -78,7 +78,7 @@ def test_ipppssoot(tmpdir, ipppssoot):
     old_dir = working_dir.chdir()
     try:
         process.process(ipppssoot, "astroquery:", "file:outputs/" + ipppssoot)
-        os.system("ls -1st *.fits *.tra")
+        os.system("/bin/ls -1st *.fits *.tra")
         check_results(ipppssoot)
     finally:
         old_dir.chdir()
