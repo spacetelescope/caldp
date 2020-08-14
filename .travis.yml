@@ -11,5 +11,5 @@ matrix:
         - env: TOXENV=coverage
         - env: TOXENV=bandit
 install:
-    - pip install tox tox-conda
+    - pip install tox
 script: tox
