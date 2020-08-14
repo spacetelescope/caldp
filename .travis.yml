@@ -15,9 +15,8 @@ install:
     - conda config --set always_yes yes --set changeps1 no
     - conda update -q conda
     - conda info -a
-    - curl -O https://ssb.stsci.edu/releases/caldp/${HSTCAL}/latest-linux.yml
-    - cat latest-linux.yml
-    - conda env create -q -n caldp_${HSTCAL} --file latest-linux.yml
+    - git clone https://github.com/astroconda/astroconda-releases
+    - conda env create -q -n caldp_${HSTCAL} --file astroconda-releases/caldp/${HSTCAL}/latest-linux.yml
     - conda activate caldp_${HSTCAL}
     - pip install .[test,dev]
     - caldp-install-fitscut
