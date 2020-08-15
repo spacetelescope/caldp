@@ -18,5 +18,4 @@ esac
 rm -rf astroconda-releases
 git clone https://github.com/astroconda/astroconda-releases
 conda env create -n ${CONDA_ENV} --file astroconda-releases/caldp/${HSTCAL}/latest-${CALOS}.yml
-conda activate ${CONDA_ENV}
 rm -rf astroconda-releases
