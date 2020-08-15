@@ -11,10 +11,13 @@ cd scripts
 source ~/.bashrc
 
 # Install fundamental CAL code using pipeline release package list
-./calp-install-cal  ${PY_VER}
+./caldp-install-cal  ${PY_VER}
+conda activate ${CONDA_ENV}
 
 # Install fitscut for image previews (requires caldp already installed)
 ./caldp-install-fitscut   ${CONDA_DIR}/envs/${CONDA_ENV}
+
+cd ..
 
 # Install caldp and dependencies
 pip install .[test,dev]
