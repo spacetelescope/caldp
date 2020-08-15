@@ -7,7 +7,7 @@ rm -rf install-fitscut.tmp
 mkdir install-fitscut.tmp
 cd install-fitscut.tmp/
 
-conda install --yes --quiet libpng  cfitsio
+$PREFIX/../../bin/conda install --yes --quiet libpng  cfitsio
 
 # git clone https://github.com/healpy/cfitsio.git
 # cd cfitsio && git checkout 8838182 && ./configure --prefix=${PREFIX} && make && make install
