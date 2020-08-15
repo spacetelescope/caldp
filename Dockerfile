@@ -3,61 +3,52 @@
 
 # DATB's HST CAL code build for the pipeline
 # FROM astroconda/buildsys-pipeline:HCALDP-atodsat-CAL-rc1
-FROM astroconda/buildsys-pipeline:HCALDP_20200708_CAL
-ENV CSYS_VER caldp_20200708
+# FROM astroconda/buildsys-pipeline:HCALDP_20200708_CAL
+# ENV CSYS_VER caldp_20200708
+
+FROM centos:8
 
 LABEL maintainer="dmd_octarine@stsci.edu" \
       vendor="Space Telescope Science Institute"
 
-# Environment variables
 ENV MKL_THREADING_LAYER="GNU"
 
 USER root
 
 # RUN yum update  -y
 
-RUN yum install -y curl rsync time
-
-RUN pip install --upgrade pip
-RUN pip install awscli boto3
-# RUN pip install jupyterlab
-RUN pip install spec-plots==1.34.6
-
 # Install s/w dev tools for fitscut build
 RUN yum install -y \
+   curl \
+   wget \
+   rsync \
+   time \
+   git \
    emacs-nox \
    make \
    gcc \
    gcc-c++ \
    gcc-gfortran \
-   python3 \
-   python3-devel \
-   htop \
-   wget \
-   git \
    libpng-devel \
    libjpeg-devel \
    libcurl-devel \
    tar
 
-RUN conda install cfitsio
+#   python3 \
+#   python3-devel \
 
-# Install fitscut
-COPY scripts/caldp-install-fitscut  .
-RUN ./caldp-install-fitscut /usr/local && \
-    rm ./caldp-install-fitscut && \
-    echo "/usr/local/lib" >> /etc/ld.so.conf && \
-   ldconfig
+RUN mkdir /grp/crds/cache
 
 # Install caldp pip package from local source
-RUN mkdir caldp-install
-ADD . caldp-install/
-RUN pip install caldp-install/ \
-    && rm -rf caldp-install/
-
-RUN mkdir -p /grp/crds/cache
-
-# RUN yum install -y nfs-utils
-
 WORKDIR /home/developer
 USER developer
+
+RUN mkdir caldp-install
+ADD . caldp-install/
+RUN cd caldp-install && \
+    scripts/caldp-install-all  && \
+    cd .. && \
+    rm -rf caldp-install
+RUN echo "/usr/local/lib" >> /etc/ld.so.conf   &&\
+    ldconfig
+

@@ -12,6 +12,7 @@ cd scripts
 # Install fundamental CAL code using pipeline release package list
 git clone https://github.com/astroconda/astroconda-releases
 conda env create -q -n ${CONDA_ENV} python=${PY_VER}  --file astroconda-releases/caldp/${HSTCAL}/latest-linux.yml
+rm -rf astroconda-releases
 conda activate ${CONDA_ENV}
 
 # Install fitscut for image previews (requires caldp already installed)
