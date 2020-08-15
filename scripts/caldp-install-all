@@ -1,0 +1,21 @@
+#! /bin/bash -eux
+
+HSTCAL=${1:-"stable"}
+PY_VER=${2:-3.6.10}
+CONDA_DIR=${3:-"${HOME}/miniconda3"}
+CONDA_ENV=${4:-"caldp_${HSTCAL}"}
+
+# Install base conda system
+cd scripts
+./caldp-install-conda  $CONDA_DIR  $CONDA_ENV
+
+# Install fundamental CAL code using pipeline release package list
+git clone https://github.com/astroconda/astroconda-releases
+conda env create -q -n ${CONDA_ENV} python=${PY_VER}  --file astroconda-releases/caldp/${HSTCAL}/latest-linux.yml
+conda activate ${CONDA_ENV}
+
+# Install fitscut for image previews (requires caldp already installed)
+./caldp-install-fitscut   ${CONDA_DIR}/envs/${CONDA_ENV}
+
+# Install caldp and dependencies
+pip install .[test,dev]
