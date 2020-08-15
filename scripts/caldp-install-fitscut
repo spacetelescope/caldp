@@ -2,6 +2,7 @@
 export PS1="@ "
 export PREFIX=${1:-"/usr/local"}
 
+pushd .
 rm -rf install-fitscut.tmp
 mkdir install-fitscut.tmp
 cd install-fitscut.tmp/
@@ -25,5 +26,5 @@ export LDFLAGS=-L${PREFIX}/lib
 git clone https://github.com/spacetelescope/fitscut
 cd fitscut && git checkout c76680d && ./configure --prefix=${PREFIX} && make && make install
 
-cd ../..
+popd
 rm -rf install-fitscut.tmp
