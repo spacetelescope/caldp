@@ -40,10 +40,14 @@ RUN yum install -y \
    libcurl-devel \
    tar
 
+RUN conda install cfitsio
+
 # Install fitscut
 COPY scripts/caldp-install-fitscut  .
-RUN ./caldp-install-fitscut && \
-    rm ./caldp-install-fitscut
+RUN ./caldp-install-fitscut /usr/local && \
+    rm ./caldp-install-fitscut && \
+    echo "/usr/local/lib" >> /etc/ld.so.conf && \
+   ldconfig
 
 # Install caldp pip package from local source
 RUN mkdir caldp-install
