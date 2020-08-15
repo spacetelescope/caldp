@@ -1,6 +1,6 @@
 #! /bin/bash  -ex
 
-WHERE=${1:-"$HOME/miniconda3"}
+CONDA_DIR=${1:-"$HOME/miniconda3"}
 CONDA_ENV=${2:-caldp_stable}
 SHELL=${3:-bash}
 OS=${4:-`uname -s`}
@@ -31,16 +31,16 @@ case $SHELL in
         ;;
 esac
 
-echo "Installing   OS=$OS  CONDA_ENV=$CONDA_ENV  SHELL=$SHELL  WHERE=$WHERE"
+echo "Installing   OS=$OS  CONDA_ENV=$CONDA_ENV  SHELL=$SHELL  CONDA_DIR=$CONDA_DIR"
 
-rm -rf $WHERE
+rm -rf $CONDA_DIR
 rm -f ${CONDA_INSTALLER}*
 wget --no-check-certificate https://repo.anaconda.com/miniconda/${CONDA_INSTALLER}
 
-bash ${CONDA_INSTALLER}  -b -p $WHERE
+bash ${CONDA_INSTALLER}  -b -p $CONDA_DIR
 rm -f ${CONDA_INSTALLER}
 
-source $WHERE/etc/profile.d/conda.sh
+source $CONDA_DIR/etc/profile.d/conda.sh
 hash -r
 conda info -a
 conda update --yes -n base -c defaults conda
