@@ -1,0 +1,22 @@
+#! /bin/bash -ex
+
+# Installs the base HST calibration programs included with astroconda-releases/caldp
+
+PY_VER=${1:-3.6.10}
+HSTCAL=${2:-stable}
+CONDA_ENV=${3:-"caldp_${HSTCAL}"}
+OS=${4:-`uname -s`}
+
+case $OS in
+    Darwin)
+        CALOS=macos
+        ;;
+    Linux)
+        CALOS=linux
+        ;;
+esac
+rm -rf astroconda-releases
+git clone https://github.com/astroconda/astroconda-releases
+conda env create -n ${CONDA_ENV} --file astroconda-releases/caldp/${HSTCAL}/latest-${CALOS}.yml
+conda activate ${CONDA_ENV}
+rm -rf astroconda-releases
