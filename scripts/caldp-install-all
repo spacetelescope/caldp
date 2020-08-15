@@ -6,18 +6,20 @@ CONDA_ENV=${3:-"caldp_${HSTCAL}"}
 CONDA_DIR=${4:-"${HOME}/miniconda3"}
 
 # Install base conda system
+pushd .
+
 cd scripts
 ./caldp-install-conda  $CONDA_DIR  $CONDA_ENV
 source ~/.bashrc
 
 # Install fundamental CAL code using pipeline release package list
-./caldp-install-cal  ${PY_VER}
+./caldp-install-cal  ${PY_VER} ${HSTCAL} ${CONDA_ENV} ${CONDA_DIR}
 conda activate ${CONDA_ENV}
 
 # Install fitscut for image previews (requires caldp already installed)
 ./caldp-install-fitscut   ${CONDA_DIR}/envs/${CONDA_ENV}
 
-cd ..
+popd
 
 # Install caldp and dependencies
 pip install .[test,dev]
