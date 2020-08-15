@@ -1,31 +1,29 @@
-#! /bin/bash  -ex
+#! /bin/bash  -eux
+export PS1="@ "
+export PREFIX=${1:-"/usr/local"}
 
-cd ~
-mkdir tmp
-cd tmp/
+rm -rf install-fitscut.tmp
+mkdir install-fitscut.tmp
+cd install-fitscut.tmp/
+
+conda install --yes --quiet libpng
 
 git clone https://github.com/healpy/cfitsio.git
-cd cfitsio && git checkout 8838182 && ./configure && make && make install
-cd ..
-rm -rf cfitsio
+cd cfitsio && git checkout 8838182 && ./configure --prefix=${PREFIX} && make && make install
 
 wget http://tdc-www.harvard.edu/software/wcstools/wcstools-3.9.5.tar.gz
 tar -zxf wcstools-3.9.5.tar.gz
 cd wcstools-3.9.5 && make
-mkdir -p /usr/local/include/libwcs
-cd ..
-cp wcstools-3.9.5/libwcs/*.h /usr/local/include/libwcs
-cp wcstools-3.9.5/libwcs/*.a /usr/local/lib
-cd ..
-rm -rf wcstools-3.9.5*
+mkdir -p ${PREFIX}/include/libwcs
+cp libwcs/*.h ${PREFIX}/include/libwcs
+cp libwcs/*.a ${PREFIX}/lib
+cp -r bin/* ${PREFIX}/bin
 
 # export LD_LIBRARY_PATH=/usr/local/lib:/usr/lib
-export LDFLAGS="-L/usr/local/lib ${LDFLAGS}"
+export LDFLAGS=-L${PREFIX}/lib
 
 git clone https://github.com/spacetelescope/fitscut
-cd fitscut && git checkout c76680d && ./configure && make && make install
-cd ..
-rm -rf fitscut
+cd fitscut && git checkout c76680d && ./configure --prefix=${PREFIX} && make && make install
 
-echo "/usr/local/lib" >> /etc/ld.so.conf
-ldconfig
+cd ..
+rm -rf install-fitscut.tmp
