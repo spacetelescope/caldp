@@ -24,4 +24,8 @@ install:
     - pip install tox
     - scripts/caldp-install-all  ${HSTCAL}
 
-script: tox
+script:
+    - source "$HOME/miniconda/etc/profile.d/conda.sh"
+    - conda activate caldp_${HSTCAL}
+    - pytest caldp --cov=caldp --cov-report=term-missing
+
