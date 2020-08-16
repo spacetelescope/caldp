@@ -1,7 +1,7 @@
 #! /bin/bash -ex
 
 HSTCAL=${1:-"stable"}
-PY_VER=${2:-"3.6"}
+PY_VER=${2:-"3.6.10"}
 CONDA_ENV=${3:-"caldp_${HSTCAL}"}
 CONDA_DIR=${4:-"${HOME}/miniconda3"}
 
@@ -9,11 +9,12 @@ CONDA_DIR=${4:-"${HOME}/miniconda3"}
 pushd .
 
 cd scripts
-./caldp-install-conda  $CONDA_DIR  $CONDA_ENV
+./caldp-install-conda  $CONDA_DIR
 source ~/.bashrc
 
 # Install fundamental CAL code using pipeline release package list
 ./caldp-install-cal  ${PY_VER} ${HSTCAL} ${CONDA_ENV} ${CONDA_DIR}
+
 conda activate ${CONDA_ENV}
 
 # Install fitscut for image previews (requires caldp already installed)
@@ -21,5 +22,6 @@ conda activate ${CONDA_ENV}
 
 popd
 
-# Install caldp and dependencies
-pip install .[test,dev]
+
+pip install .[dev,test]
+

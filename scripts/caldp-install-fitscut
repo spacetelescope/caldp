@@ -1,16 +1,16 @@
 #! /bin/bash  -eux
 export PS1="@ "
-export PREFIX=${1:-"/usr/local"}
+export PREFIX=${1:-"$HOME/miniconda3"}
 
 pushd .
 rm -rf install-fitscut.tmp
 mkdir install-fitscut.tmp
 cd install-fitscut.tmp/
 
-$PREFIX/../../bin/conda install --yes --quiet libpng  cfitsio
+# $PREFIX/../../bin/conda install --yes --quiet libpng  cfitsio
 
-# git clone https://github.com/healpy/cfitsio.git
-# cd cfitsio && git checkout 8838182 && ./configure --prefix=${PREFIX} && make && make install
+git clone https://github.com/healpy/cfitsio.git
+cd cfitsio && git checkout 8838182 && ./configure --prefix=${PREFIX} && make && make install
 
 wget http://tdc-www.harvard.edu/software/wcstools/wcstools-3.9.5.tar.gz
 tar -zxf wcstools-3.9.5.tar.gz

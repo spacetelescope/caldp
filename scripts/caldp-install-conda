@@ -1,9 +1,8 @@
 #! /bin/bash  -ex
 
 CONDA_DIR=${1:-"$HOME/miniconda3"}
-CONDA_ENV=${2:-caldp_stable}
-SHELL=${3:-bash}
-OS=${4:-`uname -s`}
+SHELL=${2:-bash}
+OS=${3:-`uname -s`}
 
 case $OS in
     Darwin)
