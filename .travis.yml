@@ -21,6 +21,7 @@ matrix:
         - env: HSTCAL=latest
 
 install:
+    - pip install tox
     - scripts/caldp-install-all  ${HSTCAL}
 
 script: tox
