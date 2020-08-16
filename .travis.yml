@@ -1,7 +1,7 @@
 sudo: false
 dist: bionic
 language: python
-python: 3.6.10
+python: 3.7
 env:
     global:   #  caldp-config-offsite
         - CRDS_PATH=$HOME/crds_cache
