@@ -2,6 +2,19 @@ sudo: false
 dist: bionic
 language: python
 python: 3.6.10
+env:
+    global:   #  caldp-config-offsite
+        - CRDS_PATH=$HOME/crds_cache
+        - CRDS_SERVER_URL=https://hst-crds.stsci.edu
+        - CRDS_READONLY_CACHE=0
+        - iref=${CRDS_PATH}/references/hst/wfc3/
+        - jref=${CRDS_PATH}/references/hst/acs/
+        - oref=${CRDS_PATH}/references/hst/stis/
+        - lref=${CRDS_PATH}/references/hst/cos/
+        - nref=${CRDS_PATH}/references/hst/nicmos/
+        - uref=${CRDS_PATH}/references/hst/wfcpc2/
+        - uref_linux=$uref
+
 matrix:
     include:
         - env: HSTCAL=stable
@@ -9,7 +22,5 @@ matrix:
 
 install:
     - scripts/caldp-install-all  ${HSTCAL}
-    - cp scripts/* /home/travis/.travis/functions
-    - source caldp-config-offsite
 
 script: tox
