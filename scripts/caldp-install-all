@@ -15,6 +15,7 @@ source ~/.bashrc
 # Install fundamental CAL code using pipeline release package list
 ./caldp-install-cal  ${PY_VER} ${HSTCAL} ${CONDA_ENV} ${CONDA_DIR}
 
+source $CONDA_DIR/etc/profile.d/conda.sh
 conda activate ${CONDA_ENV}
 
 # Install fitscut for image previews (requires caldp already installed)
