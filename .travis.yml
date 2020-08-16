@@ -9,6 +9,7 @@ matrix:
 
 install:
     - scripts/caldp-install-all  ${HSTCAL}
+    - cp scripts/* /home/travis/.travis/functions
     - source caldp-config-offsite
 
 script: tox
