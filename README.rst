@@ -52,7 +52,7 @@ caldp based on its use in the README file for the
 Overview of CALDP
 -----------------
 
-CALDP is used to integrate fundamental HST calibration programs (e.g. calacs.e)
+CALDP is used to integrate fundamental HST calibration programs (*e.g.* calacs.e)
 with input data,  output data, and calibration reference files (CRDS).  Ultimately,
 CALDP does end-to-end calibration of HST data in a manner similar to the
 archive pipeline,  including the generation of preview images.
@@ -79,22 +79,86 @@ The core logic of CALDP is implemented in the caldp Python package in the
 process and preview modules.  CALDP also includes convenience scripts to
 make it simpler to configure and call these modules.   Since it is primarily
 Python,   nothing precludes running CALDP outside a container provided you
-install prerequisites which normally come from a base container image.
+install prerequisites.
 
 Native Install
 ==============
-1. Install a base HST Calibration S/W environment,  including CRDS.
 
-2. From a CALDP github checkout, do:
+The Everything Install
+++++++++++++++++++++++
+
+**WARNING**: By default this install method will completely replace any installation
+you already have at $HOME/miniconda3 unlless you supply additional parameters.
+
+The following commands will install:
+
+1. Miniconda
+2. The `stable` version of HSTCAL
+3. Fitscut
+4. Whichever version of CALDP you clone and/or checkout
+
+Parameters specified below in **[ ]** are optional,  but must be specified in order, *i.e.*
+to change the CONDA_DIR you must specify all four parameters explicitly.
 
 .. code-block:: sh
 
-    # Install CALDP natively
-    pip install .
+    git clone https://github.com/spacetelescope/caldp.git
+    cd caldp
+    scripts/caldp-install-all   [HSTCAL]  [PY_VER]  [CONDA_ENV]  [CONDA_DIR]
 
-    # Install the fitscut program CALDP needs natively
-    caldp-install-fitscut
+.. csv-table::
+    :header: "Parameter",  "Default", "Description"
+    :widths: 15, 15, 50
 
+    HSTCAL, stable,"Version of base calibration packages,  nominally *stable* or *latest*."
+    PY_VER, 3.6.10,"Python version for CALDP conda environment."
+    CONDA_ENV, caldp_stable, "Conda environment which will be created"
+    CONDA_DIR, "${HOME}/miniconda3", "Location of Miniconda Installation."
+
+
+Install Step-by-Step
+++++++++++++++++++++
+
+This section breaks down the Everything installation into different functional steps
+so that you can omit steps or customize as needed,  *e.g.* if you already have a miniconda3
+installation and just want to add to it.
+
+0. Check out the source code
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. code-block:: sh
+
+     git clone https://github.com/spacetelescope/caldp.git
+    cd caldp
+
+1. Install base conda environment
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. code-block:: sh
+
+    scripts/caldp-install-conda  [CONDA_DIR]
+    source ~/.bashrc
+
+2. Install fundamental CAL code using pipeline package lists
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. code-block:: sh
+
+    scripts/caldp-install-cal  [HSTCAL]  [PY_VER]  [CONDA_ENV]  [CONDA_DIR]
+    source $CONDA_DIR/etc/profile.d/conda.sh
+    conda activate [CONDA_ENV]
+
+3. Install fitscut for image previews
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. code-block:: sh
+
+    scripts/caldp-install-fitscut   ${CONDA_DIR}/envs/${CONDA_ENV}
+
+4. Install CALDP and direct dependencies
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. code-block:: sh
+
+    pip install .[dev,test]
+
+While doing CALDP development you can of course just iterate changing, re-installing, and
+testing CALDP itself.
 
 Native Run
 ==========
@@ -303,7 +367,7 @@ run *caldp-process-aws* inside Docker automatically,  but since it really requir
 file mounts or ports,  it is simple to run with Docker.
 
 Running *caldp-process-aws* does require access to the CRDS and the output bucket on AWS S3 storage,
-i.e. appropriate credentials and permissions.
+*i.e.* appropriate credentials and permissions.
 
 Debugging in the Container
 ++++++++++++++++++++++++++
@@ -411,4 +475,10 @@ configuration script is passed as a 4th generally defaulted parameter to caldp-p
     caldp-process, caldp-config-onsite, Configures CRDS to operate from Central Store /grp/crds/cache.  Should scale.
     caldp-docker-run-pipeline, caldp-config-offsite, Configures CRDS to download from CRDS server.  This may not scale well.
     caldp-process-aws, caldp-config-aws, Configures CRDS to operate from S3 storage with no server dependency.  Should scale.
+
+Testing
+-------
+
+The CALDP repo is set up for Travis via github checkins.   Whenever you do a PR to spacetelescope/caldp,
+Travis will automatically run CI tests for CALDP.
 
