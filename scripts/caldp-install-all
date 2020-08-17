@@ -13,7 +13,7 @@ cd scripts
 source ~/.bashrc
 
 # Install fundamental CAL code using pipeline release package list
-./caldp-install-cal  ${PY_VER} ${HSTCAL} ${CONDA_ENV} ${CONDA_DIR}
+./caldp-install-cal  ${HSTCAL} ${PY_VER} ${CONDA_ENV} ${CONDA_DIR}
 
 source $CONDA_DIR/etc/profile.d/conda.sh
 conda activate ${CONDA_ENV}
