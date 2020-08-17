@@ -1,4 +1,4 @@
-#! /bin/bash  -eux
+#! /bin/bash  -eu
 export PS1="@ "
 export PREFIX=${1:-"$HOME/miniconda3"}
 
