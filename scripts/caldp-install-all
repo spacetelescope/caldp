@@ -1,9 +1,9 @@
 #! /bin/bash -e
 
-HSTCAL=${1:-"stable"}
-PY_VER=${2:-"3.6.10"}
-CONDA_ENV=${3:-"caldp_${HSTCAL}"}
-CONDA_DIR=${4:-"${HOME}/miniconda3"}
+HSTCAL=${1:-"stable"}                # Version of base calibration packages,  nominally stable or latest.
+PY_VER=${2:-"3.6.10"}                # Python version for CALDP conda environment
+CONDA_ENV=${3:-"caldp_${HSTCAL}"}    # Conda environment which will be created
+CONDA_DIR=${4:-"${HOME}/miniconda3"} # Location of Miniconda
 
 # Install base conda system
 pushd .
