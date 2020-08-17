@@ -14,6 +14,7 @@ USER root
 
 # Install s/w dev tools for fitscut build
 RUN yum install -y \
+   sudo \
    curl \
    wget \
    rsync \
@@ -27,10 +28,15 @@ RUN yum install -y \
    libpng-devel \
    libjpeg-devel \
    libcurl-devel \
+   zlib-devel \
+   bzip2-devel \
+   glibc-devel \
+   kernel-devel \
+   libX11-devel \
+   mesa-libGL \
+   mesa-libGLU \
+   ncurses-devel \
    tar
-
-#   python3 \
-#   python3-devel \
 
 RUN mkdir -p /grp/crds/cache
 
@@ -58,7 +64,7 @@ RUN mkdir scripts.tmp && cd scripts.tmp && source $HOME/.bashrc && \
 # Create caldp_xxxx environment and install HST CAL programs + dependencies
 RUN mkdir scripts.tmp && cd scripts.tmp && source $HOME/.bashrc && \
    $HOME/scripts/caldp-install-cal  && \
-   cd $HOME && rm -rf scripts.tmp
+   cd $HOME && rm -rf scripts.tmp && rm -rf scripts
 
 RUN echo "conda activate caldp_stable" >> $HOME/.bashrc
 
