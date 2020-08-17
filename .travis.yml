@@ -25,7 +25,7 @@ install:
     - scripts/caldp-install-all  ${HSTCAL}
 
 script:
-    - source "$HOME/miniconda/etc/profile.d/conda.sh"
+    - source "$HOME/miniconda3/etc/profile.d/conda.sh"
     - conda activate caldp_${HSTCAL}
     - pytest caldp --cov=caldp --cov-report=term-missing
 
