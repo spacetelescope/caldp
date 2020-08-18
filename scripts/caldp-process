@@ -9,6 +9,10 @@ input_path=${2:-"file:."}
 output_path=${3:-"file:."}
 caldp_config=${4:-"caldp-config-onsite"}
 
+if [ -z "$DEV_HOME" ]; then
+    export DEV_HOME=.
+fi
+
 # Configure TIME to point to Gnu's time program which can collect process metrics.
 if [ `uname` = "Darwin" -a -f /usr/local/bin/gtime ]; then  # brew install gnu-time
     TIME=/usr/local/bin/gtime
@@ -112,7 +116,7 @@ if [ $output_location == "file" ]; then
     fi
     echo "Messaging ${message_type}"
     echo "${message_type} ${ipppssoot}" >${ipppssoot}
-    # outputs file paths to 
+    # outputs file paths to
     find ${stripped_output}/data -mindepth 1 -type f | grep ${ipppssoot:0:6} | while read file; do
         echo "${DEV_HOME}/${file}" >> ${ipppssoot}
     done
