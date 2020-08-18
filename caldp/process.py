@@ -21,7 +21,10 @@ import subprocess
 import boto3
 
 from astropy.io import fits
-from drizzlepac.haputils.astroquery_utils import retrieve_observation
+try:
+    from drizzlepac.haputils.astroquery_utils import retrieve_observation
+except ImportError:
+    from drizzlepac.halutils.astroquery_utils import retrieve_observation
 
 from crds.bestrefs import bestrefs
 
