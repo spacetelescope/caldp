@@ -41,14 +41,15 @@ jobs:
     - name: Docker image
       services: docker
       before_install:
-        - docker pull $DOCKER_REPO:$DOCKER_TAG
+        # - docker pull $DOCKER_REPO:$DOCKER_TAG
+        - docker build -f Dockerfile  -t ${DOCKER_REPO}:${DOCKER_TAG}  .
       install:
         - pip install .[dev,test]
       script:
-        - docker run $DOCKER_REPO:$DOCKER_TAG caldp-process  j8cb010b0  astroquery  file:.  caldp-config-offsite
-        - docker run $DOCKER_REPO:$DOCKER_TAG caldp-process  octka6010  astroquery  file:.  caldp-config-offsite
-        - docker run $DOCKER_REPO:$DOCKER_TAG caldp-process  ldqhpbi9q  astroquery  file:.  caldp-config-offsite
-        - docker run $DOCKER_REPO:$DOCKER_TAG caldp-process  idgg23ztq  astroquery  file:.  caldp-config-offsite
+        - docker run $DOCKER_REPO:$DOCKER_TAG  caldp-process  j8cb010b0  astroquery  file:.  caldp-config-offsite
+        - docker run $DOCKER_REPO:$DOCKER_TAG  caldp-process  octka6010  astroquery  file:.  caldp-config-offsite
+        - docker run $DOCKER_REPO:$DOCKER_TAG  caldp-process  ldqhpbi9q  astroquery  file:.  caldp-config-offsite
+        - docker run $DOCKER_REPO:$DOCKER_TAG  caldp-process  idgg23ztq  astroquery  file:.  caldp-config-offsite
 
     - name: Black style checks
       install:
