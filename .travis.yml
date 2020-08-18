@@ -1,7 +1,7 @@
 sudo: false
 dist: bionic
 language: python
-python: 3.7
+python: 3.6.10
 env:
     global:   #  caldp-config-offsite
         - CRDS_PATH=$HOME/crds_cache
@@ -15,47 +15,36 @@ env:
         - uref=${CRDS_PATH}/references/hst/wfcpc2/
         - uref_linux=$uref
 
-matrix:
-    include:
-        - env: HSTCAL=stable
-        - env: HSTCAL=latest
-
 jobs:
   # Don't wait for allowed failures
   fast_finish: true
 
   include:
-    - name: Stable dependency versions
-      python: 3.6.10
-      env:
-        GEN_MIN_DEPS=true
-        PIP_DEPENDENCIES="-r requirements-min.txt .[dev,test]"
-        TEST_COMMAND=pytest
-        HSTCAL=stable
-      install:
-        - scripts/caldp-install-all  ${HSTCAL}
-      script:
-        - source "$HOME/miniconda3/etc/profile.d/conda.sh"
-        - conda activate caldp_${HSTCAL}
-        - pytest caldp --cov=caldp --cov-report=term-missing
+    - name: Pytest functional tests
+        matrix:
+            include:
+                - env: HSTCAL=stable
+                - env: HSTCAL=latest
+        install:
+            - scripts/caldp-install-all  ${HSTCAL}
+        script:
+            - source "$HOME/miniconda3/etc/profile.d/conda.sh"
+            - conda activate caldp_${HSTCAL}
+            - pytest caldp --cov=caldp --cov-report=term-missing
 
-    # Native install oldest dependencies
-    - name: Latest dependency versions
-      python: 3.6.10
-      env:
-        GEN_MIN_DEPS=true
-        PIP_DEPENDENCIES="-r requirements-min.txt .[dev,test]"
-        TEST_COMMAND=pytest
-        HSTCAL=stable
-      install:
-        - scripts/caldp-install-all  ${HSTCAL}
-      script:
-        - source "$HOME/miniconda3/etc/profile.d/conda.sh"
-        - conda activate caldp_${HSTCAL}
-        - pytest caldp --cov=caldp --cov-report=term-missing
+    - name Black style checks
+        script:
+            black --check caldp caldp/tests
 
+    -name Flake8 python lint checks
+        script:
+            flake8 --count caldp
 
-#     - name: SDP dependencies in requirements-sdp.txt, CRDS_CONTEXT=jwst-edit
+    -name Bandit security checks
+        script:
+            bandit -r caldp
+
+ #     - name: SDP dependencies in requirements-sdp.txt, CRDS_CONTEXT=jwst-edit
 #       python: 3.7.7
 #       env:
 #         PIP_DEPENDENCIES="-r requirements-sdp.txt .[test]"
