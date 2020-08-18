@@ -44,10 +44,10 @@ jobs:
         - docker pull $DOCKER_IMAGE:$DOCKER_TAG
       script:
         - pip install caldp
-        - docker run $DOCKER_IMAGE:$DOCKER_TAG caldp-process-offsite   j8cb010b0
-        - docker run $DOCKER_IMAGE:$DOCKER_TAG caldp-process-offsite   octka6010
-        - docker run $DOCKER_IMAGE:$DOCKER_TAG caldp-process-offsite   ldqhpbi9q
-        - docker run $DOCKER_IMAGE:$DOCKER_TAG caldp-process-offsite   idgg23ztq
+        - docker run $DOCKER_IMAGE:$DOCKER_TAG caldp-process  j8cb010b0  astroquery  file:.  caldp-config-offsite
+        - docker run $DOCKER_IMAGE:$DOCKER_TAG caldp-process  octka6010  astroquery  file:.  caldp-config-offsite
+        - docker run $DOCKER_IMAGE:$DOCKER_TAG caldp-process  ldqhpbi9q  astroquery  file:.  caldp-config-offsite
+        - docker run $DOCKER_IMAGE:$DOCKER_TAG caldp-process  idgg23ztq  astroquery  file:.  caldp-config-offsite
 
     - name: Black style checks
       install:
