@@ -20,12 +20,61 @@ matrix:
         - env: HSTCAL=stable
         - env: HSTCAL=latest
 
-install:
-    - pip install tox
-    - scripts/caldp-install-all  ${HSTCAL}
+jobs:
+  # Don't wait for allowed failures
+  fast_finish: true
 
-script:
-    - source "$HOME/miniconda3/etc/profile.d/conda.sh"
-    - conda activate caldp_${HSTCAL}
-    - pytest caldp --cov=caldp --cov-report=term-missing
+  include:
+    - name: Stable dependency versions
+      python: 3.6.10
+      env:
+        GEN_MIN_DEPS=true
+        PIP_DEPENDENCIES="-r requirements-min.txt .[dev,test]"
+        TEST_COMMAND=pytest
+        HSTCAL=stable
+      install:
+        - scripts/caldp-install-all  ${HSTCAL}
+      script:
+        - source "$HOME/miniconda3/etc/profile.d/conda.sh"
+        - conda activate caldp_${HSTCAL}
+        - pytest caldp --cov=caldp --cov-report=term-missing
+
+    # Native install oldest dependencies
+    - name: Latest dependency versions
+      python: 3.6.10
+      env:
+        GEN_MIN_DEPS=true
+        PIP_DEPENDENCIES="-r requirements-min.txt .[dev,test]"
+        TEST_COMMAND=pytest
+        HSTCAL=stable
+      install:
+        - scripts/caldp-install-all  ${HSTCAL}
+      script:
+        - source "$HOME/miniconda3/etc/profile.d/conda.sh"
+        - conda activate caldp_${HSTCAL}
+        - pytest caldp --cov=caldp --cov-report=term-missing
+
+
+#     - name: SDP dependencies in requirements-sdp.txt, CRDS_CONTEXT=jwst-edit
+#       python: 3.7.7
+#       env:
+#         PIP_DEPENDENCIES="-r requirements-sdp.txt .[test]"
+#         CRDS_CONTEXT=jwst-edit
+#         TEST_COMMAND=pytest
+
+#     - name: Dev dependencies in requirements-dev.txt
+#       env:
+#         PIP_DEPENDENCIES="-r requirements-dev.txt .[test]"
+#         TEST_COMMAND=pytest
+
+#     - name: Warnings treated as Exceptions
+#       env:
+#         TEST_COMMAND="pytest -W error"
+
+
+
+# script:
+#     - source "$HOME/miniconda3/etc/profile.d/conda.sh"
+#     - conda activate caldp_${HSTCAL}
+#     - pytest caldp --cov=caldp --cov-report=term-missing
 
