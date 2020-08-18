@@ -15,7 +15,7 @@ env:
         - uref=${CRDS_PATH}/references/hst/wfcpc2/
         - uref_linux=$uref
         - DOCKER_REPO=jaytmiller/caldp
-        - DOCKER_TAG=stable
+        - DOCKER_TAG=latest
 
 jobs:
   # Don't wait for allowed failures
@@ -40,19 +40,13 @@ jobs:
 
     - name: Docker image
       services: docker
-      matrix:
-        include:
-            - env IPPPSSOOT=j8cb010b0
-            - env IPPPSSOOT=octka6010
-            - env IPPPSSOOT=ldqhpbi9q
-            - env IPPPSSOOT=idgg23ztq
       before_install:
         # - docker pull $DOCKER_REPO:$DOCKER_TAG
         - docker build -f Dockerfile  -t ${DOCKER_REPO}:${DOCKER_TAG}  .
       install:
         - pip install .[dev,test]
       script:
-        - docker run $DOCKER_REPO:$DOCKER_TAG  caldp-process  $IPPPSSOOT  astroquery  file:.  caldp-config-offsite
+        - docker run $DOCKER_REPO:$DOCKER_TAG  caldp-process  j8cb010b0  astroquery  file:.  caldp-config-offsite
 
     - name: Black style checks
       install:
