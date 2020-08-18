@@ -21,6 +21,7 @@ import subprocess
 import boto3
 
 from astropy.io import fits
+
 try:
     from drizzlepac.haputils.astroquery_utils import retrieve_observation
 except ImportError:
