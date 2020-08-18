@@ -46,7 +46,10 @@ jobs:
       install:
         - pip install .[dev,test]
       script:
-        - "docker run $DOCKER_REPO:$DOCKER_TAG  caldp-process  j8cb010b0  astroquery:  none  caldp-config-offsite"
+        - "docker run ${DOCKER_REPO}:${DOCKER_TAG}  caldp-process  j8cb010b0  astroquery:  none  caldp-config-offsite"
+      after_success:
+        - echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
+        - docker push ${DOCKER_REPO}:${DOCKER_TAG}
 
     - name: Black style checks
       install:
