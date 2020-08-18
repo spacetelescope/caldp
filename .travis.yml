@@ -59,7 +59,7 @@ jobs:
       install:
             - pip install flake8
       script:
-            - flake8 --count --max-line-length=120
+            - flake8 --count --max-line-length=120 --exclude docs setup.py
 
     - name: Bandit security checks
       install:
