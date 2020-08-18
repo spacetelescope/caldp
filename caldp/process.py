@@ -113,6 +113,8 @@ def get_output_path(output_uri, ipppssoot):
             output_prefix = os.path.join(os.getcwd(), test_prefix)
     elif output_uri.startswith("s3"):
         output_prefix = output_uri
+    elif output_uri.startswith("none"):
+        return "none"
     return output_prefix + "/" + instrument_name + "/" + ipppssoot
 
 
