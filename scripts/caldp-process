@@ -1,4 +1,4 @@
-#! /bin/bash -u
+#! /bin/bash
 
 # Primary command script passed into Batch container runs
 
