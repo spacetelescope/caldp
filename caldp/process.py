@@ -24,7 +24,7 @@ from astropy.io import fits
 try:
     from drizzlepac.haputils.astroquery_utils import retrieve_observation
 except ImportError:
-    from drizzlepac.halutils.astroquery_utils import retrieve_observation
+    from drizzlepac.hlautils.astroquery_utils import retrieve_observation
 
 from crds.bestrefs import bestrefs
 
