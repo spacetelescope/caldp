@@ -20,50 +20,31 @@ jobs:
   fast_finish: true
 
   include:
-    - name: Pytest functional tests
-        matrix:
-            include:
-                - env: HSTCAL=stable
-                - env: HSTCAL=latest
-        install:
-            - scripts/caldp-install-all  ${HSTCAL}
-        script:
+    - name: Pytest functional tests STABLE
+      install:
+            - scripts/caldp-install-all  stable
+      script:
             - source "$HOME/miniconda3/etc/profile.d/conda.sh"
-            - conda activate caldp_${HSTCAL}
+            - conda activate caldp_stable
             - pytest caldp --cov=caldp --cov-report=term-missing
 
-    - name Black style checks
-        script:
-            black --check caldp caldp/tests
+    - name: Pytest functional tests LATEST
+      install:
+            - scripts/caldp-install-all latest
+      script:
+            - source "$HOME/miniconda3/etc/profile.d/conda.sh"
+            - conda activate caldp_stable
+            - pytest caldp --cov=caldp --cov-report=term-missing
 
-    -name Flake8 python lint checks
-        script:
-            flake8 --count caldp
+    - name: Black style checks
+      script:
+            - black --check caldp caldp/tests
 
-    -name Bandit security checks
-        script:
-            bandit -r caldp
+    - name: Flake8 python lint checks
+      script:
+            - flake8 --count --max-line-length=120
 
- #     - name: SDP dependencies in requirements-sdp.txt, CRDS_CONTEXT=jwst-edit
-#       python: 3.7.7
-#       env:
-#         PIP_DEPENDENCIES="-r requirements-sdp.txt .[test]"
-#         CRDS_CONTEXT=jwst-edit
-#         TEST_COMMAND=pytest
-
-#     - name: Dev dependencies in requirements-dev.txt
-#       env:
-#         PIP_DEPENDENCIES="-r requirements-dev.txt .[test]"
-#         TEST_COMMAND=pytest
-
-#     - name: Warnings treated as Exceptions
-#       env:
-#         TEST_COMMAND="pytest -W error"
-
-
-
-# script:
-#     - source "$HOME/miniconda3/etc/profile.d/conda.sh"
-#     - conda activate caldp_${HSTCAL}
-#     - pytest caldp --cov=caldp --cov-report=term-missing
+    - name: Bandit security checks
+      script:
+            - bandit -r caldp
 
