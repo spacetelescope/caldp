@@ -36,7 +36,7 @@ jobs:
       script:
             - source "$HOME/miniconda3/etc/profile.d/conda.sh"
             - conda activate caldp_latest
-            - pytest caldp --cov=caldp --cov-report=term-missing
+            - pytest caldp --cov=caldp --cov-report=term-missing  #   --cov-fail-under 95
 
     - name: Docker image
       services: docker
@@ -46,7 +46,7 @@ jobs:
       install:
         - pip install .[dev,test]
       script:
-        - docker run $DOCKER_REPO:$DOCKER_TAG  caldp-process  j8cb010b0  astroquery  file:.  caldp-config-offsite
+        - "docker run $DOCKER_REPO:$DOCKER_TAG  caldp-process  j8cb010b0  astroquery:  file:.  caldp-config-offsite"
 
     - name: Black style checks
       install:
