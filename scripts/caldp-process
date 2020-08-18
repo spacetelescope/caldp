@@ -95,7 +95,7 @@ if [ $output_path != "none" -a $output_location == "s3" ]; then
     echo "${message_type} ${ipppssoot}" >${ipppssoot}
     aws s3 cp --quiet ${ipppssoot}  ${output_path}/messages/${message_type}/${ipppssoot}
 fi
-if [ $output_location == "file" ]; then
+if [ $output_path != "none" -a $output_location == "file" ]; then
     stripped_output=`echo $output_path | cut -d':' -f2`
     messages_output_dir="${stripped_output}/messages"
     echo "Messages output dir is" $messages_output_dir
