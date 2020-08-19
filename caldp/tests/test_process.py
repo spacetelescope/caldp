@@ -47,9 +47,9 @@ RESULTS = {
 8464320 ldqhpbi9q_rawacq.fits
 316800 ldqhpbi9q_spt.fits
 """,
-    "idgg23ztq": """
-100  fix.me
-"""
+#     "idgg23ztq": """
+# 100  fix.me  long running???  get file definitions from test output
+# """
 }
 
 # ----------------------------------------------------------------------------------------
