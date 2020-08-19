@@ -153,7 +153,10 @@ def main(args, outdir=None):
             else:
                 log.info(f"Copying {output_path} to {output_uri}")
                 os.makedirs(os.path.dirname(output_uri), exist_ok=True)
-                shutil.copy(output_path, output_uri)
+                try:
+                    shutil.copy(output_path, output_uri)
+                except shutil.SameFileError:
+                    pass
 
 
 def parse_args():
