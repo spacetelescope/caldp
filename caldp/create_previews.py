@@ -66,7 +66,8 @@ def generate_spectral_previews(input_path, output_dir, filename_base):
     cmd = ["make_hst_spec_previews", "-v", "-t png fits", f"-o {output_dir}", input_path]
 
     # output = subprocess.check_output(cmd)
-    err = os.system(" ".join(cmd))
+    # err = os.system(" ".join(cmd))
+    err = subprocess.call(cmd)
     if err:
         LOGGER.exception(f"Preview file not generated for {input_path}")
         return []
