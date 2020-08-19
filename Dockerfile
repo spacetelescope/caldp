@@ -1,10 +1,12 @@
 # Copyright (c) Association of Universities for Research in Astronomy
 # Distributed under the terms of the Modified BSD License.
 
-# DATB's HST CAL code build for the pipeline
-# FROM astroconda/buildsys-pipeline:HCALDP-atodsat-CAL-rc1
-FROM astroconda/buildsys-pipeline:HCALDP_20200708_CAL
-ENV CSYS_VER caldp_20200708
+# DATB's HST CAL code build for fundamental calibration s/w
+ARG CAL_BASE_IMAGE=stsci/hst-pipeline:stable
+FROM ${CAL_BASE_IMAGE}
+
+# Keyword added to products
+ENV CSYS_VER ${CAL_BASE_IMAGE}
 
 LABEL maintainer="dmd_octarine@stsci.edu" \
       vendor="Space Telescope Science Institute"
