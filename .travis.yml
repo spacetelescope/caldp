@@ -22,7 +22,7 @@ jobs:
   fast_finish: true
 
   include:
-    - name: Pytest functional tests STABLE
+    - name: Pytest native functional tests STABLE
       install:
             - scripts/caldp-install-all  stable
       script:
@@ -30,7 +30,7 @@ jobs:
             - conda activate caldp_stable
             - pytest caldp --cov=caldp --cov-report=term-missing
 
-    - name: Pytest functional tests LATEST
+    - name: Pytest native functional tests LATEST
       install:
             - scripts/caldp-install-all latest
       script:
@@ -38,7 +38,7 @@ jobs:
             - conda activate caldp_latest
             - pytest caldp --cov=caldp --cov-report=term-missing  #   --cov-fail-under 95
 
-    - name: Docker image
+    - name: Docker image build and single dataset
       services: docker
       before_install:
         # - docker pull $DOCKER_REPO:$DOCKER_TAG
@@ -47,7 +47,7 @@ jobs:
         - pip install .[dev,test]
       script:
         - "docker run ${DOCKER_REPO}:${DOCKER_TAG}  caldp-process  j8cb010b0  astroquery:  none  caldp-config-offsite"
-      after_script:
+      after_success:
         - echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
         - docker push ${DOCKER_REPO}:${DOCKER_TAG}
 

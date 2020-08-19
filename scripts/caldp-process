@@ -58,7 +58,11 @@ echo "Processing s3_output_dir is" $processing_s3_output_dir
 logs_s3_output_dir="${processing_s3_output_dir}/logs"
 echo "Logs s3_output_dir is" $logs_s3_output_dir
 
-previews_s3_output_dir="${processing_s3_output_dir}/previews"
+if [ $output_path == "none" ];  then
+    previews_s3_output_dir="${DEV_HOME}"
+else
+    previews_s3_output_dir="${processing_s3_output_dir}/previews"
+fi
 echo "Previews s3_output_dir is" $previews_s3_output_dir
 
 echo ........................................ previews log ................................................
