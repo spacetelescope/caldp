@@ -63,7 +63,7 @@ def generate_image_previews(input_path, output_dir, filename_base):
 def generate_spectral_previews(input_path, output_dir, filename_base):
     before_files = [f for f in os.listdir(output_dir) if os.path.isfile(f)]
 
-    cmd = ["make_hst_spec_previews", "-v", "-t png fits", f"-o {output_dir}", input_path]
+    cmd = ["make_hst_spec_previews", "-v", "-t png",  "fits", f"-o {output_dir}", input_path]
 
     # output = subprocess.check_output(cmd)
     # err = os.system(" ".join(cmd))
