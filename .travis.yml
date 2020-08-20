@@ -29,7 +29,7 @@ jobs:
       script:
             - source "$HOME/miniconda3/etc/profile.d/conda.sh"
             - conda activate caldp_stable
-            - pytest caldp --cov=caldp --cov-report=term-missing
+            - pytest caldp --cov=caldp --cov-report=term-missing --capture=tee-sys
 
     - name: Pytest native functional tests LATEST
       install:
@@ -37,7 +37,7 @@ jobs:
       script:
             - source "$HOME/miniconda3/etc/profile.d/conda.sh"
             - conda activate caldp_latest
-            - pytest caldp --cov=caldp --cov-report=term-missing  #   --cov-fail-under 95
+            - pytest caldp --cov=caldp --cov-report=term-missing  --capture=tee-sys  --cov-fail-under 85
 
     - name: Docker image build and single dataset
       services: docker
