@@ -303,14 +303,10 @@ class InstrumentManager:
         """
         self.divider("Started processing for", self.instrument_name, self.ipppssoot)
 
-        # we'll need to move around a couple of times to get the cal code and local file movements working
-        orig_wd = os.getcwd()
         if self.input_uri.startswith("astroquery"):
             input_files = self.dowload()
         elif self.input_uri.startswith("file"):
             input_files = self.find_input_files()
-            # mainly due to association processing, we need to be in the same place as the asn's
-            os.chdir(self.input_uri.split(":")[-1])
         else:
             raise ValueError("input_uri should either start with astroquery or file")
 
@@ -319,7 +315,6 @@ class InstrumentManager:
         self.process(input_files)
 
         # for moving files around, we need to chdir back for relative output path to work
-        os.chdir(orig_wd)
         self.output_files()
 
         self.divider("Completed processing for", self.instrument_name, self.ipppssoot)
@@ -348,7 +343,6 @@ class InstrumentManager:
             Local file system paths of files which were found for `ipppssoot`,
             some of which will be selected for calibration processing.
         """
-        self.divider("Finding data files with glob *.fits for:", self.ipppssoot)
         # find the base path to the files
         test_path = self.input_uri.split(":")[-1]
         if os.path.isdir(test_path):
@@ -357,9 +351,12 @@ class InstrumentManager:
             base_path = os.path.join(os.getcwd(), test_path)
         else:
             raise ValueError(f"input path {test_path} does not exist")
-
         search_str = f"{base_path}/{self.ipppssoot.lower()[0:5]}*.fits"
+        self.divider("Finding data files for:", self.ipppssoot, "using", repr(search_str))
         files = glob.glob(search_str)
+        # Maintain the contract that input files are in the CWD by symlinking
+        for source in files:
+            os.symlink(source, os.path.basename(source))
         return list(sorted(files))
 
     def find_output_files(self):

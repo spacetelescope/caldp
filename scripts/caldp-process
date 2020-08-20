@@ -59,14 +59,14 @@ logs_s3_output_dir="${processing_s3_output_dir}/logs"
 echo "Logs s3_output_dir is" $logs_s3_output_dir
 
 if [ $output_path == "none" ];  then
-    previews_s3_output_dir="${DEV_HOME}"
+    previews_s3_output_dir="file:."
 else
     previews_s3_output_dir="${processing_s3_output_dir}/previews"
 fi
 echo "Previews s3_output_dir is" $previews_s3_output_dir
 
 echo ........................................ previews log ................................................
-previews_input_dir=${DEV_HOME}
+previews_input_dir="file:."
 set -o pipefail && $TIME --verbose -o preview_metrics.txt \
     python -m caldp.create_previews ${previews_input_dir}  ${previews_s3_output_dir} \
     2>&1 | tee preview.txt

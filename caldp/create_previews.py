@@ -138,7 +138,8 @@ def main(args, outdir=None):
             input_path = os.path.join(outdir, filename)
             subprocess.check_call(["aws", "s3", "cp", input_uri, input_path])
     else:
-        input_uris = glob.glob(args.input_uri_prefix.split(":")[-1] + "/*.fits")
+        indir = os.path.abspath(args.input_uri_prefix.split(":")[-1])
+        input_uris = glob.glob(indir + "/*.fits")
         log.info("Processing", len(input_uris), "FITS files from prefix", args.input_uri_prefix)
     for input_uri in input_uris:
         outbase, filename = os.path.split(input_uri)
