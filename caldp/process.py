@@ -356,7 +356,9 @@ class InstrumentManager:
         files = glob.glob(search_str)
         # Maintain the contract that input files are in the CWD by symlinking
         for source in files:
-            os.symlink(source, os.path.basename(source))
+            dest = os.path.abspath(os.path.basename(source))
+            if os.path.abspath(source) != dest:
+                os.symlink(source, dest)
         return list(sorted(files))
 
     def find_output_files(self):
