@@ -303,21 +303,24 @@ class InstrumentManager:
         """
         self.divider("Started processing for", self.instrument_name, self.ipppssoot)
 
+        input_files = self.input_files()
+
+        self.assign_bestrefs(input_files)
+
+        self.process(input_files)
+
+        self.output_files()
+
+        self.divider("Completed processing for", self.instrument_name, self.ipppssoot)
+
+    def get_intputs(self):
         if self.input_uri.startswith("astroquery"):
             input_files = self.dowload()
         elif self.input_uri.startswith("file"):
             input_files = self.find_input_files()
         else:
             raise ValueError("input_uri should either start with astroquery or file")
-
-        self.assign_bestrefs(input_files)
-
-        self.process(input_files)
-
-        # for moving files around, we need to chdir back for relative output path to work
-        self.output_files()
-
-        self.divider("Completed processing for", self.instrument_name, self.ipppssoot)
+        return input_files
 
     def dowload(self):
         """Download any data files for the `ipppssoot`,  issuing start and
@@ -370,21 +373,16 @@ class InstrumentManager:
             Local file system paths of files which were found for `ipppssoot`,
             post-calibration
         """
-        self.divider("Finding data files for output with glob *.fits for:", self.ipppssoot)
-        # find the base path to the files
-        test_path = self.input_uri.split(":")[-1]
-        if os.path.isdir(test_path):
-            base_path = os.path.abspath(test_path)
-        elif os.path.isdir(os.path.join(os.getcwd(), test_path)):
-            base_path = os.path.join(os.getcwd(), test_path)
-        else:
-            raise ValueError(f"output path {test_path} does not exist")
+        base_path = "."
 
+        # data files
         search_str = f"{base_path}/{self.ipppssoot.lower()[0:5]}*.fits"
+        self.divider("Finding data files with", repr(search_str), "for:", self.ipppssoot)
         files = glob.glob(search_str)
 
         # trailer files
         search_str = f"{base_path}/{self.ipppssoot.lower()[0:5]}*.tra"
+        self.divider("Finding trailer files with", repr(search_str), "for:", self.ipppssoot)
         files.extend(glob.glob(search_str))
 
         return list(sorted(files))
