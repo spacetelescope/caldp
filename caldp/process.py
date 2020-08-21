@@ -315,14 +315,14 @@ class InstrumentManager:
 
     def input_files(self):
         if self.input_uri.startswith("astroquery"):
-            input_files = self.dowload()
+            input_files = self.download()
         elif self.input_uri.startswith("file"):
             input_files = self.find_input_files()
         else:
             raise ValueError("input_uri should either start with astroquery or file")
         return input_files
 
-    def dowload(self):
+    def download(self):
         """Download any data files for the `ipppssoot`,  issuing start and
         stop divider messages.
 
@@ -375,17 +375,19 @@ class InstrumentManager:
         """
         base_path = "."
 
-        # data files
-        search_str = f"{base_path}/{self.ipppssoot.lower()[0:5]}*.fits"
-        self.divider("Finding data files with", repr(search_str), "for:", self.ipppssoot)
+        # data and trailer files
+        search_str = f"{base_path}/{self.ipppssoot.lower()[0:5]}*.{fits,tra}"
+        self.divider("Finding files for", self.ipppssoot, "using", repr(search_str))
         files = glob.glob(search_str)
 
-        # trailer files
-        search_str = f"{base_path}/{self.ipppssoot.lower()[0:5]}*.tra"
-        self.divider("Finding trailer files with", repr(search_str), "for:", self.ipppssoot)
-        files.extend(glob.glob(search_str))
+        # delete = [output for output in outputs if output.endswith(tuple(self.delete_endings))]
+        # if delete:
+        #     self.divider("Deleting files:", delete)
+        #     for filename in delete:
+        #         os.remove(filename)
+        #     outputs = glob.glob("*.fits") + glob.glob("*.tra")  # get again
 
-        return list(sorted(files))
+        return [output for output in list(sorted(files)) if not output.endswith(tuple(self.delete_endings))]
 
     def assign_bestrefs(self, files):
         """Assign best references to dataset `files`,  updating their header keywords
@@ -443,12 +445,6 @@ class InstrumentManager:
         None
         """
         outputs = self.find_output_files()
-        delete = [output for output in outputs if output.endswith(tuple(self.delete_endings))]
-        if delete:
-            self.divider("Deleting files:", delete)
-            for filename in delete:
-                os.remove(filename)
-            outputs = glob.glob("*.fits") + glob.glob("*.tra")  # get again
         if self.output_uri is None or self.output_uri.startswith("none"):
             return
         self.divider("Saving outputs:", self.output_uri, outputs)
@@ -610,6 +606,14 @@ def process(ipppssoot, input_uri, output_uri):
     """
     manager = get_instrument_manager(ipppssoot, input_uri, output_uri)
     manager.main()
+
+
+def download_inputs(ipppssoot, input_uri, output_uri):
+    """Download inputs for `ipppssoot` from astroquery regardless of `input_uri`,
+    leave them in the CWD regardless of `output_uri`.  (Simulate astroquery: behavior)
+    """
+    manager = get_instrument_manager(ipppssoot, input_uri, output_uri)
+    manager.download()
 
 
 # -----------------------------------------------------------------------------
