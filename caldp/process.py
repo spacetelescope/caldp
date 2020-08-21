@@ -376,7 +376,7 @@ class InstrumentManager:
         base_path = "."
 
         # data and trailer files
-        search_str = f"{base_path}/{self.ipppssoot.lower()[0:5]}*.\{fits,tra\}"
+        search_str = base_path + "/" + self.ipppssoot.lower()[0:5] + "*.{fits,tra}"
         self.divider("Finding files for", self.ipppssoot, "using", repr(search_str))
         files = glob.glob(search_str)
 
