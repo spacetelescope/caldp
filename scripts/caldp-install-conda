@@ -30,7 +30,7 @@ case $SHELL in
         ;;
 esac
 
-echo "Installing   OS=$OS  CONDA_ENV=$CONDA_ENV  SHELL=$SHELL  CONDA_DIR=$CONDA_DIR"
+echo "Installing   OS=$OS   SHELL=$SHELL  CONDA_DIR=$CONDA_DIR"
 
 rm -rf $CONDA_DIR
 rm -f ${CONDA_INSTALLER}*
