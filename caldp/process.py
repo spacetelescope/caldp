@@ -313,7 +313,7 @@ class InstrumentManager:
 
         self.divider("Completed processing for", self.instrument_name, self.ipppssoot)
 
-    def get_intputs(self):
+    def input_files(self):
         if self.input_uri.startswith("astroquery"):
             input_files = self.dowload()
         elif self.input_uri.startswith("file"):
