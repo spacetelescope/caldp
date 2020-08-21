@@ -609,12 +609,20 @@ def process(ipppssoot, input_uri, output_uri):
 
 
 def download_inputs(ipppssoot, input_uri, output_uri):
-    """Download inputs for `ipppssoot` from astroquery regardless of `input_uri`,
-    leave them in the CWD regardless of `output_uri`.  (Simulate astroquery: behavior)
+    """This function sets up file inputs for CALDP based on downloads from 
+    astroquery to support testing the file based input mode.  The files for
+     `ipppssoot` normally downloaded from astroquery: are downloaded and placed
+    in the directory defined by `input_uri`. This function uses a parameter set
+    identical to `process.process()` to ease construction of test cases and
+    to fully construct an appropriate instrument manager based on the `ipppssoot`.
     """
     manager = get_instrument_manager(ipppssoot, input_uri, output_uri)
+    if input_uri.startswith("file:"):
+        old_dir = os.getcwd()
+        os.chdir(input_uri.split(":")[-1])
     manager.download()
-
+    if input_uri.startswith("file:"):
+        os.chdir(old_dir)
 
 # -----------------------------------------------------------------------------
 
