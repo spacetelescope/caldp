@@ -49,13 +49,13 @@ RUN ./caldp-install-fitscut   /usr/local && \
    echo "/usr/local/lib" >> /etc/ld.so.conf && \
    ldconfig
 
-# Install caldp pip package from local source
-RUN mkdir caldp
-ADD . caldp/
-RUN cd caldp && \
-   pip install .[dev,test] && \
-   cd .. && rm -rf caldp
-
 RUN mkdir -p /grp/crds/cache
+
+# Install caldp pip package from local source
 WORKDIR /home/developer
+RUN mkdir /home/developer/caldp
+COPY . /home/developer/caldp/
+RUN chown -R developer.developer /home/developer
 USER developer
+RUN cd caldp  &&  pip install .[dev,test]
+
