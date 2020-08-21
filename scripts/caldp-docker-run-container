@@ -15,7 +15,7 @@ source caldp-image-config latest
 
 #
 # Mount native file systems into the Docker container:
-# 1. $CALDP_HOME or `pwd`/caldp-process is mounted as /home/developer
+# 1. $CALDP_HOME or `pwd` is mounted as /home/developer
 #     inside Docker, and is r/w.
 # 2. $CRDS_PATH (or /grp/crds/cache) is mounted if visible natively, readonly.
 #
@@ -47,9 +47,7 @@ MOUNTS="--mount type=bind,source=$DEV_HOME,target=/home/developer"
 CRDS_SRC=${CRDS_PATH:-/grp/crds/cache}
 CRDS_DST=/grp/crds/cache
 if [[ -d $CRDS_SRC ]]; then
-    MOUNTS="${MOUNTS} --volume type=bind,source=/grp/crds/cache/config/hst,target=/grp/crds/cache/config/hst,readonly"
-    MOUNTS="${MOUNTS} --volume type=bind,source=/grp/crds/cache/references/hst,target=/grp/crds/cache/references/hst,readonly"
-    MOUNTS="${MOUNTS} --volume type=bind,source=/grp/crds/cache/mappings/hst,target=/grp/crds/cache/mappings/hst,readonly"
+    MOUNTS="${MOUNTS} --mount type=bind,source=${CRDS_SRC},target=${CRDS_DST},readonly"
 fi
 
 
