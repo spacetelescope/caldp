@@ -4,4 +4,4 @@
 
 source caldp-image-config $*
 
-docker build -f Dockerfile -t ${CALDP_DOCKER_IMAGE} .
+docker build -f Dockerfile -t ${CALDP_DOCKER_IMAGE} --build-arg CAL_BASE_IMAGE=$CAL_BASE_IMAGE  .

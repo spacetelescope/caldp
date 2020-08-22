@@ -1,0 +1,33 @@
+#! /bin/bash -e
+
+# Installs the base HST calibration programs included with astroconda-releases/caldp
+
+HSTCAL=${1:-stable}
+PY_VER=${2:-3.6.10}
+CONDA_ENV=${3:-"caldp_${HSTCAL}"}
+CONDA_DIR=${4:-"$HOME/miniconda3"}
+OS=${5:-`uname -s`}
+
+case $OS in
+    Darwin)
+        CALOS=macos
+        ;;
+    Linux)
+        CALOS=linux
+        ;;
+esac
+
+source $CONDA_DIR/etc/profile.d/conda.sh
+rm -rf astroconda-releases
+git clone https://github.com/astroconda/astroconda-releases
+conda env create -n ${CONDA_ENV} --file astroconda-releases/caldp/${HSTCAL}/latest-${CALOS}.yml
+rm -rf astroconda-releases
+
+# XXXX Hack
+# Pip installed psutil was resulting in an Abort trap: 6 apparently due to this bogus dependency resolution vs brew:
+#  /sw/lib/python3.6/config-3.6m-darwin/libpython3.6m.dylib (compatibility version 3.6.0, current version 3.6.0)
+# For whatever reason conda does not link the file from /sw/lib so the version conflict is not present.
+# XXXX Fix ??
+# conda activate ${CONDA_ENV}
+# pip uninstall --yes --quiet psutil
+# conda install psutil

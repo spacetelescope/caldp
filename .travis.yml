@@ -1,161 +1,80 @@
+sudo: false
+dist: bionic
 language: python
-
-# We need a full clone to make sure setuptools_scm works properly
-git:
-    depth: false
-
-os:
-    - linux
-
-# The apt packages below are needed for sphinx builds. A full list of packages
-# that can be included can be found here:
-#
-# https://github.com/travis-ci/apt-package-whitelist/blob/master/ubuntu-precise
-
-addons:
-    apt:
-        packages:
-            - graphviz
-
-
-stages:
-   # Do the style check and a single test job, don't proceed if it fails
-   - name: Initial tests
-   # Test docs, astropy dev, and without optional dependencies
-   - name: Comprehensive tests
-   # These will only run when cron is opted in
-   - name: Cron tests
-     if: type = cron
-
-
+python: 3.6.10
 env:
-    global:
+    global:   #  caldp-config-offsite
+        - CRDS_PATH=$HOME/crds_cache
+        - CRDS_SERVER_URL=https://hst-crds.stsci.edu
+        - CRDS_READONLY_CACHE=0
+        - iref=${CRDS_PATH}/references/hst/wfc3/
+        - jref=${CRDS_PATH}/references/hst/acs/
+        - oref=${CRDS_PATH}/references/hst/stis/
+        - lref=${CRDS_PATH}/references/hst/cos/
+        - nref=${CRDS_PATH}/references/hst/nicmos/
+        - uref=${CRDS_PATH}/references/hst/wfcpc2/
+        - uref_linux=$uref
+        - DOCKER_REPO=jaytmiller/caldp
+        - DOCKER_TAG=latest
+        - CAL_BASE_IMAGE=stsci/hst-pipeline:latest
+        - CALDP_TEST_FILE_SIZE_THRESHOLD=0.30
 
-        # The following versions are the 'default' for tests, unless
-        # overridden underneath. They are defined here in order to save having
-        # to repeat them for all configurations.
+jobs:
+  # Don't wait for allowed failures
+  fast_finish: true
 
-        # The following three variables are for tox. TOXENV is a standard
-        # variable that tox uses to determine the environment to run,
-        # TOXARGS are arguments passed to tox, and TOXPOSARGS are arguments
-        # that tox passes through to the {posargs} indicator in tox.ini.
-        # The latter can be used for example to pass arguments to pytest.
-        - TOXENV='test'
-        - TOXARGS='-v'
-        - TOXPOSARGS=''
+  include:
+    - name: Pytest native functional tests STABLE
+      env:
+        - HSTCAL=stable
+        - LD_LIBRARY_PATH=$HOME/miniconda3/envs/caldp_${HSTCAL}/lib
+      install:
+        - scripts/caldp-install-all  ${HSTCAL}
+      script:
+        - source "$HOME/miniconda3/etc/profile.d/conda.sh"
+        - conda activate caldp_${HSTCAL}
+        - pytest caldp --cov=caldp --cov-fail-under 80  --capture=tee-sys
+      after_success:
+        - bash <(curl -s https://codecov.io/bash)
 
-        # The following is needed to avoid issues if e.g. Matplotlib tries
-        # to open a GUI window.
-        - SETUP_XVFB=True
+    - name: Pytest native functional tests LATEST
+      env:
+        - HSTCAL=latest
+        - LD_LIBRARY_PATH=$HOME/miniconda3/envs/caldp_${HSTCAL}/lib
+      install:
+        - scripts/caldp-install-all  ${HSTCAL}
+      script:
+        - source "$HOME/miniconda3/etc/profile.d/conda.sh"
+        - conda activate caldp_${HSTCAL}
+        - pytest caldp --cov=caldp  --cov-fail-under 80  --capture=tee-sys
+      after_success:
+        - bash <(curl -s https://codecov.io/bash)
 
-matrix:
+    - name: Docker image build and single dataset
+      services: docker
+      before_install:
+        # - docker pull $DOCKER_REPO:$DOCKER_TAG
+        - docker build -f Dockerfile  -t ${DOCKER_REPO}:${DOCKER_TAG}  --build-arg CAL_BASE_IMAGE=${CAL_BASE_IMAGE}  .
+      script:
+        - "docker run ${DOCKER_REPO}:${DOCKER_TAG}  caldp-process  j8cb010b0  astroquery:  none  caldp-config-offsite"
+      after_success:
+        - echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
+        - docker push ${DOCKER_REPO}:${DOCKER_TAG}
 
-    # Don't wait for allowed failures
-    fast_finish: true
+    - name: Black style checks
+      install:
+            - pip install black
+      script:
+            - black --check caldp caldp/tests
 
-    include:
+    - name: Flake8 python lint checks
+      install:
+            - pip install flake8
+      script:
+            - flake8 --count --max-line-length=120 --exclude docs
 
-        # Try MacOS X, usually enough only to run from cron as hardly there are
-        # issues that are not picked up by a linux worker. We set language to
-        # 'c' since 'python' doesn't work on non-Linux platforms.
-        - os: osx
-          language: c
-          name: Python 3.7 with required dependencies
-          stage: Cron tests
-          env: PYTHON_VERSION=3.7 TOXENV=py37-test
-
-        # Do a regular build on Linux with Python 3.8, with cov
-        # For Linux we use language: python to avoid using conda.
-        - os: linux
-          python: 3.8
-          name: Python 3.8 with required dependencies and measure coverage
-          stage: Initial tests
-          env: TOXENV=py38-test-cov
-
-        # Check for sphinx doc build warnings
-        - os: linux
-          python: 3.8
-          name: Documentation build
-          stage: Comprehensive tests
-          env: TOXENV=build_docs
-
-        # Now try Astropy dev with the latest Python
-        - os: linux
-          python: 3.8
-          name: Python 3.8 with developer version of astropy
-          stage: Comprehensive tests
-          env: TOXENV=py38-test-devdeps
-
-        # And with an older Python, Astropy LTS, and the oldest supported Numpy
-        - os: linux
-          python: 3.6
-          name: Python 3.6 astropy LTS and Numpy 1.16
-          stage: Comprehensive tests
-          env: TOXENV=py36-test-astropylts-numpy116
-
-        # Add a job that runs from cron only and tests against astropy dev and
-        # numpy dev to give a change for early discovery of issues and feedback
-        # for both developer teams.
-        - os: linux
-          python: 3.8
-          name: Python 3.8 latest developer version of key dependencies
-          stage: Cron tests
-          env: TOXENV=py38-test-devdeps
-
-        # Try on Windows.
-        - os: windows
-          language: c
-          name: Python 3.8 with required dependencies
-          stage: Comprehensive tests
-          env: PYTHON_VERSION=3.8 TOXENV=py38-test
-
-        # Try other python versions and Numpy versions. Since we can assume that
-        # the Numpy developers have taken care of testing Numpy with different
-        # versions of Python, we can vary Python and Numpy versions at the same
-        # time.
-
-        - os: linux
-          python: 3.7
-          name: Python 3.7 with astropy 3.0 and Numpy 1.17
-          stage: Comprehensive tests
-          env: TOXENV=py37-test-astropy30-numpy117
-
-        # Do a code style check
-        - os: linux
-          python: 3.8
-          name: Code style checks
-          stage: Initial tests
-          env: TOXENV=codestyle
-
-    allow_failures:
-        # Do a PEP8 test with flake8
-        # (do allow to fail unless your code completely compliant)
-        # - os: linux
-        #   python: 3.8
-        #   name: Code style checks
-        #   stage: Initial tests
-        #   env: TOXENV=codestyle
-
-install:
-
-    # We now use the ci-helpers package to set up our Python environment
-    # on Windows and MacOS X but we don't set up any other dependencies,
-    # instead using tox to do this. See https://github.com/astropy/ci-helpers
-    # for more information about ci-helpers.
-
-    - if [[ $TRAVIS_OS_NAME != linux ]]; then
-        git clone --depth 1 git://github.com/astropy/ci-helpers.git;
-        source ci-helpers/travis/setup_conda.sh;
-      fi
-
-script:
-    - pip install tox
-    - tox $TOXARGS -- $TOXPOSARGS
-
-after_success:
-    # If coveralls.io is set up for this package, uncomment the two lines below.
-    # - pip install coveralls
-    # - coveralls
-    # If codecov is set up for this package, uncomment the two lines below
-    # - pip install codecov
-    # - codecov
+    - name: Bandit security checks
+      install:
+            - pip install bandit
+      script:
+            - bandit -ll -r caldp

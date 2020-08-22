@@ -1,0 +1,28 @@
+#! /bin/bash -e
+
+HSTCAL=${1:-"stable"}                # Version of base calibration packages,  nominally stable or latest.
+PY_VER=${2:-"3.6.10"}                # Python version for CALDP conda environment
+CONDA_ENV=${3:-"caldp_${HSTCAL}"}    # Conda environment which will be created
+CONDA_DIR=${4:-"${HOME}/miniconda3"} # Location of Miniconda
+
+# Install base conda system
+pushd .
+
+cd scripts
+./caldp-install-conda  $CONDA_DIR
+source ~/.bashrc
+
+# Install fundamental CAL code using pipeline release package list
+./caldp-install-cal  ${HSTCAL} ${PY_VER} ${CONDA_ENV} ${CONDA_DIR}
+
+source $CONDA_DIR/etc/profile.d/conda.sh
+conda activate ${CONDA_ENV}
+
+# Install fitscut for image previews (requires caldp already installed)
+./caldp-install-fitscut   ${CONDA_DIR}/envs/${CONDA_ENV}
+
+popd
+
+
+pip install .[dev,test]
+

@@ -58,3 +58,7 @@ distribute-*.tar.gz
 
 # Mac OSX
 .DS_Store
+
+.astropy
+.bash_history
+.vscode
