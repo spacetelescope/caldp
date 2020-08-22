@@ -115,7 +115,9 @@ def test_ipppssoot_pipeline(tmpdir, ipppssoot):
     finally:
         old_dir.chdir()
 
+CALDP_S3_PATH = os.environ.get("CALDP_S3_PATH")
 
+@pytest.mark.skipif(not CALDP_S3_PATH, "Requires S3 storage and AWS credentials")
 @pytest.mark.parametrize("ipppssoot", SHORT_TEST_IPPPSSOOTS)
 def test_ipppssoot_aws(tmpdir, ipppssoot):
     """Run every `ipppssoot` through process.process() downloading input files from
@@ -123,13 +125,12 @@ def test_ipppssoot_aws(tmpdir, ipppssoot):
     outputs the expected files with reasonable sizes into it's CWD.
     """
     working_dir = tmpdir.mkdir(ipppssoot)
-    s3_path = f"s3://calcloud-hst-test-outputs/test-batch"
-    os.system("aws s3 rm --recursive {s3_path}")
+    os.system("aws s3 rm --recursive " + CALDP_S3_PATH)
     old_dir = working_dir.chdir()
     try:
-        main.main(ipppssoot, "astroquery:", s3_path)
+        main.main(ipppssoot, "astroquery:", CALDP_S3_PATH)
         os.system("/bin/ls -1st *.fits *.tra")
-        os.system("aws s3 ls --recursive " + s3_path)
+        os.system("aws s3 ls --recursive " + CALDP_S3_PATH + " | awk -e '{ print $4; }'")
         check_results(ipppssoot)
     finally:
         old_dir.chdir()
