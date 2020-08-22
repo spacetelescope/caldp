@@ -3,10 +3,12 @@ assigning references, and basic calibrations.
 """
 import os
 import glob
+import subprocess
 
 import pytest
 
 from caldp import process
+from caldp import main
 
 # ----------------------------------------------------------------------------------------
 
@@ -53,6 +55,10 @@ RESULTS = {
 # 100  fix.me  long running???  get file definitions from test output
 # """
 
+
+LONG_TEST_IPPPSSOOTS = list(RESULTS.keys())
+SHORT_TEST_IPPPSSOOTS = list(RESULTS.keys())[:1]
+
 # ----------------------------------------------------------------------------------------
 
 
@@ -69,20 +75,61 @@ def check_results(ipppssoot):
     working_files = {os.path.basename(path): os.stat(path).st_size for path in glob.glob("*")}
     for (expected_name, expected_size) in expected:
         assert expected_name in working_files
+        if expected_name.startswith("s3://"):
+            continue
         assert abs(working_files[expected_name] - expected_size) < 0.1 * expected_size
 
 
-@pytest.mark.parametrize("ipppssoot", list(RESULTS.keys()))
-def test_ipppssoot(tmpdir, ipppssoot):
+@pytest.mark.parametrize("ipppssoot", LONG_TEST_IPPPSSOOTS)
+def test_ipppssoot_user(tmpdir, ipppssoot):
     """Run every `ipppssoot` through process.process() downloading input files from
     astroquery and writing output files to local storage.   Verify that call to process
     outputs the expected files with reasonable sizes into it's CWD.
     """
     working_dir = tmpdir.mkdir(ipppssoot)
     old_dir = working_dir.chdir()
+    os.mkdir("outputs")
     try:
-        process.process(ipppssoot, "astroquery:", "file:outputs/" + ipppssoot)
+        main.main(ipppssoot, "astroquery:", "file:outputs")
+        os.system("/bin/ls -1st *.fits *.tra && find inputs && find outputs")
+        check_results(ipppssoot)
+    finally:
+        old_dir.chdir()
+
+
+@pytest.mark.parametrize("ipppssoot", SHORT_TEST_IPPPSSOOTS)
+def test_ipppssoot_pipeline(tmpdir, ipppssoot):
+    """Run every `ipppssoot` through process.process() downloading input files from
+    astroquery and writing output files to local storage.   Verify that call to process
+    outputs the expected files with reasonable sizes into it's CWD.
+    """
+    working_dir = tmpdir.mkdir(ipppssoot)
+    old_dir = working_dir.chdir()
+    os.mkdir("outputs")
+    os.mkdir("inputs")
+    try:
+        process.download_inputs(ipppssoot, "file:inputs", "file:outputs")  # get inputs seperately
+        main.main(ipppssoot, "file:inputs", "file:outputs")
+        os.system("/bin/ls -1st *.fits *.tra && find inputs && find outputs")
+        check_results(ipppssoot)
+    finally:
+        old_dir.chdir()
+
+
+@pytest.mark.parametrize("ipppssoot", SHORT_TEST_IPPPSSOOTS)
+def test_ipppssoot_aws(tmpdir, ipppssoot):
+    """Run every `ipppssoot` through process.process() downloading input files from
+    astroquery and writing output files to local storage.   Verify that call to process
+    outputs the expected files with reasonable sizes into it's CWD.
+    """
+    working_dir = tmpdir.mkdir(ipppssoot)
+    s3_path = f"s3://calcloud-hst-test-outputs/test-batch"
+    os.system("aws s3 rm --recursive {s3_path}")
+    old_dir = working_dir.chdir()
+    try:
+        main.main(ipppssoot, "astroquery:", s3_path)
         os.system("/bin/ls -1st *.fits *.tra")
+        os.system("aws s3 ls --recursive " + s3_path)
         check_results(ipppssoot)
     finally:
         old_dir.chdir()

@@ -87,7 +87,8 @@ def get_instrument(ipppssoot):
 def get_output_path(output_uri, ipppssoot):
     """Given an `output_uri` string which nominally defines an S3 bucket and
     directory base path,  and an `ipppssoot` dataset name,  generate a full
-    S3 output path where outputs from processing `ipppssoot` should be stored.
+    S3 output path (or directory) where outputs from processing `ipppssoot`
+    should be stored.
 
     Parameters
     ----------
@@ -98,8 +99,9 @@ def get_output_path(output_uri, ipppssoot):
 
     Returns
     -------
-    full_s3_object_path : str
-        A fully specified S3 object, including bucket, directory, and filename.
+    object_path : str
+        A fully specified S3 object, including bucket, directory, and filename,
+        or a directory path.
 
     >>> get_output_path("s3://temp/batch-2020-02-13T10:33:00", "IC0B02020")
     's3://temp/batch-2020-02-13T10:33:00/wfc3/IC0B02020'
@@ -609,7 +611,7 @@ def process(ipppssoot, input_uri, output_uri):
 
 
 def download_inputs(ipppssoot, input_uri, output_uri):
-    """This function sets up file inputs for CALDP based on downloads from 
+    """This function sets up file inputs for CALDP based on downloads from
     astroquery to support testing the file based input mode.  The files for
      `ipppssoot` normally downloaded from astroquery: are downloaded and placed
     in the directory defined by `input_uri`. This function uses a parameter set

@@ -123,24 +123,24 @@ def list_fits_uris(uri_prefix):
     return [f"s3://{bucket_name}/{k}" for k in json.loads(result) if k.lower().endswith(".fits")]
 
 
-def main(args, outdir=None):
+def main(input_uri_prefix, output_uri_prefix, outdir=None):
     """Generates previews based on a file system or S3 input directory
     and an S3 output directory both specified in args.
     """
     if outdir is None:
         outdir = os.getcwd()
-    if args.input_uri_prefix.startswith("s3://"):
-        input_uris = list_fits_uris(args.input_uri_prefix)
-        log.info("Processing", len(input_uris), "FITS files from prefix", args.input_uri_prefix)
+    if input_uri_prefix.startswith("s3://"):
+        input_uris = list_fits_uris(input_uri_prefix)
+        log.info("Processing", len(input_uris), "FITS files from prefix", input_uri_prefix)
         for input_uri in input_uris:
             log.info("Fetching", input_uri)
             filename = os.path.basename(input_uri)
             input_path = os.path.join(outdir, filename)
             subprocess.check_call(["aws", "s3", "cp", input_uri, input_path])
     else:
-        indir = os.path.abspath(args.input_uri_prefix.split(":")[-1])
+        indir = os.path.abspath(input_uri_prefix.split(":")[-1])
         input_uris = glob.glob(indir + "/*.fits")
-        log.info("Processing", len(input_uris), "FITS files from prefix", args.input_uri_prefix)
+        log.info("Processing", len(input_uris), "FITS files from prefix", input_uri_prefix)
     for input_uri in input_uris:
         outbase, filename = os.path.split(input_uri)
         filename_base, _ = os.path.splitext(filename)
@@ -148,7 +148,7 @@ def main(args, outdir=None):
         output_paths = generate_previews(input_uri, outbase, filename_base)
         log.info("Generated", len(output_paths), "output files")
         for output_path in output_paths:
-            output_uri = os.path.join(args.output_uri_prefix, os.path.basename(output_path))
+            output_uri = os.path.join(output_uri_prefix, os.path.basename(output_path))
             if output_uri.startswith("s3://"):  # is set to "none" for local use
                 log.info("Uploading", output_path, "to", output_uri)
                 subprocess.check_call(["aws", "s3", "cp", "--quiet", output_path, output_uri])
@@ -170,5 +170,10 @@ def parse_args():
     return parser.parse_args()
 
 
+def cmdline():
+    args = parse_args()
+    main(args.input_uri_prefix, args.output_uri_prefix)
+
+
 if __name__ == "__main__":
-    main(parse_args())
+    cmdline()
