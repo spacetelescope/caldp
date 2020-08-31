@@ -193,16 +193,16 @@ def list_files(ipppssoot, input_uri, output_uri):
 
 def list_fs(path):
     """List local files at `path` for defining truth data and actual files."""
-    return chain(f"/usr/bin/find {path} -type f", "xargs ls -lt", "awk -e {print($5,$9);}")
+    return pipe(f"/usr/bin/find {path} -type f", "xargs ls -lt", "awk -e {print($5,$9);}")
 
 
 def list_s3(path):
     """List S3 files at `path` for defining truth data and actual files."""
-    output = chain(f"aws s3 ls --recursive {path}", "awk -e {print($3,$4);}")
+    output = pipe(f"aws s3 ls --recursive {path}", "awk -e {print($3,$4);}")
     return output.replace(" ", " outputs/")
 
 
-def chain(*args, encoding="utf-8", print_output=False, raise_exception=False):
+def pipe(*args, encoding="utf-8", print_output=False, raise_exception=False):
     """Every arg should be a subprocess command string which will be run and piped to
     any subsequent args in a linear process chain.  Each arg will be split into command
     words based on whitespace so whitespace embedded within words is not possible.
