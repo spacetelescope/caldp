@@ -2,6 +2,7 @@
 assigning references, and basic calibrations.
 """
 import os
+import sys
 import subprocess
 
 import pytest
@@ -17,68 +18,68 @@ RESULTS = [
     (
         "j8cb010b0",
         """
-2796 inputs/j8cb01u3q.tra
-10820160 inputs/j8cb01u2q_flt.fits
-2257920 inputs/j8cb01u3q_raw.fits
-21587 inputs/j8cb01u2q_raw.jpg
-51840 inputs/j8cb01u2q_flt_hlet.fits
-2257920 inputs/j8cb01u2q_raw.fits
-1083 inputs/j8cb01u3q_flt_thumb.jpg
-18711 inputs/j8cb01u2q_flt.jpg
-1920 inputs/j8cb010b1_drz_thumb.jpg
-1084 inputs/j8cb01u2q_flt_thumb.jpg
-11520 inputs/j8cb010b0_asn.fits
-1159 inputs/j8cb01u2q_raw_thumb.jpg
+18457 inputs/j8cb010b1_crj.jpg
 1036 inputs/j8cb010b1_crj_thumb.jpg
-5307 inputs/j8cb010b1.tra
-51840 inputs/j8cb01u3q_flt_hlet.fits
-3407 inputs/j8cb01u2q.tra
-18754 inputs/j8cb01u3q_flt.jpg
-1156 inputs/j8cb01u3q_raw_thumb.jpg
-15963840 inputs/j8cb010b1_drz.fits
-10535040 inputs/j8cb010b1_crj.fits
-31937 inputs/j8cb010b1_drz.jpg
-18455 inputs/j8cb010b1_crj.jpg
-16176 inputs/j8cb010b0.tra
-10820160 inputs/j8cb01u3q_flt.fits
+31941 inputs/j8cb010b1_drz.jpg
+1920 inputs/j8cb010b1_drz_thumb.jpg
 21728 inputs/j8cb01u3q_raw.jpg
-2796 outputs/acs/j8cb010b0/j8cb01u3q.tra
-10820160 outputs/acs/j8cb010b0/j8cb01u2q_flt.fits
-2257920 outputs/acs/j8cb010b0/j8cb01u3q_raw.fits
-51840 outputs/acs/j8cb010b0/j8cb01u2q_flt_hlet.fits
-2257920 outputs/acs/j8cb010b0/j8cb01u2q_raw.fits
-11520 outputs/acs/j8cb010b0/j8cb010b0_asn.fits
-21587 outputs/acs/j8cb010b0/previews/j8cb01u2q_raw.jpg
-1083 outputs/acs/j8cb010b0/previews/j8cb01u3q_flt_thumb.jpg
-18711 outputs/acs/j8cb010b0/previews/j8cb01u2q_flt.jpg
-1920 outputs/acs/j8cb010b0/previews/j8cb010b1_drz_thumb.jpg
-1084 outputs/acs/j8cb010b0/previews/j8cb01u2q_flt_thumb.jpg
-1159 outputs/acs/j8cb010b0/previews/j8cb01u2q_raw_thumb.jpg
+1156 inputs/j8cb01u3q_raw_thumb.jpg
+18712 inputs/j8cb01u2q_flt.jpg
+1084 inputs/j8cb01u2q_flt_thumb.jpg
+21587 inputs/j8cb01u2q_raw.jpg
+1159 inputs/j8cb01u2q_raw_thumb.jpg
+18748 inputs/j8cb01u3q_flt.jpg
+1083 inputs/j8cb01u3q_flt_thumb.jpg
+16493 inputs/j8cb010b0.tra
+51840 inputs/j8cb01u3q_flt_hlet.fits
+51840 inputs/j8cb01u2q_flt_hlet.fits
+15963840 inputs/j8cb010b1_drz.fits
+10820160 inputs/j8cb01u3q_flt.fits
+10820160 inputs/j8cb01u2q_flt.fits
+2818 inputs/j8cb01u3q.tra
+3547 inputs/j8cb01u2q.tra
+5446 inputs/j8cb010b1.tra
+10535040 inputs/j8cb010b1_crj.fits
+11520 inputs/j8cb010b0_asn.fits
+2257920 inputs/j8cb01u3q_raw.fits
+2257920 inputs/j8cb01u2q_raw.fits
+18457 outputs/acs/j8cb010b0/previews/j8cb010b1_crj.jpg
 1036 outputs/acs/j8cb010b0/previews/j8cb010b1_crj_thumb.jpg
-18754 outputs/acs/j8cb010b0/previews/j8cb01u3q_flt.jpg
-1156 outputs/acs/j8cb010b0/previews/j8cb01u3q_raw_thumb.jpg
-31937 outputs/acs/j8cb010b0/previews/j8cb010b1_drz.jpg
-18455 outputs/acs/j8cb010b0/previews/j8cb010b1_crj.jpg
+31941 outputs/acs/j8cb010b0/previews/j8cb010b1_drz.jpg
+1920 outputs/acs/j8cb010b0/previews/j8cb010b1_drz_thumb.jpg
 21728 outputs/acs/j8cb010b0/previews/j8cb01u3q_raw.jpg
-5307 outputs/acs/j8cb010b0/j8cb010b1.tra
+1156 outputs/acs/j8cb010b0/previews/j8cb01u3q_raw_thumb.jpg
+18712 outputs/acs/j8cb010b0/previews/j8cb01u2q_flt.jpg
+1084 outputs/acs/j8cb010b0/previews/j8cb01u2q_flt_thumb.jpg
+21587 outputs/acs/j8cb010b0/previews/j8cb01u2q_raw.jpg
+1159 outputs/acs/j8cb010b0/previews/j8cb01u2q_raw_thumb.jpg
+18748 outputs/acs/j8cb010b0/previews/j8cb01u3q_flt.jpg
+1083 outputs/acs/j8cb010b0/previews/j8cb01u3q_flt_thumb.jpg
+2257920 outputs/acs/j8cb010b0/j8cb01u3q_raw.fits
 51840 outputs/acs/j8cb010b0/j8cb01u3q_flt_hlet.fits
-3407 outputs/acs/j8cb010b0/j8cb01u2q.tra
+10820160 outputs/acs/j8cb010b0/j8cb01u3q_flt.fits
+2818 outputs/acs/j8cb010b0/j8cb01u3q.tra
+2257920 outputs/acs/j8cb010b0/j8cb01u2q_raw.fits
+51840 outputs/acs/j8cb010b0/j8cb01u2q_flt_hlet.fits
+10820160 outputs/acs/j8cb010b0/j8cb01u2q_flt.fits
+3547 outputs/acs/j8cb010b0/j8cb01u2q.tra
 15963840 outputs/acs/j8cb010b0/j8cb010b1_drz.fits
 10535040 outputs/acs/j8cb010b0/j8cb010b1_crj.fits
-16176 outputs/acs/j8cb010b0/j8cb010b0.tra
-10820160 outputs/acs/j8cb010b0/j8cb01u3q_flt.fits
+5446 outputs/acs/j8cb010b0/j8cb010b1.tra
+11520 outputs/acs/j8cb010b0/j8cb010b0_asn.fits
+16493 outputs/acs/j8cb010b0/j8cb010b0.tra
 """,
     ),
     (
         "octka6010",
         """
+8141 outputs/stis/octka6010/previews/octka6010_x1d_thumb.png
+271687 outputs/stis/octka6010/previews/octka6010_x1d.png
 1638720 outputs/stis/octka6010/octka6010_x1d.fits
 4262400 outputs/stis/octka6010/octka6010_wav.fits
 8429760 outputs/stis/octka6010/octka6010_raw.fits
-271687 outputs/stis/octka6010/previews/octka6010_x1d.png
-8141 outputs/stis/octka6010/previews/octka6010_x1d_thumb.png
-11520 outputs/stis/octka6010/octka6010_asn.fits
 10535040 outputs/stis/octka6010/octka6010_flt.fits
+11520 outputs/stis/octka6010/octka6010_asn.fits
 """,
     ),
     (
@@ -117,7 +118,7 @@ CALDP_S3_TEST_OUTPUTS = os.environ.get("CALDP_S3_TEST_OUTPUTS")  # s3://calcloud
 CALDP_S3_TEST_INPUTS = os.environ.get("CALDP_S3_TEST_INPUTS")
 
 # Output sizes must be within +- this fraction of truth value
-CALDP_TEST_FILE_SIZE_THRESHOLD = float(os.environ.get("CALDP_TEST_FILE_SIZE_THRESHOLD", 0.30))
+CALDP_TEST_FILE_SIZE_THRESHOLD = float(os.environ.get("CALDP_TEST_FILE_SIZE_THRESHOLD", 0.4))
 
 # ----------------------------------------------------------------------------------------
 
@@ -160,7 +161,7 @@ def coretst(temp_dir, ipppssoot, input_uri, output_uri):
 
 
 def parse_results(results):
-    """Break up multiline output from ls -1st into a list of (name, size) tuples."""
+    """Break up multiline output from ls into a list of (name, size) tuples."""
     return [(line.split()[1], int(line.split()[0])) for line in results.splitlines() if line.strip()]
 
 
@@ -174,21 +175,29 @@ def setup_io(ipppssoot, input_uri, output_uri):
 
 def list_files(ipppssoot, input_uri, output_uri):
     """Routinely log input, output, and CWD files to aid setting up expected results."""
-    outputs = chain("/bin/ls *.fits *.tra")
-    outputs += chain("/usr/bin/find inputs -type f")
-    outputs += chain("/usr/bin/find outputs -type f")
-    outputs = [(path, os.stat(path).st_size) for path in outputs.splitlines()]
-    if CALDP_S3_TEST_INPUTS:
+    outputs = list_fs("inputs")
+    outputs += list_fs("outputs")
+    if CALDP_S3_TEST_INPUTS and input_uri.lower().startswith("s3://"):
         outputs += list_s3(CALDP_S3_TEST_INPUTS)
-    if CALDP_S3_TEST_OUTPUTS:
+    if CALDP_S3_TEST_OUTPUTS and output_uri.lower().startswith("s3://"):
         outputs += list_s3(CALDP_S3_TEST_OUTPUTS)
-    for pair in outputs:
-        print(pair[1], pair[0])
-    return outputs
+    sys.stdout.flush()
+    sys.stderr.flush()
+    print(outputs)
+    sys.stdout.flush()
+    sys.stderr.flush()
+    return parse_results(outputs)
+
+
+def list_fs(path):
+    """List local files at `path` for defining truth data and actual files."""
+    return chain(f"/usr/bin/find {path} -type f", "xargs ls -lt", "awk -e {print($5,$9);}")
 
 
 def list_s3(path):
-    chain("aws s3 ls --recursive " + path, "awk -e {print($4);}")
+    """List S3 files at `path` for defining truth data and actual files."""
+    output = chain(f"aws s3 ls --recursive {path}", "awk -e {print($3,$4);}")
+    return output.replace(" ", " outputs/")
 
 
 def chain(*args, encoding="utf-8", print_output=False):
@@ -213,6 +222,7 @@ def chain(*args, encoding="utf-8", print_output=False):
     output = output.decode(encoding) if encoding else output
     if print_output:
         print(output, end="")
+    pipes[-1].stdout.close()
     return output
 
 
