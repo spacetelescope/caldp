@@ -175,6 +175,8 @@ def setup_io(ipppssoot, input_uri, output_uri):
 
 def list_files(ipppssoot, input_uri, output_uri):
     """Routinely log input, output, and CWD files to aid setting up expected results."""
+    # List files from all modes,  they'll be nothing for inapplicable modes.
+    # Choose files from print to define truth values for future tests.
     outputs = list_fs("inputs")
     outputs += list_fs("outputs")
     if CALDP_S3_TEST_INPUTS and input_uri.lower().startswith("s3://"):
@@ -200,12 +202,10 @@ def list_s3(path):
     return output.replace(" ", " outputs/")
 
 
-def chain(*args, encoding="utf-8", print_output=False):
+def chain(*args, encoding="utf-8", print_output=False, raise_exception=False):
     """Every arg should be a subprocess command string which will be run and piped to
     any subsequent args in a linear process chain.  Each arg will be split into command
     words based on whitespace so whitespace embedded within words is not possible.
-
-    Process error handling is undefined and may not raise exceptions.
 
     Returns stdout from the chain.
     """
@@ -219,10 +219,12 @@ def chain(*args, encoding="utf-8", print_output=False):
             p = subprocess.Popen(words, stdout=subprocess.PIPE)
         pipes.append(p)
     output = p.communicate()[0]
+    ret_code = p.wait()
+    if ret_code and raise_exception:
+        raise RuntimeError(f"Subprocess failed with with status: {ret_code}")
     output = output.decode(encoding) if encoding else output
     if print_output:
         print(output, end="")
-    pipes[-1].stdout.close()
     return output
 
 
@@ -235,7 +237,7 @@ def check_results(ipppssoot, input_uri, output_uri):
     actual_files = dict(list_files(ipppssoot, input_uri, output_uri))
     for (expected_name, expected_size) in expected:
         if expected_name.startswith("inputs/") and not input_uri.startswith("file:"):
-            continue
+            continue  # astroquery inputs are irrelevant.  currently 'file:' inputs double as outputs.
         assert expected_name in actual_files
         if expected_name.startswith("s3://"):
             continue
