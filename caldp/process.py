@@ -21,7 +21,11 @@ import subprocess
 import boto3
 
 from astropy.io import fits
-from drizzlepac.hlautils.astroquery_utils import retrieve_observation
+
+try:
+    from drizzlepac.haputils.astroquery_utils import retrieve_observation
+except ImportError:
+    from drizzlepac.hlautils.astroquery_utils import retrieve_observation
 
 from crds.bestrefs import bestrefs
 
@@ -83,7 +87,8 @@ def get_instrument(ipppssoot):
 def get_output_path(output_uri, ipppssoot):
     """Given an `output_uri` string which nominally defines an S3 bucket and
     directory base path,  and an `ipppssoot` dataset name,  generate a full
-    S3 output path where outputs from processing `ipppssoot` should be stored.
+    S3 output path (or directory) where outputs from processing `ipppssoot`
+    should be stored.
 
     Parameters
     ----------
@@ -94,8 +99,9 @@ def get_output_path(output_uri, ipppssoot):
 
     Returns
     -------
-    full_s3_object_path : str
-        A fully specified S3 object, including bucket, directory, and filename.
+    object_path : str
+        A fully specified S3 object, including bucket, directory, and filename,
+        or a directory path.
 
     >>> get_output_path("s3://temp/batch-2020-02-13T10:33:00", "IC0B02020")
     's3://temp/batch-2020-02-13T10:33:00/wfc3/IC0B02020'
@@ -109,6 +115,8 @@ def get_output_path(output_uri, ipppssoot):
             output_prefix = os.path.join(os.getcwd(), test_prefix)
     elif output_uri.startswith("s3"):
         output_prefix = output_uri
+    elif output_uri.startswith("none"):
+        return "none"
     return output_prefix + "/" + instrument_name + "/" + ipppssoot
 
 
@@ -300,7 +308,7 @@ class InstrumentManager:
         # we'll need to move around a couple of times to get the cal code and local file movements working
         orig_wd = os.getcwd()
         if self.input_uri.startswith("astroquery"):
-            input_files = self.dowload()
+            input_files = self.download()
         elif self.input_uri.startswith("file"):
             input_files = self.find_input_files()
             # mainly due to association processing, we need to be in the same place as the asn's
@@ -318,7 +326,7 @@ class InstrumentManager:
 
         self.divider("Completed processing for", self.instrument_name, self.ipppssoot)
 
-    def dowload(self):
+    def download(self):
         """Download any data files for the `ipppssoot`,  issuing start and
         stop divider messages.
 
@@ -331,7 +339,7 @@ class InstrumentManager:
         self.divider("Retrieving data files for:", self.download_suffixes)
         files = retrieve_observation(self.ipppssoot, suffix=self.download_suffixes)
         self.divider("Download data complete.")
-        return list(sorted(files))
+        return list(sorted([os.path.abspath(f) for f in files]))
 
     def find_input_files(self):
         """Scrape the input_uri for the needed input_files.
@@ -342,8 +350,6 @@ class InstrumentManager:
             Local file system paths of files which were found for `ipppssoot`,
             some of which will be selected for calibration processing.
         """
-        self.divider("Finding data files with glob *.fits for:", self.ipppssoot)
-        # find the base path to the files
         test_path = self.input_uri.split(":")[-1]
         if os.path.isdir(test_path):
             base_path = os.path.abspath(test_path)
@@ -351,8 +357,9 @@ class InstrumentManager:
             base_path = os.path.join(os.getcwd(), test_path)
         else:
             raise ValueError(f"input path {test_path} does not exist")
-
         search_str = f"{base_path}/{self.ipppssoot.lower()[0:5]}*.fits"
+        self.divider("Finding input data using:", repr(search_str))
+        # find the base path to the files
         files = glob.glob(search_str)
         return list(sorted(files))
 
@@ -365,7 +372,6 @@ class InstrumentManager:
             Local file system paths of files which were found for `ipppssoot`,
             post-calibration
         """
-        self.divider("Finding data files for output with glob *.fits for:", self.ipppssoot)
         # find the base path to the files
         test_path = self.input_uri.split(":")[-1]
         if os.path.isdir(test_path):
@@ -376,10 +382,12 @@ class InstrumentManager:
             raise ValueError(f"output path {test_path} does not exist")
 
         search_str = f"{base_path}/{self.ipppssoot.lower()[0:5]}*.fits"
+        self.divider("Finding output data for:", repr(search_str))
         files = glob.glob(search_str)
 
         # trailer files
         search_str = f"{base_path}/{self.ipppssoot.lower()[0:5]}*.tra"
+        self.divider("Finding output trailers for:", repr(search_str))
         files.extend(glob.glob(search_str))
 
         return list(sorted(files))
@@ -401,7 +409,8 @@ class InstrumentManager:
         """
         self.divider("Computing bestrefs and downloading references.", files)
         bestrefs_files = self.raw_files(files)
-        bestrefs.assign_bestrefs(bestrefs_files, sync_references=True)
+        # Only sync reference files if the cache is read/write.
+        bestrefs.assign_bestrefs(bestrefs_files, sync_references=os.environ.get("CRDS_READONLY_CACHE", "0") != "1")
         self.divider("Bestrefs complete.")
 
     def process(self, files):
@@ -607,6 +616,22 @@ def process(ipppssoot, input_uri, output_uri):
     """
     manager = get_instrument_manager(ipppssoot, input_uri, output_uri)
     manager.main()
+
+
+def download_inputs(ipppssoot, input_uri, output_uri):
+    """This function sets up file inputs for CALDP based on downloads from
+    astroquery to support testing the file based input mode.  The files for
+     `ipppssoot` normally downloaded from astroquery: are downloaded and placed
+    in the directory defined by `input_uri`. This function uses a parameter set
+    identical to `process.process()` to ease construction of test cases and
+    to fully construct an appropriate instrument manager based on the `ipppssoot`.
+    """
+    manager = get_instrument_manager(ipppssoot, input_uri, output_uri)
+    old_dir = os.getcwd()
+    if input_uri.startswith("file:"):
+        os.chdir(input_uri.split(":")[-1])
+    manager.download()
+    os.chdir(old_dir)
 
 
 # -----------------------------------------------------------------------------

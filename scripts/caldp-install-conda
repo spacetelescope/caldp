@@ -1,0 +1,46 @@
+#! /bin/bash  -e
+
+CONDA_DIR=${1:-"$HOME/miniconda3"}
+SHELL=${2:-bash}
+OS=${3:-`uname -s`}
+
+case $OS in
+    Darwin)
+        export CONDA_INSTALLER=Miniconda3-latest-MacOSX-x86_64.sh
+        ;;
+    Linux)
+        export CONDA_INSTALLER=Miniconda3-latest-Linux-x86_64.sh
+        ;;
+    *)
+        echo "usage:  $0  [Darwin|Linux] [bash|csh|zsh] [path_to_install_dir]"
+        exit -1
+        ;;
+esac
+
+case $SHELL in
+    bash)
+    ;;
+    csh)
+    ;;
+    zsh)
+    ;;
+    *)
+        echo "Invalid SHELL selected = $SHELL"
+        exit -1
+        ;;
+esac
+
+echo "Installing   OS=$OS   SHELL=$SHELL  CONDA_DIR=$CONDA_DIR"
+
+rm -rf $CONDA_DIR
+rm -f ${CONDA_INSTALLER}*
+wget --no-check-certificate https://repo.anaconda.com/miniconda/${CONDA_INSTALLER}
+
+bash ${CONDA_INSTALLER}  -b -p $CONDA_DIR
+rm -f ${CONDA_INSTALLER}
+
+source $CONDA_DIR/etc/profile.d/conda.sh
+hash -r
+conda info -a
+conda update --yes -n base -c defaults conda
+conda init $SHELL

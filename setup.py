@@ -79,7 +79,9 @@ except Exception:
     version = '{version}'
 """.lstrip()
 
-setup(use_scm_version={'write_to': os.path.join('caldp', 'version.py'),
-                       'write_to_template': VERSION_TEMPLATE},
-      scripts=scripts,
-)
+setup(
+    use_scm_version={
+        'write_to': os.path.join('caldp', 'version.py'),
+        'write_to_template': VERSION_TEMPLATE
+    },
+    scripts=scripts)
