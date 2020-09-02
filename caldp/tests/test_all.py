@@ -71,40 +71,18 @@ RESULTS = [
 """,
     ),
     (
-        "octka6010",
-        """
-8141 outputs/stis/octka6010/previews/octka6010_x1d_thumb.png
-271687 outputs/stis/octka6010/previews/octka6010_x1d.png
-1638720 outputs/stis/octka6010/octka6010_x1d.fits
-4262400 outputs/stis/octka6010/octka6010_wav.fits
-8429760 outputs/stis/octka6010/octka6010_raw.fits
-10535040 outputs/stis/octka6010/octka6010_flt.fits
-11520 outputs/stis/octka6010/octka6010_asn.fits
-""",
+        "obes03010",
+        """""",
     ),
     (
-        "o8l7sws9q",
-        """
-10535040 outputs/stis/o8l7sws9q/o8l7sws9q_flt.fits
-2257920 outputs/stis/o8l7sws9q/o8l7sws9q_raw.fits
-12147840 outputs/stis/o8l7sws9q/o8l7sws9q_x2d.fits
-""",
+        "la8q99030",
+        """""",
     ),
     (
-        "ldqhpbi9q",
-        """
-37823040 outputs/cos/ldqhpbi9q/ldqhpbi9q_counts.fits
-959 outputs/cos/ldqhpbi9q/ldqhpbi9q.tra
-37823040 outputs/cos/ldqhpbi9q/ldqhpbi9q_flt.fits
-316800 outputs/cos/ldqhpbi9q/ldqhpbi9q_spt.fits
-8464320 outputs/cos/ldqhpbi9q/ldqhpbi9q_rawacq.fits
-""",
-    ),
+        "ib8t01010",
+        """""",
+    )
 ]
-
-#     "idgg23ztq": """
-# 100  fix.me  long running???  get file definitions from test output
-# """
 
 
 SHORT_TEST_IPPPSSOOTS = [result[0] for result in RESULTS][:1]
