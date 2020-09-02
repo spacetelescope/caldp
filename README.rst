@@ -240,11 +240,11 @@ as naturally as possible. By default, your current working directory becomes $HO
 Docker Build
 ============
 If you want to run CALDP as a container then the equivalent of installing it
-is either building or pulling the container (i.e. from an AWS elastic container registry, ECR).  This section will cover building
-your own CALDP image.   To complete this section for personal use,  all you need
-is a local installation of Docker and the supplied scripts should run it for you
-even more easily than normal. This section doesn't cover using Docker in general,
-or hosting your own images on Docker Hub or AWS Elastic Container Registry (ECR)
+is either building or pulling the container (i.e. from an AWS elastic container registry, ECR).
+This section will cover building your own CALDP image.   To complete this section for
+personal use,  all you need is a local installation of Docker and the supplied scripts
+should run it for you even more easily than normal. This section doesn't cover using Docker
+in general, or hosting your own images on Docker Hub or AWS Elastic Container Registry (ECR)
 where you can make them available to others.
 
 0. Clone this repo to a local directory and CD to it.
@@ -254,24 +254,34 @@ you're ready to push an image, you can use any name for your respository. Leave
 the default tag set to "latest" until you're familiar with the scripts and ready
 to modify or improve them.
 
-2. From your CALDP github checkout, do:
-
 .. code-block:: sh
+
+    git clone https://github.com:/spacetelescope/caldp.git
+    cd caldp
+
+2. Configure and build:
+
+    # Edit scripts/caldp-image-config to set the Docker image config variables for
+    # your currrent build.  These will include the repo and image tag your want to
+    # build and/or push.
+    vim scripts/caldp-image-config   # and customize as needed.
 
     # Install CALDP natively to get convenience scripts and your configuration from (1).
     pip install .
 
     # This script executes docker build to create the image with your configuration
-    caldp-image-build latest
+    caldp-image-build
+
+At this stage you can proceed to running your image if you wish.
 
 3. (optional) When you're ready to share your image with others and have done the corresponding
 Docker Hub or ECR setup, you can log in from your shell and then:
 
 .. code-block:: sh
 
-    caldp-image-push latest
+    caldp-image-push
 
-The tag you push should match the tag you built.
+This will push your image to the repo and tag your configured above.
 
 Docker Run
 ==========
@@ -282,11 +292,14 @@ locally or on pipeline cluster systems like AWS Batch.
 
 .. code-block:: sh
 
-    caldp-docker-run-pipeline  <ipppssoot>  [<input_path>]  [<output_path>]   [<caldp_config>]
+    caldp-docker-run-pipeline  <ipppssoot>  [<input_path>]  [<output_path>]   [<caldp_process_config>]
 
 This should look very similar to the caldp-process command shown in the *Native CALDP* section above
-because it is. The primary **differences** are that absolute native paths do not work and CRDS is
-configured to download files from the HST OPS server rather than use /grp/crds/cache.
+because it is. The primary **differences** are that absolute native paths do not work.
+
+**NOTE:**  The config file specified to caldp-docker-run-pipeline is used to configure processing,
+not to select the image.  caldp-docker-run-pipeline automatically uses caldp-image-config to select
+the image to run.
 
 Example Docker Commands (Local File System)
 +++++++++++++++++++++++++++++++++++++++++++

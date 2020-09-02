@@ -11,13 +11,14 @@
 
 # Choose the CALDP docker image configured by an installed
 # caldp-image-config
-source caldp-image-config ${CALDP_IMAGE_TAG}
+source caldp-image-config
 
 #
 # Mount native file systems into the Docker container:
 # 1. $CALDP_HOME or `pwd` is mounted as /home/developer
 #     inside Docker, and is r/w.
-# 2. $CRDS_PATH (or /grp/crds/cache) is mounted if visible natively, readonly.
+# 2. $CRDS_PATH (or /grp/crds/cache) is mounted, readonly if CRDS_READONLY_CACHE,
+#     at /grp/crds/cache inside the Docker container.
 #
 # To support use of AWS, consider copying or linking ~/.aws into whatever
 # native directory you mount at /home/developer.
@@ -47,13 +48,14 @@ fi
 # GUI to share it so that it is accessible to the mount switch below and thereby
 # visible inside the container.
 #
-CRDS_SRC=${CRDS_PATH:-/grp/crds/cache}
-CRDS_DST=/grp/crds/cache
-if [[ -d $CRDS_SRC ]]; then
-    MOUNTS="${MOUNTS} --mount type=bind,source=${CRDS_SRC},target=${CRDS_DST},readonly"
+CRDS_SRC=${CRDS_PATH:-/grp/crds/hst}
+if [[ "$CRDS_READONLY_CACHE" == "0" && "$CRDS_SRC" != "/grp/crds/hst" ]]; then
+    MOUNTS="${MOUNTS} --mount type=bind,source=${CRDS_SRC},target=/grp/crds/cache"
+else
+    MOUNTS="${MOUNTS} --mount type=bind,source=${CRDS_SRC},target=/grp/crds/cache,readonly"
 fi
 
 
 # we pass DEV_HOME into the container as an env variable so that the output paths in the message
 # can refer to the local, out-of-container path.
-docker run --rm -it -p 8888:8888 --env DEV_HOME=$DEV_HOME $MOUNTS $CALDP_DOCKER_IMAGE $*
+docker run --rm -it -p 8888:8888 --env DEV_HOME=$DEV_HOME --env CALDP_DOCKER=1 $MOUNTS $CALDP_DOCKER_IMAGE $*
