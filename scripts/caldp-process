@@ -32,13 +32,27 @@ if [[ ${CALDP_DOCKER} != "" ]]; then
     export CRDS_PATH=/grp/crds/cache
 fi
 
-export iref=${CRDS_PATH}/references/hst/
-export jref=${CRDS_PATH}/references/hst/
-export oref=${CRDS_PATH}/references/hst/
-export lref=${CRDS_PATH}/references/hst/
-export nref=${CRDS_PATH}/references/hst/
-export uref=${CRDS_PATH}/references/hst/
-export uref_linux=$uref
+# This may not work for all CRDS caches unless they are re-organized using the CRDS
+# sync tool to be "flat" as well as readonly.  Most existing HST readonly pipeline caches
+# should already be flat.  Newly created caches are automatically "instrument" unless
+#  reorganized...  which is the offsite / read-write case.
+if  [[ ${CRDS_READONLY_CACHE} == "1" ]]; then
+    export iref=${CRDS_PATH}/references/hst/
+    export jref=${CRDS_PATH}/references/hst/
+    export oref=${CRDS_PATH}/references/hst/
+    export lref=${CRDS_PATH}/references/hst/
+    export nref=${CRDS_PATH}/references/hst/
+    export uref=${CRDS_PATH}/references/hst/
+    export uref_linux=$uref
+else
+    export iref=${CRDS_PATH}/references/hst/wfc3/
+    export jref=${CRDS_PATH}/references/hst/acs/
+    export oref=${CRDS_PATH}/references/hst/stis/
+    export lref=${CRDS_PATH}/references/hst/cos/
+    export nref=${CRDS_PATH}/references/hst/nicmos/
+    export uref=${CRDS_PATH}/references/hst/wfcpc2/
+    export uref_linux=$uref
+fi
 
 echo ........................................ Environment ..............................................
 echo "User is" `whoami`
