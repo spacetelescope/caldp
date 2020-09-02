@@ -26,6 +26,20 @@ echo "Starting caldp-process at (input) ${input_path} (output) ${output_path} fo
 
 source ${caldp_config}
 
+# When running inside Docker, the CRDS cache is *always* at $HOME/crds_cache,
+# but may or may not be writeable, and may or may not be dynamic.
+if [[ ${CALDP_DOCKER} != "" ]]; then
+    export CRDS_PATH=/grp/crds/cache
+fi
+
+export iref=${CRDS_PATH}/references/hst/
+export jref=${CRDS_PATH}/references/hst/
+export oref=${CRDS_PATH}/references/hst/
+export lref=${CRDS_PATH}/references/hst/
+export nref=${CRDS_PATH}/references/hst/
+export uref=${CRDS_PATH}/references/hst/
+export uref_linux=$uref
+
 echo ........................................ Environment ..............................................
 echo "User is" `whoami`
 echo "Current dir is" `pwd`

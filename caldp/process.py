@@ -409,7 +409,10 @@ class InstrumentManager:
         """
         self.divider("Computing bestrefs and downloading references.", files)
         bestrefs_files = self.raw_files(files)
-        bestrefs.assign_bestrefs(bestrefs_files, sync_references=True)
+        # Only sync reference files if the cache is read/write.
+        bestrefs.assign_bestrefs(
+            bestrefs_files,
+            sync_references=os.environ.get("CRDS_READONLY_CACHE", "0") != "1")
         self.divider("Bestrefs complete.")
 
     def process(self, files):

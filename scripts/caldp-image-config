@@ -1,6 +1,8 @@
 #! /bin/sh
 
 # Configuration settings used in caldp container image build scripts
+# You must explicitly configure these for the mode you want to develop
+# for,  then install them prior to using caldp-image-build or -push.
 
 # Docker repo and tag
 # e.g. export CALDP_IMAGE_REPO=jaytmiller/caldp
@@ -10,7 +12,7 @@
 export CALDP_IMAGE_REPO=162808325377.dkr.ecr.us-east-1.amazonaws.com/caldp
 
 # Base image with CALDP package and fitscut added.
-export CALDP_IMAGE_TAG=${1:-latest}
+export CALDP_IMAGE_TAG=latest
 export CALDP_DOCKER_IMAGE=${CALDP_IMAGE_REPO}:${CALDP_IMAGE_TAG}
 
 # Fundamental calibration s/w image CALDP image inherits from

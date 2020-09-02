@@ -2,6 +2,6 @@
 
 # This script is used to build the caldp container image using Docker.
 
-source caldp-image-config $*
+source caldp-image-config
 
 docker build -f Dockerfile -t ${CALDP_DOCKER_IMAGE} --build-arg CAL_BASE_IMAGE=$CAL_BASE_IMAGE  .
