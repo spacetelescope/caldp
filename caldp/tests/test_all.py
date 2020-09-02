@@ -76,7 +76,6 @@ RESULTS = [
 8486 obes03010_sx1_thumb.png
 121908 obes03010_sx1.png
 80640 obes03010_sx1.fits
-4096 outputs
 14477760 obes03010_sx2.fits
 21052800 obes03010_flt.fits
 10537920 obes03010_crj.fits
@@ -106,7 +105,6 @@ RESULTS = [
 7760 la8q99030_x1dsum3_thumb.png
 115200 la8q99030_x1dsum3_prev.fits
 233301 la8q99030_x1dsum3.png
-4096 outputs
 218880 la8q99030_jnk.fits
 11520 la8q99030_asn.fits
 195840 la8q99030_x1dsum3.fits
@@ -159,7 +157,6 @@ RESULTS = [
 2058 ib8t01htq_raw_thumb.jpg
 46513 ib8t01hwq_ima.jpg
 1859 ib8t01hwq_ima_thumb.jpg
-4096 outputs
 16110 ib8t01010.tra
 8640 ib8t01hwq_flt_hlet.fits
 8640 ib8t01htq_flt_hlet.fits
