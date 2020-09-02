@@ -10,3 +10,11 @@ export CRDS_PATH=/grp/crds/hst
 export CRDS_SERVER_URL=https://hst-serverless-mode.stsci.edu
 export CRDS_READONLY_CACHE=1
 
+export iref=${CRDS_PATH}/references/hst/
+export jref=${CRDS_PATH}/references/hst/
+export oref=${CRDS_PATH}/references/hst/
+export lref=${CRDS_PATH}/references/hst/
+export nref=${CRDS_PATH}/references/hst/
+export uref=${CRDS_PATH}/references/hst/
+export uref_linux=$uref
+
