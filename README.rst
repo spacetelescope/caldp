@@ -241,7 +241,7 @@ Docker Build
 ============
 If you want to run CALDP as a container then the equivalent of installing it
 is either building or pulling the container (i.e. from an AWS elastic container registry, ECR).
-This section will cover building your own CALDP image.   To complete this section for
+This section will cover building your own CALDP image. To complete this section for
 personal use,  all you need is a local installation of Docker and the supplied scripts
 should run it for you even more easily than normal. This section doesn't cover using Docker
 in general, or hosting your own images on Docker Hub or AWS Elastic Container Registry (ECR)
@@ -491,17 +491,47 @@ configuration script is passed as a 4th generally defaulted parameter to caldp-p
 
 Testing
 -------
+
+Travis
+======
+
 The CALDP repo is set up for Travis via github checkins.   Whenever you do a PR to spacetelescope/caldp,
 Travis will automatically run CI tests for CALDP.
 
-Because S3 inputs and outputs require AWS credentials to enable access,  testing of S3 modes is controlled by two
-environment variables:
+Native Testing
+==============
+
+It's common to do testing on a development machine prior to pushing.   This can basically be
+accomplished by installing caldp,  configuring your environment, and then running pytest
+similar to how it will be run by Travis.
+
+.. code-block:: sh
+
+    # FIRST: Setup a conda environment for CALDP as discussed above in native installs.
+    # Don't use the "everything install" if you have an existing conda environment you
+    # don't want to wipe out.   Make sure to activate it.
+
+    # THEN:  configure your environment and run pytest as Travis would:
+    source caldp-config-offsite
+    pytest caldp --cov=caldp --cov-fail-under 80  --capture=tee-sys
+
+**NOTE:** Not all CALDP code and capabilities are tested, particularly the wrapper scripts
+currently associated with running the Python package inside and outside Docker.
+
+S3 I/O
+======
+
+Because S3 inputs and outputs require AWS credentials to enable access, and specific object paths
+to use,  testing of S3 modes is controlled by two environment variables which define where to locate
+S3 inputs and outputs:
 
 .. code-block:: sh
 
     export CALDP_S3_TEST_INPUTS=s3://caldp-hst-test/inputs/test-batch
     export CALDP_S3_TEST_OUTPUTS=s3://caldp-hst-test/outputs/test-batch
 
-If either or both of the above variables is defined,  pytest will also execute tests which utilize the S3
-input or output modes.
+If either or both of the above variables is defined, pytest will also execute tests which utilize the S3
+input or output modes.  You must also have AWS credentials for this.  Currently S3 is not tested on Travis.
+
+
 
