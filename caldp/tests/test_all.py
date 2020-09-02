@@ -198,7 +198,7 @@ RESULTS = [
 11520 outputs/wfc3/ib8t01010/ib8t01010_asn.fits
 16110 outputs/wfc3/ib8t01010/ib8t01010.tra
         """,
-    )
+    ),
 ]
 
 
