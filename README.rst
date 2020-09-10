@@ -384,14 +384,28 @@ Running *caldp-process-aws* does require access to the CRDS and the output bucke
 
 Debugging in the Container
 ++++++++++++++++++++++++++
-Sometimes you want to execute commands in the container environment rather than *caldp-process*. You
-can run any command using *caldp-docker-run-container* which is itself wrapped by *caldp-docker-run-pipeline*.
+Sometimes you want to execute commands other than *caldp-process* in the container environment. You
+can run any command using *caldp-docker-run-container* which is itself normally wrapped by
+*caldp-docker-run-pipeline*.
+
+Before running,  the environment variable *CALDP_DOCKER_RUN_PARS* needs to be defined to add Docker command line
+switches which precede the CALDP image on the `docker run` command line.  It should be defined as follows to e.g.
+enable the interactive debug:
 
 .. code-block:: sh
 
-    # You can run a shell or other alternate program inside the CALDP container like this:
+    export CALDP_DOCKER_RUN_PARS="-it"
 
-    caldp-docker-run-container  /bin/bash  # interactive shell at /home/developer inside the container, nominally as user *developer*.
+Once *CALDP_DOCKER_RUN_PARS* is defined,  you can start an interactive session inside the container like this:
+
+.. code-block:: sh
+
+    caldp-docker-run-container  /bin/bash
+
+The same method can be used to add additional docker configuration parameters for any reason.
+
+*CALDP_DOCKER_RUN_PARS* defaults to `--rm` to do automatic container cleanup during normal non-debug operation.  It
+could also be used to e.g. make a port mapping for JupyterLab by adding:  `-p 8888:8888`.
 
 About CALDP_HOME
 ++++++++++++++++
