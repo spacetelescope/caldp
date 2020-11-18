@@ -464,13 +464,13 @@ class InstrumentManager:
             upload_filepath(filepath, output_filename)
         self.divider("Saving outputs complete.")
 
-    def track_versions(self, files):
+    def track_versions(self, files, apply_to="_raw"):
         """Add version keywords to raw_files(files)."""
         import caldp
 
         csys_ver = os.environ.get("CSYS_VER", "UNDEFINED")
         for filename in self.raw_files(files):
-            if "_raw" in filename:
+            if apply_to in filename:
                 fits.setval(filename, "CSYS_VER", value=csys_ver)
                 fits.setval(filename, "CALDPVER", value=caldp.__version__)
 
@@ -554,8 +554,10 @@ class StisManager(InstrumentManager):
         raw = [f for f in files if f.endswith("_raw.fits")]
         wav = [f for f in files if f.endswith("_wav.fits")]
         if raw:
+            self.track_versions(files, "_raw")
             self.run(self.stage1, *raw)
         else:
+            self.track_versions(files, "_wav")
             self.run(self.stage1, *wav)
 
     def raw_files(self, files):
