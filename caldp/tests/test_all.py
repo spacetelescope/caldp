@@ -96,48 +96,49 @@ RESULTS = [
     (
         "la8q99030",
         """
-7814 la8q99ixq_x1d_thumb.png
+7799 la8q99ixq_x1d_thumb.png
 115200 la8q99ixq_x1d_prev.fits
-234510 la8q99ixq_x1d.png
-7760 la8q99030_x1dsum_thumb.png
+235844 la8q99ixq_x1d.png
+7745 la8q99030_x1dsum_thumb.png
 115200 la8q99030_x1dsum_prev.fits
-232974 la8q99030_x1dsum.png
-7760 la8q99030_x1dsum3_thumb.png
+234387 la8q99030_x1dsum.png
+7745 la8q99030_x1dsum3_thumb.png
 115200 la8q99030_x1dsum3_prev.fits
-233301 la8q99030_x1dsum3.png
+234667 la8q99030_x1dsum3.png
+4096 outputs
 218880 la8q99030_jnk.fits
 11520 la8q99030_asn.fits
-195840 la8q99030_x1dsum3.fits
-195840 la8q99030_x1dsum.fits
+259200 la8q99030_x1dsum3.fits
+259200 la8q99030_x1dsum.fits
 13092480 la8q99ixq_counts.fits
 13092480 la8q99ixq_flt.fits
 12441600 la8q99ixq_corrtag.fits
-368640 la8q99ixq_x1d.fits
-4869 la8q99ixq.tra
+429120 la8q99ixq_x1d.fits
+4870 la8q99ixq.tra
 806400 la8q99ixq_lampflash.fits
 2560320 la8q99ixq_rawtag.fits
 218880 la8q99ixq_spt.fits
-234510 outputs/cos/la8q99030/previews/la8q99ixq_x1d.png
+235844 outputs/cos/la8q99030/previews/la8q99ixq_x1d.png
 115200 outputs/cos/la8q99030/previews/la8q99ixq_x1d_prev.fits
-7814 outputs/cos/la8q99030/previews/la8q99ixq_x1d_thumb.png
-232974 outputs/cos/la8q99030/previews/la8q99030_x1dsum.png
+7799 outputs/cos/la8q99030/previews/la8q99ixq_x1d_thumb.png
+234387 outputs/cos/la8q99030/previews/la8q99030_x1dsum.png
 115200 outputs/cos/la8q99030/previews/la8q99030_x1dsum_prev.fits
-7760 outputs/cos/la8q99030/previews/la8q99030_x1dsum_thumb.png
-233301 outputs/cos/la8q99030/previews/la8q99030_x1dsum3.png
+7745 outputs/cos/la8q99030/previews/la8q99030_x1dsum_thumb.png
+234667 outputs/cos/la8q99030/previews/la8q99030_x1dsum3.png
 115200 outputs/cos/la8q99030/previews/la8q99030_x1dsum3_prev.fits
-7760 outputs/cos/la8q99030/previews/la8q99030_x1dsum3_thumb.png
+7745 outputs/cos/la8q99030/previews/la8q99030_x1dsum3_thumb.png
 2560320 outputs/cos/la8q99030/la8q99ixq_rawtag.fits
 218880 outputs/cos/la8q99030/la8q99ixq_spt.fits
-368640 outputs/cos/la8q99030/la8q99ixq_x1d.fits
+429120 outputs/cos/la8q99030/la8q99ixq_x1d.fits
 13092480 outputs/cos/la8q99030/la8q99ixq_flt.fits
 806400 outputs/cos/la8q99030/la8q99ixq_lampflash.fits
 13092480 outputs/cos/la8q99030/la8q99ixq_counts.fits
 12441600 outputs/cos/la8q99030/la8q99ixq_corrtag.fits
-195840 outputs/cos/la8q99030/la8q99030_x1dsum3.fits
-4869 outputs/cos/la8q99030/la8q99ixq.tra
+259200 outputs/cos/la8q99030/la8q99030_x1dsum3.fits
+4870 outputs/cos/la8q99030/la8q99ixq.tra
 11520 outputs/cos/la8q99030/la8q99030_asn.fits
 218880 outputs/cos/la8q99030/la8q99030_jnk.fits
-195840 outputs/cos/la8q99030/la8q99030_x1dsum.fits
+259200 outputs/cos/la8q99030/la8q99030_x1dsum.fits
         """,
     ),
     (
