@@ -313,8 +313,12 @@ class InstrumentManager:
             input_files = self.find_input_files()
             # mainly due to association processing, we need to be in the same place as the asn's
             os.chdir(self.input_uri.split(":")[-1])
+        #########
+        elif self.input_uri.startswith("s3"):
+            input_files = self.get_objects()
+
         else:
-            raise ValueError("input_uri should either start with astroquery or file")
+            raise ValueError("input_uri should start with s3, astroquery or file")
 
         self.assign_bestrefs(input_files)
 
@@ -325,6 +329,52 @@ class InstrumentManager:
         self.output_files()
 
         self.divider("Completed processing for", self.instrument_name, self.ipppssoot)
+
+    def get_objects(self, in_bucket='calcloud-hst-pipeline-inputs-sandbox'):
+        # some function calls aws (boto)
+        # 
+        # copy to local path 
+        # untar
+        # youre in docker container filesystem
+        # 
+        # make it think it was called with file://
+        home = '$HOME/developer/' #r'/Users/rkein/Code/HST/caldp_sandbox/'
+        os.chdir(home)
+        try:
+            os.makedirs('$HOME/inputs', exist_ok=True)
+        except:
+            print('Exception: ', e)
+
+        inputs = os.path.abspath(home+'/inputs/')
+        os.chdir(inputs)
+        #BOTO3
+        region = 'us-east-1'
+        s3 = boto3.resource('s3', region_name=region)
+        bucket = s3.Bucket('calcloud-hst-pipeline-inputs-sandbox')
+        location = {'LocationConstraint': region}
+
+        client = boto3.client('s3')
+        keys = []
+        for object in bucket.objects.all():
+            keys.append(object.key) # ['odfa0120.tar.gz', 'odfa0130.tar.gz']
+        for key in keys:
+            with open(key, 'wb') as f:
+                client.download_fileobj(in_bucket, key, f)
+        files = glob.glob(inputs+'/*.tar.gz')
+        import tarfile
+        for file in files:
+            with tarfile.open(file, 'r:gz') as tar_ref:
+                tar_ref.extractall(inputs)
+            # then delete tars
+            os.remove(file)
+
+        ipps = glob.glob(inputs+'/*')
+        filepaths = [i for i in ipps]
+        input_files = []
+        for f in filepaths:
+            input_files.append(glob.glob(f+'/*.fits'))
+        return input_files
+
 
     def download(self):
         """Download any data files for the `ipppssoot`,  issuing start and

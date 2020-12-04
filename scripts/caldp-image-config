@@ -9,7 +9,7 @@
 # export CALDP_IMAGE_REPO=bhayden/caldp
 # export CALDP_IMAGE_REPO=jaytmiller/caldp
 
-export CALDP_IMAGE_REPO=162808325377.dkr.ecr.us-east-1.amazonaws.com/caldp
+export CALDP_IMAGE_REPO=218835028644.dkr.ecr.us-east-1.amazonaws.com/caldp
 
 # Base image with CALDP package and fitscut added.
 export CALDP_IMAGE_TAG=latest

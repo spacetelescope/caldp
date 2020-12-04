@@ -71,7 +71,7 @@ if [ $output_path != "none" -a $output_location == 's3' ]; then
         exit 1
     fi
 fi
-
+ 
 echo ........................................ processing log ..............................................
 pwd
 set -o pipefail && $TIME --verbose -o process_metrics.txt \
