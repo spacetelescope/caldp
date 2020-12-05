@@ -316,6 +316,7 @@ class InstrumentManager:
         #########
         elif self.input_uri.startswith("s3"):
             input_files = self.get_objects()
+            os.chdir(self.ipppssoot.lower())
 
         else:
             raise ValueError("input_uri should start with s3, astroquery or file")
@@ -330,50 +331,25 @@ class InstrumentManager:
 
         self.divider("Completed processing for", self.instrument_name, self.ipppssoot)
 
-    def get_objects(self, in_bucket='calcloud-hst-pipeline-inputs-sandbox'):
-        # some function calls aws (boto)
-        # 
-        # copy to local path 
-        # untar
-        # youre in docker container filesystem
-        # 
-        # make it think it was called with file://
-        home = '$HOME/developer/' #r'/Users/rkein/Code/HST/caldp_sandbox/'
-        os.chdir(home)
-        try:
-            os.makedirs('$HOME/inputs', exist_ok=True)
-        except:
-            print('Exception: ', e)
-
-        inputs = os.path.abspath(home+'/inputs/')
-        os.chdir(inputs)
-        #BOTO3
-        region = 'us-east-1'
-        s3 = boto3.resource('s3', region_name=region)
-        bucket = s3.Bucket('calcloud-hst-pipeline-inputs-sandbox')
-        location = {'LocationConstraint': region}
-
-        client = boto3.client('s3')
-        keys = []
-        for object in bucket.objects.all():
-            keys.append(object.key) # ['odfa0120.tar.gz', 'odfa0130.tar.gz']
-        for key in keys:
-            with open(key, 'wb') as f:
-                client.download_fileobj(in_bucket, key, f)
-        files = glob.glob(inputs+'/*.tar.gz')
+    def get_objects(self):
         import tarfile
-        for file in files:
-            with tarfile.open(file, 'r:gz') as tar_ref:
-                tar_ref.extractall(inputs)
+        # s3://calcloud-hst-pipeline-inputs-sandbox
+        in_bucket = self.input_uri.replace("s3://", "")
+        client = boto3.client('s3')
+        
+        key = self.ipppssoot+'.tar.gz'
+        with open(key, 'wb') as f:
+            client.download_fileobj(in_bucket, key, f) # 'odfa0120.tar.gz'
+        
+        with tarfile.open(key, 'r:gz') as tar_ref:
+            tar_ref.extractall()
             # then delete tars
-            os.remove(file)
+            os.remove(key)
 
-        ipps = glob.glob(inputs+'/*')
-        filepaths = [i for i in ipps]
-        input_files = []
-        for f in filepaths:
-            input_files.append(glob.glob(f+'/*.fits'))
-        return input_files
+        cwd = os.getcwd()
+        ipps_path = os.path.abspath(cwd+"/"+self.ipppssoot) 
+        files = os.listdir(ipps_path)
+        return list(sorted([os.path.abspath(f) for f in files]))
 
 
     def download(self):

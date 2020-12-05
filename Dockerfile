@@ -53,10 +53,10 @@ RUN ./caldp-install-fitscut   /usr/local && \
 WORKDIR /home/developer
 RUN mkdir /home/developer/caldp
 COPY . /home/developer/caldp/
-RUN chown -R developer:developer /home/developer
+RUN chown -R developer.developer /home/developer
 
 # CRDS cache mount point or container storage.
-RUN mkdir -p /grp/crds/cache && chown -R developer:developer  /grp/crds/cache
+RUN mkdir -p /grp/crds/cache && chown -R developer.developer  /grp/crds/cache
 
 USER developer
 RUN cd caldp  &&  pip install .[dev,test]
