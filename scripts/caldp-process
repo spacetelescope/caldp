@@ -94,13 +94,15 @@ fi
 echo "Previews s3_output_dir is" $previews_s3_output_dir
 
 echo ........................................ previews log ................................................
+
 if [[ "$input_path" =~ "astroquery" ]]; then
     previews_input_dir="file:."
 else
     previews_input_dir=$input_path
 fi
+
 set -o pipefail && $TIME --verbose -o preview_metrics.txt \
-    python -m caldp.create_previews ${previews_input_dir}  ${previews_s3_output_dir} \
+    python -m caldp.create_previews ${previews_input_dir}  ${previews_s3_output_dir} {$ipppssoot} \
     2>&1 | tee preview.txt
 preview_exit_status=$?
 echo "Preview exit status ${preview_exit_status}"

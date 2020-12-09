@@ -313,10 +313,11 @@ class InstrumentManager:
             input_files = self.find_input_files()
             # mainly due to association processing, we need to be in the same place as the asn's
             os.chdir(self.input_uri.split(":")[-1])
-        #########
         elif self.input_uri.startswith("s3"):
             input_files = self.get_objects()
-            os.chdir(self.ipppssoot.lower())
+            subfolder = os.path.join(orig_wd, self.ipppssoot)
+            os.chdir(subfolder)
+            # modify input_uri var to work with `find_output_files` method
 
         else:
             raise ValueError("input_uri should start with s3, astroquery or file")
@@ -327,11 +328,17 @@ class InstrumentManager:
 
         # for moving files around, we need to chdir back for relative output path to work
         os.chdir(orig_wd)
+
         self.output_files()
 
         self.divider("Completed processing for", self.instrument_name, self.ipppssoot)
 
     def get_objects(self):
+        """
+        Download compressed ipppssoot tar files, untar, then save file paths to list
+        Returns sorted list of file paths (`input_files`) to process.main above
+        """
+        self.divider("Retrieving data files for:", self.ipppssoot)
         import tarfile
         # s3://calcloud-hst-pipeline-inputs-sandbox
         in_bucket = self.input_uri.replace("s3://", "")
@@ -346,10 +353,10 @@ class InstrumentManager:
             # then delete tars
             os.remove(key)
 
-        cwd = os.getcwd()
-        ipps_path = os.path.abspath(cwd+"/"+self.ipppssoot) 
-        files = os.listdir(ipps_path)
-        return list(sorted([os.path.abspath(f) for f in files]))
+        base_path = os.path.abspath(os.curdir)
+        subfolder = os.path.join(base_path, self.ipppssoot)
+        files = glob.glob(f"{subfolder}/{self.ipppssoot.lower()}*.fits")
+        return list(sorted(files))
 
 
     def download(self):
@@ -399,22 +406,30 @@ class InstrumentManager:
             post-calibration
         """
         # find the base path to the files
-        test_path = self.input_uri.split(":")[-1]
-        if os.path.isdir(test_path):
-            base_path = os.path.abspath(test_path)
-        elif os.path.isdir(os.path.join(os.getcwd(), test_path)):
-            base_path = os.path.join(os.getcwd(), test_path)
+        ###### s3 inputs #######
+        if self.input_uri.startswith("s3"):
+            base_path = os.path.abspath(os.curdir)
+            subfolder = os.path.join(base_path, self.ipppssoot)
+            search_fits = f"{subfolder}/{self.ipppssoot.lower()}*.fits"
+            search_tra = f"{subfolder}/{self.ipppssoot.lower()}*.tra"
+
         else:
-            raise ValueError(f"output path {test_path} does not exist")
+            test_path = self.input_uri.split(":")[-1]
+            if os.path.isdir(test_path):
+                base_path = os.path.abspath(test_path)
+            elif os.path.isdir(os.path.join(os.getcwd(), test_path)):
+                base_path = os.path.join(os.getcwd(), test_path)
+            else:
+                raise ValueError(f"output path {test_path} does not exist")
+            search_fits = f"{base_path}/{self.ipppssoot.lower()[0:5]}*.fits"
+            # trailer files
+            search_tra = f"{base_path}/{self.ipppssoot.lower()[0:5]}*.tra"
 
-        search_str = f"{base_path}/{self.ipppssoot.lower()[0:5]}*.fits"
-        self.divider("Finding output data for:", repr(search_str))
-        files = glob.glob(search_str)
-
-        # trailer files
-        search_str = f"{base_path}/{self.ipppssoot.lower()[0:5]}*.tra"
-        self.divider("Finding output trailers for:", repr(search_str))
-        files.extend(glob.glob(search_str))
+        self.divider("Finding output data for:", repr(search_fits))
+        files = glob.glob(search_fits)
+        
+        self.divider("Finding output trailers for:", repr(search_tra))
+        files.extend(glob.glob(search_tra))
 
         return list(sorted(files))
 
