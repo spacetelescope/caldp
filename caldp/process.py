@@ -317,8 +317,6 @@ class InstrumentManager:
             input_files = self.get_objects()
             subfolder = os.path.join(orig_wd, self.ipppssoot)
             os.chdir(subfolder)
-            # modify input_uri var to work with `find_output_files` method
-
         else:
             raise ValueError("input_uri should start with s3, astroquery or file")
 
@@ -355,7 +353,9 @@ class InstrumentManager:
 
         base_path = os.path.abspath(os.curdir)
         subfolder = os.path.join(base_path, self.ipppssoot)
-        files = glob.glob(f"{subfolder}/{self.ipppssoot.lower()}*.fits")
+        self.divider("Gathering fits files for calibration")
+        search_fits = f"{subfolder}/{self.ipppssoot.lower()[0:5]}*.fits"
+        files = glob.glob(search_fits)
         return list(sorted(files))
 
 
@@ -410,8 +410,8 @@ class InstrumentManager:
         if self.input_uri.startswith("s3"):
             base_path = os.path.abspath(os.curdir)
             subfolder = os.path.join(base_path, self.ipppssoot)
-            search_fits = f"{subfolder}/{self.ipppssoot.lower()}*.fits"
-            search_tra = f"{subfolder}/{self.ipppssoot.lower()}*.tra"
+            search_fits = f"{subfolder}/{self.ipppssoot.lower()[0:5]}*.fits"
+            search_tra = f"{subfolder}/{self.ipppssoot.lower()[0:5]}*.tra"
 
         else:
             test_path = self.input_uri.split(":")[-1]
@@ -695,7 +695,7 @@ def process_ipppssoots(ipppssoots, input_uri=None, output_uri=None):
         e.g. 'file:/home/developer/caldp-outputs
 
     input_uri: str
-        either astroquery:// or file:/path/to/files
+        either s3://bucket/tarfile or astroquery:// or file:/path/to/files
 
     Notes
     -----

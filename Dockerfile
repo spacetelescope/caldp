@@ -56,7 +56,8 @@ COPY . /home/developer/caldp/
 RUN chown -R developer.developer /home/developer
 
 # CRDS cache mount point or container storage.
-RUN mkdir -p /grp/crds/cache && chown -R developer.developer  /grp/crds/cache
+RUN mkdir -p /grp/crds/cache && chown -R developer.developer /grp
+#/grp/crds/cache
 
 USER developer
 RUN cd caldp  &&  pip install .[dev,test]

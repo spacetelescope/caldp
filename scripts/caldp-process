@@ -97,12 +97,18 @@ echo ........................................ previews log .....................
 
 if [[ "$input_path" =~ "astroquery" ]]; then
     previews_input_dir="file:."
+elif [[ "$input_path" =~ "s3" ]]; then
+    input_dir="/home/developer/${ipppssoot}"
+    mkdir -p ${input_dir}/previews
+    previews_local="${input_dir}/previews"
+    echo "Previews will be generated in $previews_local prior to s3 upload."
+    previews_input_dir=$input_path
 else
     previews_input_dir=$input_path
 fi
 
 set -o pipefail && $TIME --verbose -o preview_metrics.txt \
-    python -m caldp.create_previews ${previews_input_dir}  ${previews_s3_output_dir} {$ipppssoot} \
+    python -m caldp.create_previews $previews_input_dir  $previews_s3_output_dir $ipppssoot \
     2>&1 | tee preview.txt
 preview_exit_status=$?
 echo "Preview exit status ${preview_exit_status}"
@@ -114,6 +120,7 @@ echo ........................................ preview metrics ..................
 cat preview_metrics.txt
 
 echo ........................................ handling outputs for ${output_location} ............................................
+
 # Note: this action is not logged since log files are being transferred.
 if [ $output_path != "none" ]; then
     if [ $output_location == "s3" ]; then
@@ -131,8 +138,9 @@ if [ $output_path != "none" ]; then
             message_type="dataset-error"
         fi
         echo "Messaging ${message_type}"
-        echo "${message_type} ${ipppssoot}" >${ipppssoot}
-        aws s3 cp --quiet ${ipppssoot}  ${output_path}/messages/${message_type}/${ipppssoot}
+        mkdir messages
+        echo "${message_type} ${ipppssoot}" > messages/${ipppssoot}
+        aws s3 cp --quiet messages/${ipppssoot}  ${output_path}/messages/${message_type}/${ipppssoot}
     fi
     if [ $output_location == "file" ]; then
         stripped_output=`echo $output_path | cut -d':' -f2`

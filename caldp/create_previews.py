@@ -7,7 +7,7 @@ import logging
 import json
 import glob
 import shutil
-
+import boto3
 from astropy.io import fits
 
 from . import log
@@ -22,7 +22,6 @@ OUTPUT_FORMATS = [("_thumb", 128), ("", -1)]
 
 
 # -----------------------------------------------------------------------------------------------------------------
-
 
 def generate_image_preview(input_path, output_path, size):
     cmd = [
@@ -45,12 +44,13 @@ def generate_image_preview(input_path, output_path, size):
 
     with open(output_path, "wb") as f:
         f.write(stdout)
+    return stdout
 
 
-def generate_image_previews(input_path, output_dir, filename_base):
+def generate_image_previews(input_path, preview_dir, filename_base):
     output_paths = []
     for suffix, size in OUTPUT_FORMATS:
-        output_path = os.path.join(output_dir, f"{filename_base}{suffix}.jpg")
+        output_path = os.path.join(preview_dir, f"{filename_base}{suffix}.jpg")
         try:
             generate_image_preview(input_path, output_path, size)
         except Exception:
@@ -60,29 +60,22 @@ def generate_image_previews(input_path, output_dir, filename_base):
     return output_paths
 
 
-def generate_spectral_previews(input_path, output_dir, filename_base):
-    before_files = [f for f in os.listdir(output_dir) if os.path.isfile(f)]
-
-    cmd = ["make_hst_spec_previews", "-v", "-t", "png", "fits", "-o", output_dir, input_path]
-
-    # output = subprocess.check_output(cmd)
-    # err = os.system(" ".join(cmd))
+def generate_spectral_previews(input_path, preview_dir):
+    cmd = ["make_hst_spec_previews", "-v", "-t", "png", "fits", "-o", preview_dir, input_path]
     err = subprocess.call(cmd)
     if err:
         LOGGER.exception(f"Preview file not generated for {input_path}")
         return []
     else:
-        after_files = [f for f in os.listdir(output_dir) if os.path.isfile(f)]
-        return [f for f in after_files if f not in before_files]
+        previews = os.listdir(preview_dir)
+        return previews
 
 
-def generate_previews(input_path, output_dir, filename_base):
+def generate_previews(input_path, preview_dir, filename_base):
     with fits.open(input_path) as hdul:
         naxis = hdul[1].header["NAXIS"]
         ext = hdul[1].header["XTENSION"]
-
         extname = hdul[1].header["EXTNAME"].strip()
-
         try:
             instr_char = hdul[1].header["INSTRUME"].strip()[0]
         except Exception:
@@ -90,101 +83,103 @@ def generate_previews(input_path, output_dir, filename_base):
         instr_char = instr_char.lower()
 
     if naxis == 2 and ext == "BINTABLE" and extname != "ASN":
-        return generate_spectral_previews(input_path, output_dir, filename_base)
+        print("Generating spectral previews...")
+        return generate_spectral_previews(input_path, preview_dir)
     elif naxis >= 2 and ext == "IMAGE" and instr_char not in ["l", "o"]:
-        return generate_image_previews(input_path, output_dir, filename_base)
+        print("Generating image previews...")
+        return generate_image_previews(input_path, preview_dir, filename_base)
     else:
         log.warning("Unable to determine FITS file type")
         return []
 
+def get_inputs(ipppssoot, data_dir):
+    search_fits = f"{data_dir}/{ipppssoot.lower()[0:5]}*.fits"
+    inputs = glob.glob(search_fits)
+    return list(sorted(inputs))
 
-def split_uri(uri):
-    assert uri.startswith("s3://")
-    return uri.replace("s3://", "").split("/", 1)
+def get_previews(ipppssoot, preview_dir):
+    png_search = f"{preview_dir}/*.png"
+    jpg_search = f"{preview_dir}/*.jpg"
+    preview_files = glob.glob(png_search)
+    preview_files.extend(glob.glob(jpg_search))
+    return list(sorted(preview_files))
 
+def upload_previews(previews, output_uri_prefix):
+    """Given `previews` list to upload, copy it to `output_uri_prefix`.
+    previews : List of local preview filepaths to upload
+       ['./odfa01030/previews/x1d_thumb.png','./odfa01030/previews/x1d.png' ]
+    output_uri_prefix : Full path to object to upload including the bucket prefix
+        s3://hstdp-batch-outputs/data/stis/odfa01030/previews/
+    """        
+    client = boto3.client("s3")
+    splits = output_uri_prefix[5:].split("/")
+    bucket, path = splits[0], "/".join(splits[1:])
+    for preview in previews:
+        file = os.path.basename(preview)   
+        objectname = path+"/"+file
+        log.info("Uploading", preview, "to", output_uri_prefix)
+        with open(preview, "rb") as f:
+            client.upload_fileobj(f, bucket, objectname)
 
-def list_fits_uris(uri_prefix):
-    bucket_name, key = split_uri(uri_prefix)
-    result = subprocess.check_output(
-        [
-            "aws",
-            "s3api",
-            "list-objects",
-            "--bucket",
-            bucket_name,
-            "--prefix",
-            key,
-            "--output",
-            "json",
-            "--query",
-            "Contents[].Key",
-        ]
-    )
-    return [f"s3://{bucket_name}/{k}" for k in json.loads(result) if k.lower().endswith(".fits")]
-
-
-def get_previews_input(ipppssoot):
-    base_path = os.path.abspath(os.getcwd())
-    input_dir = os.path.join(base_path, ipppssoot)
-    search_fits = f"{input_dir}/{ipppssoot.lower()}*.fits"
-    files = glob.glob(search_fits)
-    return list(sorted(files))
-
-def main(input_uri_prefix, output_uri_prefix, ipppssoot, outdir=None):
-    """Generates previews based on a file system or S3 input directory
-    and an S3 output directory both specified in args.
-    """
-    if outdir is None:
-        outdir = os.getcwd()
-    if input_uri_prefix.startswith("s3://"):
-        ######## s3 input_uri gen previews from file
-        input_uris = get_previews_input(ipppssoot)
-        log.info("Processing", len(input_uris), "FITS files from ipppssoot", ipppssoot)
-        # input_uris = list_fits_uris(input_uri_prefix)
-        # log.info("Processing", len(input_uris), "FITS files from prefix", input_uri_prefix)
-        # for input_uri in input_uris:
-        #     log.info("Fetching", input_uri)
-        #     filename = os.path.basename(input_uri)
-        #     input_path = os.path.join(outdir, filename)
-        #     subprocess.check_call(["aws", "s3", "cp", input_uri, input_path])
-    else:
-        indir = os.path.abspath(input_uri_prefix.split(":")[-1]) or "."
-        input_uris = glob.glob(indir + "/*.fits")
-        log.info("Processing", len(input_uris), "FITS files from prefix", input_uri_prefix)
-    for input_uri in input_uris:
-        outbase, filename = os.path.split(input_uri)
+def create_previews_local(input_uri_prefix, output_uri_prefix):
+    indir = os.path.abspath(input_uri_prefix.split(":")[-1]) or "."
+    input_paths = glob.glob(indir + "/*.fits")
+    log.info("Processing", len(input_paths), "FITS files from prefix", input_uri_prefix)
+    for input_path in input_paths:
+        log.info("Generating previews for", input_path)
+        outbase, filename = os.path.split(input_path)
         filename_base, _ = os.path.splitext(filename)
-        log.info("Generating previews for", input_uri)
-        output_paths = generate_previews(input_uri, outbase, filename_base)
+        output_paths = generate_previews(input_path, outbase, filename_base)
         log.info("Generated", len(output_paths), "output files")
         for output_path in output_paths:
             output_uri = os.path.join(output_uri_prefix, os.path.basename(output_path))
-            if output_uri.startswith("s3://"):  # is set to "none" for local use
-                log.info("Uploading", output_path, "to", output_uri)
-                subprocess.check_call(["aws", "s3", "cp", "--quiet", output_path, output_uri])
-            else:
-                log.info(f"Copying {output_path} to {output_uri}")
-                os.makedirs(os.path.dirname(output_uri), exist_ok=True)
-                try:
-                    shutil.copy(output_path, output_uri)
-                except shutil.SameFileError:
-                    pass
+            log.info(f"Copying {output_path} to {output_uri}")
+            os.makedirs(os.path.dirname(output_uri), exist_ok=True)
+            try: 
+                shutil.copy(output_path, output_uri)
+            except shutil.SameFileError:
+                pass
 
+def create_previews_s3(input_uri_prefix, output_uri_prefix, ipppssoot):
+    """Generates previews based on s3 downloads
+    Returns a list of file paths
+    """
+    base_path = os.getcwd()
+    data_dir = os.path.join(base_path, ipppssoot)
+    preview_dir = os.path.join(data_dir, "previews") 
+    input_paths = get_inputs(ipppssoot, data_dir)
+    log.info("Processing", len(input_paths), "FITS files from ", data_dir)
+    # Generate previews to local preview folder inside ipppssoot folder
+    for input_path in input_paths:
+        log.info("Generating previews for", input_path)
+        filename_base = os.path.basename(input_path).split('.')[0]
+        generate_previews(input_path, preview_dir, filename_base)
+    # list of full paths to preview files
+    previews = get_previews(ipppssoot, preview_dir) 
+    log.info("Generated", len(previews), "preview files")
+    # Upload previews to s3
+    upload_previews(previews, output_uri_prefix)
+
+
+def main(input_uri_prefix, output_uri_prefix, ipppssoot):
+    """Generates previews based on input and output directories
+    according to specified args
+    """
+    if input_uri_prefix.startswith("s3://"):
+        create_previews_s3(input_uri_prefix, output_uri_prefix, ipppssoot)
+    else:
+        create_previews_local(input_uri_prefix, output_uri_prefix)
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Create image and spectral previews")
-    parser.add_argument(
-        "input_uri_prefix", help="S3 URI prefix or local directory containing FITS images that require previews"
-    )
+    parser.add_argument("input_uri_prefix", help="s3 or local directory containing FITS images")
     parser.add_argument("output_uri_prefix", help="S3 URI prefix for writing previews")
     parser.add_argument("ipppssoot", help="IPPPSSOOT for instrument data")
     return parser.parse_args()
 
-
 def cmdline():
     args = parse_args()
     main(args.input_uri_prefix, args.output_uri_prefix, args.ipppssoot)
-
 
 if __name__ == "__main__":
     cmdline()
