@@ -17,8 +17,31 @@ ENV MKL_THREADING_LAYER="GNU"
 USER root
 
 # RUN yum update  -y
+ENV REQUESTS_CA_BUNDLE=/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
+ENV CURL_CA_BUNDLE=/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
 
 RUN yum install -y curl rsync time
+
+# ------------------------------------------------------------------------
+# SSL/TLS cert setup for STScI AWS firewalling
+
+USER root
+
+RUN mkdir -p /etc/ssl/certs && \
+    mkdir -p /etc/pki/ca-trust/extracted/pem
+COPY tls-ca-bundle.pem /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
+RUN mv /etc/ssl/certs/ca-bundle.crt /etc/ssl/certs/ca-bundle.crt.org && \
+    ln -s /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem  /etc/ssl/certs/ca-bundle.crt && \
+   #  mv /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt.org && \
+    ln -s /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem /etc/ssl/certs/ca-certificates.crt && \
+   #  ln -s /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem /usr/lib/ssl/cert.pem && \
+    mkdir -p /etc/pki/ca-trust/extracted/openssl
+
+USER root
+# RUN npm config set cafile /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
+COPY scripts/fix-certs .
+
+RUN ./fix-certs
 
 RUN pip install --upgrade pip
 RUN pip install awscli boto3
