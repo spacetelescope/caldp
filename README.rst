@@ -226,6 +226,15 @@ and output modes. caldp-process is configured to run using local files by defaul
 
     caldp-process j8cb010b0  astroquery:  s3://calcloud-hst-pipeline-outputs
 
+    # ----------------------------------------------------------------------------------------
+    # Download inputs from s3, upload outputs to S3 (AWS credentials and permission required)
+    # Inputs: Downloads compressed (tar.gz) file matching j8cb010b0 from s3 and extracts to folder in the current working directory / CALDP_HOME/j8cb010b0/.
+    # Outputs: Copies output product tree to AWS S3 storage bucket.
+    # CRDS configuration: VPN configuration, no CRDS server required, /grp/crds/cache must be visible.
+    # Scratch files: Extra processing artifacts appear in CALDP_HOME/j8cb010b0/. Export CALDP_HOME to move them somewhere else.
+
+    caldp-process j8cb010b0  s3://calcloud-hst-pipeline-inputs  s3://calcloud-hst-pipeline-outputs
+
 
 Docker CALDP
 ------------
@@ -343,6 +352,14 @@ and output modes. caldp-process is *still* configured to run using local files b
     # Scratch files: Extra processing artifacts appear in the current working directory. Export CALDP_HOME to move them somewhere else.
 
     caldp-docker-run-pipeline j8cb010b0  astroquery:  s3://calcloud-hst-pipeline-outputs/batch-22
+
+    # ----------------------------------------------------------------------------------------
+    # Download inputs from s3, upload outputs to S3, current AWS Batch configuration minus Docker.
+    # Inputs: Downloads raw files matching j8cb010b0 from s3 to current working directory / CALDP_HOME.
+    # CRDS configuration: Remote configuration, server https://hst-crds.stsci.edu must be up, files downloaded to crds_cache.
+    # Scratch files: Extra processing artifacts appear in the current working directory. Export CALDP_HOME to move them somewhere else.
+
+    caldp-docker-run-pipeline j8cb010b0  s3://calcloud-hst-pipeline-inputs  s3://calcloud-hst-pipeline-outputs
 
 After configuring Docker, caldp-docker-run-pipeline runs *caldp-process* inside the docker container
 with the parameters given on the command line. While file: paths are defined relative to your native

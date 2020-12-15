@@ -82,8 +82,6 @@ def get_instrument(ipppssoot):
 
 
 # -----------------------------------------------------------------------------
-
-
 def get_output_path(output_uri, ipppssoot):
     """Given an `output_uri` string which nominally defines an S3 bucket and
     directory base path,  and an `ipppssoot` dataset name,  generate a full
@@ -314,9 +312,11 @@ class InstrumentManager:
             # mainly due to association processing, we need to be in the same place as the asn's
             os.chdir(self.input_uri.split(":")[-1])
         elif self.input_uri.startswith("s3"):
-            input_files = self.get_objects()
-            subfolder = os.path.join(orig_wd, self.ipppssoot)
-            os.chdir(subfolder)
+            input_path = self.get_input_path()
+            os.chdir(input_path)
+            input_files = self.get_objects(input_path)
+            #subfolder = os.path.join(orig_wd, self.ipppssoot)
+            # os.chdir(subfolder)
         else:
             raise ValueError("input_uri should start with s3, astroquery or file")
 
@@ -331,10 +331,24 @@ class InstrumentManager:
 
         self.divider("Completed processing for", self.instrument_name, self.ipppssoot)
 
-    def get_objects(self):
+    # -----------------------------------------------------------------------------
+
+    def get_input_path(self):
+        """Create directory (named after ippppssoot id) for downloading s3 compressed files into
+        Return path to directory
+        """
+        cwd = os.getcwd()
+        try:
+            os.mkdir(os.path.join(cwd, self.ipppssoot))
+        except FileExistsError:
+            pass
+        input_path = os.path.join(cwd, self.ipppssoot)
+        return input_path
+
+    def get_objects(self, input_path):
         """
         Download compressed ipppssoot tar files, untar, then save file paths to list
-        Returns sorted list of file paths (`input_files`) to process.main above
+        Returns sorted list of file paths (`input_files`) 
         """
         self.divider("Retrieving data files for:", self.ipppssoot)
         import tarfile
@@ -351,13 +365,14 @@ class InstrumentManager:
             # then delete tars
             os.remove(key)
 
-        base_path = os.path.abspath(os.curdir)
-        subfolder = os.path.join(base_path, self.ipppssoot)
+        # base_path = os.path.abspath(os.curdir)
+        # subfolder = os.path.join(base_path, self.ipppssoot)
         self.divider("Gathering fits files for calibration")
-        search_fits = f"{subfolder}/{self.ipppssoot.lower()[0:5]}*.fits"
+        # search_fits = f"{subfolder}/{self.ipppssoot.lower()[0:5]}*.fits"
+        search_fits = f"{input_path}/{self.ipppssoot.lower()[0:5]}*.fits"
+        self.divider("Finding input data using:", repr(search_fits))
         files = glob.glob(search_fits)
         return list(sorted(files))
-
 
     def download(self):
         """Download any data files for the `ipppssoot`,  issuing start and
@@ -408,7 +423,7 @@ class InstrumentManager:
         # find the base path to the files
         ###### s3 inputs #######
         if self.input_uri.startswith("s3"):
-            base_path = os.path.abspath(os.curdir)
+            base_path = os.getcwd()
             subfolder = os.path.join(base_path, self.ipppssoot)
             search_fits = f"{subfolder}/{self.ipppssoot.lower()[0:5]}*.fits"
             search_tra = f"{subfolder}/{self.ipppssoot.lower()[0:5]}*.tra"
@@ -495,13 +510,15 @@ class InstrumentManager:
             self.divider("Deleting files:", delete)
             for filename in delete:
                 os.remove(filename)
-            outputs = glob.glob("*.fits") + glob.glob("*.tra")  # get again
+            outputs = self.find_output_files() # get again
+            #outputs = glob.glob("*.fits") + glob.glob("*.tra")  # get again
         if self.output_uri is None or self.output_uri.startswith("none"):
             return
-        self.divider("Saving outputs:", self.output_uri, outputs)
+        self.divider(f"Saving {len(outputs)} outputs to:", self.output_uri)
         output_path = get_output_path(self.output_uri, self.ipppssoot)
         for filepath in outputs:
             output_filename = f"{output_path}/{os.path.basename(filepath)}"
+            log.info(f"\t{output_filename}")
             upload_filepath(filepath, output_filename)
         self.divider("Saving outputs complete.")
 
