@@ -315,8 +315,6 @@ class InstrumentManager:
             input_path = self.get_input_path()
             os.chdir(input_path)
             input_files = self.get_objects(input_path)
-            #subfolder = os.path.join(orig_wd, self.ipppssoot)
-            # os.chdir(subfolder)
         else:
             raise ValueError("input_uri should start with s3, astroquery or file")
 
@@ -352,7 +350,6 @@ class InstrumentManager:
         """
         self.divider("Retrieving data files for:", self.ipppssoot)
         import tarfile
-        # s3://calcloud-hst-pipeline-inputs-sandbox
         in_bucket = self.input_uri.replace("s3://", "")
         client = boto3.client('s3')
         
@@ -365,10 +362,7 @@ class InstrumentManager:
             # then delete tars
             os.remove(key)
 
-        # base_path = os.path.abspath(os.curdir)
-        # subfolder = os.path.join(base_path, self.ipppssoot)
         self.divider("Gathering fits files for calibration")
-        # search_fits = f"{subfolder}/{self.ipppssoot.lower()[0:5]}*.fits"
         search_fits = f"{input_path}/{self.ipppssoot.lower()[0:5]}*.fits"
         self.divider("Finding input data using:", repr(search_fits))
         files = glob.glob(search_fits)
@@ -421,7 +415,6 @@ class InstrumentManager:
             post-calibration
         """
         # find the base path to the files
-        ###### s3 inputs #######
         if self.input_uri.startswith("s3"):
             base_path = os.getcwd()
             subfolder = os.path.join(base_path, self.ipppssoot)
@@ -511,7 +504,6 @@ class InstrumentManager:
             for filename in delete:
                 os.remove(filename)
             outputs = self.find_output_files() # get again
-            #outputs = glob.glob("*.fits") + glob.glob("*.tra")  # get again
         if self.output_uri is None or self.output_uri.startswith("none"):
             return
         self.divider(f"Saving {len(outputs)} outputs to:", self.output_uri)
