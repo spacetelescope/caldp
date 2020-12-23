@@ -14,9 +14,9 @@ env:
         - nref=${CRDS_PATH}/references/hst/nicmos/
         - uref=${CRDS_PATH}/references/hst/wfcpc2/
         - uref_linux=$uref
-        - DOCKER_REPO=jaytmiller/caldp
-        - DOCKER_TAG=latest
-        - CAL_BASE_IMAGE=stsci/hst-pipeline:latest
+        - DOCKER_REPO=alphasentaurii/caldp
+        - DOCKER_TAG=stable
+        - CAL_BASE_IMAGE=stsci/hst-pipeline:stable
         - CALDP_TEST_FILE_SIZE_THRESHOLD=0.30
 
 jobs:

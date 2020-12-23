@@ -105,16 +105,17 @@ def get_output_path(output_uri, ipppssoot):
     's3://temp/batch-2020-02-13T10:33:00/wfc3/IC0B02020'
     """
     instrument_name = get_instrument(ipppssoot)
-    if output_uri.startswith("file"):
+    if output_uri.startswith("none"):
+        return "none"
+    elif output_uri.startswith("file"):
         test_prefix = output_uri.split(":")[-1]
         if test_prefix.startswith("/"):
             output_prefix = test_prefix
         else:
             output_prefix = os.path.join(os.getcwd(), test_prefix)
-    elif output_uri.startswith("s3"):
+    # s3 or astroquery:
+    else:
         output_prefix = output_uri
-    elif output_uri.startswith("none"):
-        return "none"
     return output_prefix + "/" + instrument_name + "/" + ipppssoot
 
 
@@ -306,6 +307,8 @@ class InstrumentManager:
         # we'll need to move around a couple of times to get the cal code and local file movements working
         orig_wd = os.getcwd()
         if self.input_uri.startswith("astroquery"):
+            input_path = self.get_input_path()
+            os.chdir(input_path)
             input_files = self.download()
         elif self.input_uri.startswith("file"):
             input_files = self.find_input_files()
@@ -332,32 +335,35 @@ class InstrumentManager:
     # -----------------------------------------------------------------------------
 
     def get_input_path(self):
-        """Create directory (named after ippppssoot id) for downloading s3 compressed files into
-        Return path to directory
+        """For S3 and Astroquery inputs.
+        Creates subfolder in current directory prior to downloading files.
+        Returns path to subdirectory (named using ipppssoot).
         """
         cwd = os.getcwd()
+        input_path = os.path.join(cwd, self.ipppssoot)
         try:
-            os.mkdir(os.path.join(cwd, self.ipppssoot))
+            os.makedirs(input_path, exist_ok=True)
         except FileExistsError:
             pass
-        input_path = os.path.join(cwd, self.ipppssoot)
         return input_path
 
     def get_objects(self, input_path):
         """
-        Download compressed ipppssoot tar files, untar, then save file paths to list
-        Returns sorted list of file paths (`input_files`) 
+        For S3 Inputs: Downloads compressed ipppssoot (tar.gz) files,
+        Extracts, then saves file paths to a sorted list.
+        Returns sorted list of file paths (`input_files`)
         """
         self.divider("Retrieving data files for:", self.ipppssoot)
         import tarfile
+
         in_bucket = self.input_uri.replace("s3://", "")
-        client = boto3.client('s3')
-        
-        key = self.ipppssoot+'.tar.gz'
-        with open(key, 'wb') as f:
-            client.download_fileobj(in_bucket, key, f) # 'odfa0120.tar.gz'
-        
-        with tarfile.open(key, 'r:gz') as tar_ref:
+        client = boto3.client("s3")
+
+        key = self.ipppssoot + ".tar.gz"
+        with open(key, "wb") as f:
+            client.download_fileobj(in_bucket, key, f)  # 'odfa0120.tar.gz'
+
+        with tarfile.open(key, "r:gz") as tar_ref:
             tar_ref.extractall()
             # then delete tars
             os.remove(key)
@@ -415,13 +421,7 @@ class InstrumentManager:
             post-calibration
         """
         # find the base path to the files
-        if self.input_uri.startswith("s3"):
-            base_path = os.getcwd()
-            subfolder = os.path.join(base_path, self.ipppssoot)
-            search_fits = f"{subfolder}/{self.ipppssoot.lower()[0:5]}*.fits"
-            search_tra = f"{subfolder}/{self.ipppssoot.lower()[0:5]}*.tra"
-
-        else:
+        if self.input_uri.startswith("file"):
             test_path = self.input_uri.split(":")[-1]
             if os.path.isdir(test_path):
                 base_path = os.path.abspath(test_path)
@@ -433,9 +433,15 @@ class InstrumentManager:
             # trailer files
             search_tra = f"{base_path}/{self.ipppssoot.lower()[0:5]}*.tra"
 
+        else:
+            base_path = os.getcwd()
+            subfolder = os.path.join(base_path, self.ipppssoot)
+            search_fits = f"{subfolder}/{self.ipppssoot.lower()[0:5]}*.fits"
+            search_tra = f"{subfolder}/{self.ipppssoot.lower()[0:5]}*.tra"
+
         self.divider("Finding output data for:", repr(search_fits))
         files = glob.glob(search_fits)
-        
+
         self.divider("Finding output trailers for:", repr(search_tra))
         files.extend(glob.glob(search_tra))
 
@@ -503,11 +509,11 @@ class InstrumentManager:
             self.divider("Deleting files:", delete)
             for filename in delete:
                 os.remove(filename)
-            outputs = self.find_output_files() # get again
+            outputs = self.find_output_files()  # get again
         if self.output_uri is None or self.output_uri.startswith("none"):
             return
-        self.divider(f"Saving {len(outputs)} outputs to:", self.output_uri)
         output_path = get_output_path(self.output_uri, self.ipppssoot)
+        self.divider(f"Saving {len(outputs)} outputs to:", output_path)
         for filepath in outputs:
             output_filename = f"{output_path}/{os.path.basename(filepath)}"
             log.info(f"\t{output_filename}")
@@ -679,11 +685,11 @@ def download_inputs(ipppssoot, input_uri, output_uri):
     to fully construct an appropriate instrument manager based on the `ipppssoot`.
     """
     manager = get_instrument_manager(ipppssoot, input_uri, output_uri)
-    old_dir = os.getcwd()
+    base_path = os.getcwd()
     if input_uri.startswith("file:"):
         os.chdir(input_uri.split(":")[-1])
     manager.download()
-    os.chdir(old_dir)
+    os.chdir(base_path)
 
 
 # -----------------------------------------------------------------------------
