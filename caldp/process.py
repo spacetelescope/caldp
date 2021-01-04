@@ -29,7 +29,7 @@ except ImportError:
 
 from crds.bestrefs import bestrefs
 
-from caldp import log, messages
+from caldp import log
 
 # import caldp     (see track_versions)
 
@@ -677,7 +677,6 @@ def process(ipppssoot, input_uri, output_uri):
     manager = get_instrument_manager(ipppssoot, input_uri, output_uri)
     manager.main()
     del process_log
-    messages.log_metrics(log_file="process.txt", metrics="process_metrics.txt")
 
 
 def download_inputs(ipppssoot, input_uri, output_uri):
@@ -688,10 +687,6 @@ def download_inputs(ipppssoot, input_uri, output_uri):
     identical to `process.process()` to ease construction of test cases and
     to fully construct an appropriate instrument manager based on the `ipppssoot`.
     """
-    # if input_uri.startswith("file"):
-    #     input_path = input_uri.split(":")[-1]
-    #     os.makedirs(input_path, exist_ok = True)
-    #     os.chdir(input_path)
     manager = get_instrument_manager(ipppssoot, input_uri, output_uri)
     manager.download()
 

@@ -246,8 +246,11 @@ def coretst(temp_dir, ipppssoot, input_uri, output_uri):
     try:
         if input_uri.startswith("file"):
             setup_io(ipppssoot, input_uri, output_uri)
+
         process.process(ipppssoot, input_uri, output_uri)
+        messages.log_metrics(log_file="process.txt", metrics="process_metrics.txt")
         create_previews.main(ipppssoot, input_uri, output_uri)
+        messages.log_metrics(log_file="preview.txt", metrics="preview_metrics.txt")
         expected_inputs, expected_outputs = expected(RESULTS, ipppssoot)
         actual_inputs = list_inputs(ipppssoot, input_uri)
         actual_outputs = list_outputs(ipppssoot, output_uri)
@@ -298,7 +301,8 @@ def list_objects(path):
         elif "messages" in name:
             msg_list.append(name)
         else:
-            object_dict[name] = size
+            filename = os.path.basename(name)
+            object_dict[filename] = size
     if "logs" in path:
         return log_list
     elif "messages" in path:
@@ -329,9 +333,9 @@ def list_outputs(ipppssoot, output_uri):
     return outputs
 
 
-def list_fs(path):
-    """List local files at `path` for defining truth data and actual files."""
-    return pipe(f"/usr/bin/find {path} -type f", "xargs ls -lt", "awk -e {print($5,$9);}")
+# def list_fs(path):
+#     """List local files at `path` for defining truth data and actual files."""
+#     return pipe(f"/usr/bin/find {path} -type f", "xargs ls -lt", "awk -e {print($5,$9);}")
 
 
 def pipe(*args, encoding="utf-8", print_output=False, raise_exception=False):
@@ -372,20 +376,17 @@ def expected(RESULTS, ipppssoot):
 
 
 def check_inputs(input_uri, expected_inputs, actual_inputs):
-    if input_uri.startswith("file"):
-        for name in list(expected_inputs.keys()):
-            assert os.path.basename(name) in list(actual_inputs.keys())
-    else:
-        pass
+    for name in list(expected_inputs.keys()):
+        assert os.path.basename(name) in list(actual_inputs.keys())
 
 
 def check_outputs(output_uri, expected_outputs, actual_outputs):
-    if output_uri.startswith("file"):
-        for name, size in expected_outputs.items():
-            assert os.path.basename(name) in list(actual_outputs.keys())
-            assert (
-                abs(actual_outputs[os.path.basename(name)] - size) < CALDP_TEST_FILE_SIZE_THRESHOLD * size
-            ), "bad size for " + repr(name)
+    # if output_uri.startswith("file"):
+    for name, size in expected_outputs.items():
+        assert os.path.basename(name) in list(actual_outputs.keys())
+        assert (
+            abs(actual_outputs[os.path.basename(name)] - size) < CALDP_TEST_FILE_SIZE_THRESHOLD * size
+        ), "bad size for " + repr(name)
 
 
 def check_logs(input_uri, output_uri, ipppssoot):
@@ -404,9 +405,13 @@ def check_logs(input_uri, output_uri, ipppssoot):
 def check_messages(ipppssoot, output_uri):
     if output_uri.startswith("file"):
         working_dir = os.getcwd()
-        message_path = os.path.join(working_dir, "messages", "dataset-processed", ipppssoot)
-        assert os.path.exists(message_path)
+        proc_msg = os.path.join(working_dir, "messages", "dataset-processed", ipppssoot)
+        err_msg = os.path.join(working_dir, "messages", "dataset-error", ipppssoot)
+        if os.path.exists(proc_msg):
+            assert True
+        elif os.path.exists(err_msg):
+            assert True
     elif output_uri.startswith("s3"):
-        message_path = f"{output_uri}/messages/dataset-processed"
-        msg_list = list_objects(message_path)
-        assert msg_list[0] in message_path + "/" + ipppssoot
+        message_path = list_objects(f"{output_uri}/messages/")
+        assert message_path[0].split("/")[-1] == ipppssoot
+        # assert ipppssoot in message_path[0]

@@ -9,7 +9,7 @@ import shutil
 import boto3
 from astropy.io import fits
 
-from caldp import log, process, messages
+from caldp import log, process
 
 # -------------------------------------------------------------------------------------------------------
 
@@ -173,7 +173,6 @@ def main(ipppssoot, input_uri_prefix, output_uri_prefix):
     else:
         log.error("Error - Previews not generated.")
     del logger
-    messages.log_metrics(log_file="preview.txt", metrics="preview_metrics.txt")
 
 
 def parse_args():
@@ -194,7 +193,7 @@ def cmdline():
     else:
         output_uri_prefix = args.output_uri_prefix
 
-    main(args.input_uri_prefix, output_uri_prefix, args.ipppssoot)
+    main(args.ipppssoot, args.input_uri_prefix, output_uri_prefix)
 
 
 if __name__ == "__main__":
