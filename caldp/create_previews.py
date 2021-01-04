@@ -9,8 +9,7 @@ import shutil
 import boto3
 from astropy.io import fits
 
-from . import log
-from caldp import process
+from caldp import log, process, messages
 
 # -------------------------------------------------------------------------------------------------------
 
@@ -95,8 +94,10 @@ def get_inputs(ipppssoot, input_dir):
 def get_previews(input_dir):
     png_search = f"{input_dir}/*.png"
     jpg_search = f"{input_dir}/*.jpg"
+    prev_search = f"{input_dir}/*_prev.fits"
     preview_files = glob.glob(png_search)
     preview_files.extend(glob.glob(jpg_search))
+    preview_files.extend(glob.glob(prev_search))
     return list(sorted(preview_files))
 
 
@@ -142,15 +143,18 @@ def copy_previews(previews, output_path):
     os.listdir(output_path)
 
 
-def main(input_uri_prefix, output_uri_prefix, ipppssoot):
+def main(ipppssoot, input_uri_prefix, output_uri_prefix):
     """Generates previews based on input and output directories
     according to specified args
     """
     # set appropriate path variables
+    logger = log.CaldpLogger(enable_console=False, log_file="preview.txt")
+    cwd = os.getcwd()
     if input_uri_prefix.startswith("file"):
-        input_dir = os.path.abspath(input_uri_prefix.split(":")[-1] or ".")
+        in_path = input_uri_prefix.split(":")[-1] or "."
     else:
-        input_dir = os.path.abspath(ipppssoot)
+        in_path = ipppssoot
+    input_dir = os.path.join(cwd, in_path)
     input_paths = get_inputs(ipppssoot, input_dir)
     output_path = process.get_output_path(output_uri_prefix, ipppssoot) + "/previews"
     # create previews
@@ -168,6 +172,8 @@ def main(input_uri_prefix, output_uri_prefix, ipppssoot):
             return
     else:
         log.error("Error - Previews not generated.")
+    del logger
+    messages.log_metrics(log_file="preview.txt", metrics="preview_metrics.txt")
 
 
 def parse_args():
@@ -180,7 +186,15 @@ def parse_args():
 
 def cmdline():
     args = parse_args()
-    main(args.input_uri_prefix, args.output_uri_prefix, args.ipppssoot)
+    if args.output_uri_prefix.lower().startswith("none"):
+        if args.input_uri_prefix.startswith("file"):
+            output_uri_prefix = args.input_uri_prefix
+        else:
+            output_uri_prefix = os.path.join(os.getcwd(), args.ipppssoot)
+    else:
+        output_uri_prefix = args.output_uri_prefix
+
+    main(args.input_uri_prefix, output_uri_prefix, args.ipppssoot)
 
 
 if __name__ == "__main__":

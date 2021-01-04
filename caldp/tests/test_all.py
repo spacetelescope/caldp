@@ -2,13 +2,12 @@
 assigning references, and basic calibrations.
 """
 import os
-import sys
+import glob
 import subprocess
-
 import pytest
-
 from caldp import process
-from caldp import main
+from caldp import create_previews
+from caldp import messages
 
 # ----------------------------------------------------------------------------------------
 
@@ -105,7 +104,6 @@ RESULTS = [
 7745 la8q99030_x1dsum3_thumb.png
 115200 la8q99030_x1dsum3_prev.fits
 234667 la8q99030_x1dsum3.png
-4096 outputs
 218880 la8q99030_jnk.fits
 11520 la8q99030_asn.fits
 259200 la8q99030_x1dsum3.fits
@@ -242,15 +240,24 @@ def coretst(temp_dir, ipppssoot, input_uri, output_uri):
     if not input_uri or not output_uri:
         print("Skipping case", ipppssoot, input_uri, output_uri)
         return
-    working_dir = temp_dir.mkdir(ipppssoot)
-    old_dir = working_dir.chdir()
+    working_dir = os.path.join(temp_dir, ipppssoot)
+    os.makedirs(working_dir, exist_ok=True)
+    os.chdir(working_dir)
     try:
-        setup_io(ipppssoot, input_uri, output_uri)
-        main.main(ipppssoot, input_uri, output_uri)
-        list_files(ipppssoot, input_uri, output_uri)
-        check_results(ipppssoot, input_uri, output_uri)
+        if input_uri.startswith("file"):
+            setup_io(ipppssoot, input_uri, output_uri)
+        process.process(ipppssoot, input_uri, output_uri)
+        create_previews.main(ipppssoot, input_uri, output_uri)
+        expected_inputs, expected_outputs = expected(RESULTS, ipppssoot)
+        actual_inputs = list_inputs(ipppssoot, input_uri)
+        actual_outputs = list_outputs(ipppssoot, output_uri)
+        check_inputs(input_uri, expected_inputs, actual_inputs)
+        check_outputs(output_uri, expected_outputs, actual_outputs)
+        messages.main(input_uri, output_uri, ipppssoot)
+        check_logs(input_uri, output_uri, ipppssoot)
+        check_messages(ipppssoot, output_uri)
     finally:
-        old_dir.chdir()
+        os.chdir(temp_dir)
 
 
 # ----------------------------------------------------------------------------------------
@@ -262,40 +269,69 @@ def parse_results(results):
 
 
 def setup_io(ipppssoot, input_uri, output_uri):
-    os.mkdir("outputs")
-    if input_uri.startswith("file:"):
-        input_dir = input_uri.split(":")[-1]
-        os.mkdir(input_dir)
-        process.download_inputs(ipppssoot, input_uri, output_uri)  # get inputs seperately
+    working_dir = os.getcwd()
+    if input_uri.startswith("file"):
+        os.makedirs("outputs", exist_ok=True)
+        os.makedirs("inputs", exist_ok=True)
+        os.chdir("inputs")
+        process.download_inputs(ipppssoot, input_uri, output_uri)  # get inputs separately
+    os.chdir(working_dir)
 
 
-def list_files(ipppssoot, input_uri, output_uri):
+def list_files(startpath, ipppssoot):
+    file_dict = {}
+    for root, _, files in os.walk(startpath):
+        for f in sorted(files, key=lambda f: os.path.getsize(root + os.sep + f)):
+            if f.startswith(ipppssoot[0:5]):
+                file_dict[f] = os.path.getsize(root + os.sep + f)
+    return file_dict
+
+
+def list_objects(path):
+    object_dict = {}
+    log_list, msg_list = [], []
+    output = pipe(f"aws s3 ls --recursive {path}")
+    results = [(int(line.split()[2]), line.split()[3]) for line in output.splitlines() if line.strip()]
+    for (size, name) in results:
+        if "logs" in name:
+            log_list.append(name)
+        elif "messages" in name:
+            msg_list.append(name)
+        else:
+            object_dict[name] = size
+    if "logs" in path:
+        return log_list
+    elif "messages" in path:
+        return msg_list
+    else:
+        return object_dict
+
+
+def list_inputs(ipppssoot, input_uri):
+    working_dir = os.getcwd()
+    if input_uri.startswith("file"):
+        input_path = os.path.join(working_dir, "inputs")
+    else:
+        input_path = os.path.join(working_dir, ipppssoot)
+    inputs = list_files(input_path, ipppssoot)
+    return inputs
+
+
+def list_outputs(ipppssoot, output_uri):
     """Routinely log input, output, and CWD files to aid setting up expected results."""
     # List files from all modes,  they'll be nothing for inapplicable modes.
     # Choose files from print to define truth values for future tests.
-    outputs = list_fs("inputs")
-    outputs += list_fs("outputs")
-    if CALDP_S3_TEST_INPUTS and input_uri.lower().startswith("s3://"):
-        outputs += list_s3(CALDP_S3_TEST_INPUTS)
-    if CALDP_S3_TEST_OUTPUTS and output_uri.lower().startswith("s3://"):
-        outputs += list_s3(CALDP_S3_TEST_OUTPUTS)
-    sys.stdout.flush()
-    sys.stderr.flush()
-    print(outputs)
-    sys.stdout.flush()
-    sys.stderr.flush()
-    return parse_results(outputs)
+    output_path = process.get_output_path(output_uri, ipppssoot)
+    if output_uri.startswith("file"):
+        outputs = list_files(output_path, ipppssoot)
+    elif CALDP_S3_TEST_OUTPUTS and output_uri.lower().startswith("s3"):
+        outputs = list_objects(output_path)
+    return outputs
 
 
 def list_fs(path):
     """List local files at `path` for defining truth data and actual files."""
     return pipe(f"/usr/bin/find {path} -type f", "xargs ls -lt", "awk -e {print($5,$9);}")
-
-
-def list_s3(path):
-    """List S3 files at `path` for defining truth data and actual files."""
-    output = pipe(f"aws s3 ls --recursive {path}", "awk -e {print($3,$4);}")
-    return output.replace(" ", " outputs/")
 
 
 def pipe(*args, encoding="utf-8", print_output=False, raise_exception=False):
@@ -324,19 +360,53 @@ def pipe(*args, encoding="utf-8", print_output=False, raise_exception=False):
     return output
 
 
-def check_results(ipppssoot, input_uri, output_uri):
-    """For the given `ipppssoot`,  verify that all of the files listed in results
-    both exist in the CWD and have sizes within 10% of the recorded values.
-    """
+def expected(RESULTS, ipppssoot):
     results = dict(RESULTS)
-    expected = parse_results(results[ipppssoot])
-    actual_files = dict(list_files(ipppssoot, input_uri, output_uri))
-    for (expected_name, expected_size) in expected:
-        if expected_name.startswith("inputs/") and not input_uri.startswith("file:"):
-            continue  # astroquery inputs are irrelevant.  currently 'file:' inputs double as outputs.
-        assert expected_name in actual_files
-        if expected_name.startswith("s3://"):
-            continue
-        assert (
-            abs(actual_files[expected_name] - expected_size) < CALDP_TEST_FILE_SIZE_THRESHOLD * expected_size
-        ), "bad size for " + repr(expected_name)
+    expected_outputs, expected_inputs = {}, {}
+    for (name, size) in parse_results(results[ipppssoot]):
+        if name.startswith("outputs"):
+            expected_outputs[name] = size
+        else:
+            expected_inputs[name] = size
+    return expected_inputs, expected_outputs
+
+
+def check_inputs(input_uri, expected_inputs, actual_inputs):
+    if input_uri.startswith("file"):
+        for name in list(expected_inputs.keys()):
+            assert os.path.basename(name) in list(actual_inputs.keys())
+    else:
+        pass
+
+
+def check_outputs(output_uri, expected_outputs, actual_outputs):
+    if output_uri.startswith("file"):
+        for name, size in expected_outputs.items():
+            assert os.path.basename(name) in list(actual_outputs.keys())
+            assert (
+                abs(actual_outputs[os.path.basename(name)] - size) < CALDP_TEST_FILE_SIZE_THRESHOLD * size
+            ), "bad size for " + repr(name)
+
+
+def check_logs(input_uri, output_uri, ipppssoot):
+    working_dir = os.getcwd()
+    get_logs = list(glob.glob(f"{working_dir}/*.txt"))
+    assert len(get_logs) == 4
+    output_uri, output_path = messages.path_finder(input_uri, output_uri, ipppssoot)
+    log_path = messages.Logs(output_path, output_uri).log_output
+    if output_uri.startswith("file"):
+        assert os.path.exists(log_path)
+    elif output_uri.startswith("s3"):
+        s3_logs = list_objects(log_path)
+        assert len(s3_logs) == 4
+
+
+def check_messages(ipppssoot, output_uri):
+    if output_uri.startswith("file"):
+        working_dir = os.getcwd()
+        message_path = os.path.join(working_dir, "messages", "dataset-processed", ipppssoot)
+        assert os.path.exists(message_path)
+    elif output_uri.startswith("s3"):
+        message_path = f"{output_uri}/messages/dataset-processed"
+        msg_list = list_objects(message_path)
+        assert msg_list[0] in message_path + "/" + ipppssoot

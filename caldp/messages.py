@@ -1,9 +1,12 @@
 import sys
 import os
-import shutil
 import glob
+import shutil
+import psutil
 import boto3
-from caldp import process, log
+import time
+from caldp import process
+from caldp import log
 
 
 class Logs:
@@ -55,8 +58,14 @@ class Messages:
         self.ipppssoot = ipppssoot
 
     def status_check(self):
-        process_metrics = f"{os.getcwd()}/process_metrics.txt"
-        preview_metrics = f"{os.getcwd()}/preview_metrics.txt"
+        cwd = os.getcwd()
+        for _, _, files in os.walk(cwd):
+            for f in files:
+                if f.endswith("process_metrics.txt"):
+                    process_metrics = os.path.abspath(f)
+                    continue
+                if f.endswith("preview_metrics.txt"):
+                    preview_metrics = os.path.abspath(f)
         with open(process_metrics) as f:
             proc_stat = f.readlines()[-1].strip("\t").strip("\n")[-1]
         with open(preview_metrics) as f:
@@ -111,14 +120,48 @@ class Messages:
             log.error("Error found - skipping data sync.")
 
 
-def main(input_uri, output_uri, ipppssoot):
-    # Path vars
-    data_output = output_uri + "/data"
-    output_path = process.get_output_path(data_output, ipppssoot)
+def log_metrics(log_file, metrics):
+
+    res = {}
+    res["walltime"] = time.time()
+    res["clocktime"] = time.clock()
+    res["cpu"] = psutil.cpu_percent(interval=None)
+    res["memory"] = psutil.virtual_memory().percent
+    res["swap"] = psutil.swap_memory().percent
+    res["disk"] = psutil.disk_usage(log_file).percent
+    res["Exit status"] = "0"
+
+    with open(metrics, "w") as f:
+        for k, v in res.items():
+            f.write(f"{k}: {v}\n")
+    print(os.path.abspath(metrics))
+
+    return res
+
+
+def path_finder(input_uri, output_uri_prefix, ipppssoot):
+    if output_uri_prefix.lower().startswith("none"):
+        if input_uri.startswith("file"):
+            output_uri = input_uri
+            output_dir = output_uri.split(":")[-1] or "."
+            output_path = os.path.abspath(output_dir)
+        else:
+            output_dir = os.path.join(os.getcwd(), ipppssoot)
+            output_uri = f"file:{output_dir}"
+            output_path = os.path.abspath(output_dir)
+    else:
+        output_uri = output_uri_prefix
+        output_path = process.get_output_path(output_uri, ipppssoot)
+    return output_uri, output_path
+
+
+def main(input_uri, output_uri_prefix, ipppssoot):
+    output_uri, output_path = path_finder(input_uri, output_uri_prefix, ipppssoot)
+    logs = Logs(output_path, output_uri)
     msg = Messages(output_uri, output_path, ipppssoot)
     stat = msg.status_check()
     msg_file = msg.make_messages(stat)
-    logs = Logs(output_path, output_uri)
+
     if output_uri.startswith("file"):
         logs.copy_logs()
         msg.sync_dataset(stat)
@@ -128,13 +171,11 @@ def main(input_uri, output_uri, ipppssoot):
 
 
 def cmd(argv):
-    """Top level function, process args <input_uri> <output_uri>  <ipppssoot's...>"""
+    """Top level function, process args <input_uri> <output_uri>  <ipppssoot>"""
     input_uri = str(argv[1])
-    output_uri = str(argv[2])
-    ipppssoots = argv[3:]
-
-    for ipppssoot in ipppssoots:
-        main(input_uri, output_uri, f"{ipppssoot}")
+    output_uri_prefix = str(argv[2])
+    ipppssoot = str(argv[3])
+    main(input_uri, output_uri_prefix, ipppssoot)
 
 
 if __name__ == "__main__":

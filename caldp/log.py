@@ -65,7 +65,7 @@ DEFAULT_VERBOSITY_LEVEL = 50
 
 
 class CaldpLogger:
-    def __init__(self, name="CALDP", enable_console=True, level=logging.DEBUG, enable_time=True):
+    def __init__(self, name="CALDP", enable_console=True, level=logging.DEBUG, enable_time=True, log_file=None):
         self.name = name
 
         self.handlers = []  # logging handlers, used e.g. to add console or file output streams
@@ -76,8 +76,16 @@ class CaldpLogger:
         self.logger.propagate = False
         self.formatter = self.set_formatter(enable_time)
         self.console = None
+        self.log_file = log_file
+        self.level = level
+
+        if log_file is not None:
+            self.add_file_handler()
+            self.console = None
+            enable_console = False
         if enable_console:
-            self.add_console_handler(level)
+            self.log_file = None
+            self.add_console_handler(stream=sys.stderr)
 
         # CALDP internal counters of types of messages
         self.errors = 0
@@ -181,14 +189,24 @@ class CaldpLogger:
     def get_verbose(self):
         return self.verbose_level
 
-    def add_console_handler(self, level=logging.DEBUG, stream=sys.stderr):
+    def add_console_handler(self, stream=sys.stderr):
         if self.console is None:
-            self.console = self.add_stream_handler(stream, level=level)
+            self.console = self.add_stream_handler(stream, level=self.level)
 
     def remove_console_handler(self):
         if self.console is not None:
             self.remove_stream_handler(self.console)
             self.console = None
+
+    def add_file_handler(self):
+        if self.log_file is not None:
+            # self.add_stream_handler(sys.stdout)
+            file_handler = logging.FileHandler(self.log_file)
+            file_handler.setLevel(self.level)
+            file_handler.setFormatter(self.formatter)
+            self.handlers.append(file_handler)
+            self.logger.addHandler(file_handler)
+            return file_handler
 
     def add_stream_handler(self, filelike, level=logging.DEBUG):
         handler = logging.StreamHandler(filelike)

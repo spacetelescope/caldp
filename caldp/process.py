@@ -29,7 +29,7 @@ except ImportError:
 
 from crds.bestrefs import bestrefs
 
-from . import log
+from caldp import log, messages
 
 # import caldp     (see track_versions)
 
@@ -348,7 +348,7 @@ class InstrumentManager:
         return input_path
 
     def get_objects(self, input_path):
-        """
+        """Called if input_uri starts with `s3`
         For S3 Inputs: Downloads compressed ipppssoot (tar.gz) files,
         Extracts, then saves file paths to a sorted list.
         Returns sorted list of file paths (`input_files`)
@@ -375,7 +375,8 @@ class InstrumentManager:
         return list(sorted(files))
 
     def download(self):
-        """Download any data files for the `ipppssoot`,  issuing start and
+        """Called if input_uri starts is `astroquery`
+        Download any data files for the `ipppssoot`,  issuing start and
         stop divider messages.
 
         Returns
@@ -391,7 +392,7 @@ class InstrumentManager:
 
     def find_input_files(self):
         """Scrape the input_uri for the needed input_files.
-
+        Called if input_uri starts with `file:`
         Returns
         -------
         filepaths : sorted list
@@ -672,8 +673,11 @@ def process(ipppssoot, input_uri, output_uri):
     -------
     None
     """
+    process_log = log.CaldpLogger(enable_console=False, log_file="process.txt")
     manager = get_instrument_manager(ipppssoot, input_uri, output_uri)
     manager.main()
+    del process_log
+    messages.log_metrics(log_file="process.txt", metrics="process_metrics.txt")
 
 
 def download_inputs(ipppssoot, input_uri, output_uri):
@@ -684,12 +688,12 @@ def download_inputs(ipppssoot, input_uri, output_uri):
     identical to `process.process()` to ease construction of test cases and
     to fully construct an appropriate instrument manager based on the `ipppssoot`.
     """
+    # if input_uri.startswith("file"):
+    #     input_path = input_uri.split(":")[-1]
+    #     os.makedirs(input_path, exist_ok = True)
+    #     os.chdir(input_path)
     manager = get_instrument_manager(ipppssoot, input_uri, output_uri)
-    base_path = os.getcwd()
-    if input_uri.startswith("file:"):
-        os.chdir(input_uri.split(":")[-1])
     manager.download()
-    os.chdir(base_path)
 
 
 # -----------------------------------------------------------------------------
