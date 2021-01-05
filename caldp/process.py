@@ -29,7 +29,7 @@ except ImportError:
 
 from crds.bestrefs import bestrefs
 
-from . import log
+from caldp import log
 
 # import caldp     (see track_versions)
 
@@ -82,8 +82,6 @@ def get_instrument(ipppssoot):
 
 
 # -----------------------------------------------------------------------------
-
-
 def get_output_path(output_uri, ipppssoot):
     """Given an `output_uri` string which nominally defines an S3 bucket and
     directory base path,  and an `ipppssoot` dataset name,  generate a full
@@ -107,16 +105,17 @@ def get_output_path(output_uri, ipppssoot):
     's3://temp/batch-2020-02-13T10:33:00/wfc3/IC0B02020'
     """
     instrument_name = get_instrument(ipppssoot)
-    if output_uri.startswith("file"):
+    if output_uri.startswith("none"):
+        return "none"
+    elif output_uri.startswith("file"):
         test_prefix = output_uri.split(":")[-1]
         if test_prefix.startswith("/"):
             output_prefix = test_prefix
         else:
             output_prefix = os.path.join(os.getcwd(), test_prefix)
-    elif output_uri.startswith("s3"):
+    # s3 or astroquery:
+    else:
         output_prefix = output_uri
-    elif output_uri.startswith("none"):
-        return "none"
     return output_prefix + "/" + instrument_name + "/" + ipppssoot
 
 
@@ -308,13 +307,19 @@ class InstrumentManager:
         # we'll need to move around a couple of times to get the cal code and local file movements working
         orig_wd = os.getcwd()
         if self.input_uri.startswith("astroquery"):
+            input_path = self.get_input_path()
+            os.chdir(input_path)
             input_files = self.download()
         elif self.input_uri.startswith("file"):
             input_files = self.find_input_files()
             # mainly due to association processing, we need to be in the same place as the asn's
             os.chdir(self.input_uri.split(":")[-1])
+        elif self.input_uri.startswith("s3"):
+            input_path = self.get_input_path()
+            os.chdir(input_path)
+            input_files = self.get_objects(input_path)
         else:
-            raise ValueError("input_uri should either start with astroquery or file")
+            raise ValueError("input_uri should start with s3, astroquery or file")
 
         self.assign_bestrefs(input_files)
 
@@ -322,12 +327,56 @@ class InstrumentManager:
 
         # for moving files around, we need to chdir back for relative output path to work
         os.chdir(orig_wd)
+
         self.output_files()
 
         self.divider("Completed processing for", self.instrument_name, self.ipppssoot)
 
+    # -----------------------------------------------------------------------------
+
+    def get_input_path(self):
+        """For S3 and Astroquery inputs.
+        Creates subfolder in current directory prior to downloading files.
+        Returns path to subdirectory (named using ipppssoot).
+        """
+        cwd = os.getcwd()
+        input_path = os.path.join(cwd, self.ipppssoot)
+        try:
+            os.makedirs(input_path, exist_ok=True)
+        except FileExistsError:
+            pass
+        return input_path
+
+    def get_objects(self, input_path):
+        """Called if input_uri starts with `s3`
+        For S3 Inputs: Downloads compressed ipppssoot (tar.gz) files,
+        Extracts, then saves file paths to a sorted list.
+        Returns sorted list of file paths (`input_files`)
+        """
+        self.divider("Retrieving data files for:", self.ipppssoot)
+        import tarfile
+
+        in_bucket = self.input_uri.replace("s3://", "")
+        client = boto3.client("s3")
+
+        key = self.ipppssoot + ".tar.gz"
+        with open(key, "wb") as f:
+            client.download_fileobj(in_bucket, key, f)  # 'odfa0120.tar.gz'
+
+        with tarfile.open(key, "r:gz") as tar_ref:
+            tar_ref.extractall()
+            # then delete tars
+            os.remove(key)
+
+        self.divider("Gathering fits files for calibration")
+        search_fits = f"{input_path}/{self.ipppssoot.lower()[0:5]}*.fits"
+        self.divider("Finding input data using:", repr(search_fits))
+        files = glob.glob(search_fits)
+        return list(sorted(files))
+
     def download(self):
-        """Download any data files for the `ipppssoot`,  issuing start and
+        """Called if input_uri starts is `astroquery`
+        Download any data files for the `ipppssoot`,  issuing start and
         stop divider messages.
 
         Returns
@@ -343,7 +392,7 @@ class InstrumentManager:
 
     def find_input_files(self):
         """Scrape the input_uri for the needed input_files.
-
+        Called if input_uri starts with `file:`
         Returns
         -------
         filepaths : sorted list
@@ -373,22 +422,29 @@ class InstrumentManager:
             post-calibration
         """
         # find the base path to the files
-        test_path = self.input_uri.split(":")[-1]
-        if os.path.isdir(test_path):
-            base_path = os.path.abspath(test_path)
-        elif os.path.isdir(os.path.join(os.getcwd(), test_path)):
-            base_path = os.path.join(os.getcwd(), test_path)
+        if self.input_uri.startswith("file"):
+            test_path = self.input_uri.split(":")[-1]
+            if os.path.isdir(test_path):
+                base_path = os.path.abspath(test_path)
+            elif os.path.isdir(os.path.join(os.getcwd(), test_path)):
+                base_path = os.path.join(os.getcwd(), test_path)
+            else:
+                raise ValueError(f"output path {test_path} does not exist")
+            search_fits = f"{base_path}/{self.ipppssoot.lower()[0:5]}*.fits"
+            # trailer files
+            search_tra = f"{base_path}/{self.ipppssoot.lower()[0:5]}*.tra"
+
         else:
-            raise ValueError(f"output path {test_path} does not exist")
+            base_path = os.getcwd()
+            subfolder = os.path.join(base_path, self.ipppssoot)
+            search_fits = f"{subfolder}/{self.ipppssoot.lower()[0:5]}*.fits"
+            search_tra = f"{subfolder}/{self.ipppssoot.lower()[0:5]}*.tra"
 
-        search_str = f"{base_path}/{self.ipppssoot.lower()[0:5]}*.fits"
-        self.divider("Finding output data for:", repr(search_str))
-        files = glob.glob(search_str)
+        self.divider("Finding output data for:", repr(search_fits))
+        files = glob.glob(search_fits)
 
-        # trailer files
-        search_str = f"{base_path}/{self.ipppssoot.lower()[0:5]}*.tra"
-        self.divider("Finding output trailers for:", repr(search_str))
-        files.extend(glob.glob(search_str))
+        self.divider("Finding output trailers for:", repr(search_tra))
+        files.extend(glob.glob(search_tra))
 
         return list(sorted(files))
 
@@ -454,13 +510,14 @@ class InstrumentManager:
             self.divider("Deleting files:", delete)
             for filename in delete:
                 os.remove(filename)
-            outputs = glob.glob("*.fits") + glob.glob("*.tra")  # get again
+            outputs = self.find_output_files()  # get again
         if self.output_uri is None or self.output_uri.startswith("none"):
             return
-        self.divider("Saving outputs:", self.output_uri, outputs)
         output_path = get_output_path(self.output_uri, self.ipppssoot)
+        self.divider(f"Saving {len(outputs)} outputs to:", output_path)
         for filepath in outputs:
             output_filename = f"{output_path}/{os.path.basename(filepath)}"
+            log.info(f"\t{output_filename}")
             upload_filepath(filepath, output_filename)
         self.divider("Saving outputs complete.")
 
@@ -616,8 +673,10 @@ def process(ipppssoot, input_uri, output_uri):
     -------
     None
     """
+    process_log = log.CaldpLogger(enable_console=False, log_file="process.txt")
     manager = get_instrument_manager(ipppssoot, input_uri, output_uri)
     manager.main()
+    del process_log
 
 
 def download_inputs(ipppssoot, input_uri, output_uri):
@@ -629,11 +688,7 @@ def download_inputs(ipppssoot, input_uri, output_uri):
     to fully construct an appropriate instrument manager based on the `ipppssoot`.
     """
     manager = get_instrument_manager(ipppssoot, input_uri, output_uri)
-    old_dir = os.getcwd()
-    if input_uri.startswith("file:"):
-        os.chdir(input_uri.split(":")[-1])
     manager.download()
-    os.chdir(old_dir)
 
 
 # -----------------------------------------------------------------------------
@@ -656,7 +711,7 @@ def process_ipppssoots(ipppssoots, input_uri=None, output_uri=None):
         e.g. 'file:/home/developer/caldp-outputs
 
     input_uri: str
-        either astroquery:// or file:/path/to/files
+        either s3://bucket/tarfile or astroquery:// or file:/path/to/files
 
     Notes
     -----

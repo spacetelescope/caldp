@@ -72,6 +72,7 @@ if [ $output_path != "none" -a $output_location == 's3' ]; then
     fi
 fi
 
+
 echo ........................................ processing log ..............................................
 pwd
 set -o pipefail && $TIME --verbose -o process_metrics.txt \
@@ -80,30 +81,25 @@ set -o pipefail && $TIME --verbose -o process_metrics.txt \
 process_exit_status=$?
 echo "Processing exit status ${process_exit_status}"
 
-processing_s3_output_dir=`caldp-get-output-path  $output_path/data $ipppssoot`
-echo "Processing s3_output_dir is" $processing_s3_output_dir
+processing_output_dir=`caldp-get-output-path  $output_path/data $ipppssoot`
+echo "Processing output_dir is" $processing_output_dir
 
-logs_s3_output_dir="${processing_s3_output_dir}/logs"
-echo "Logs s3_output_dir is" $logs_s3_output_dir
+logs_output_dir="${processing_output_dir}/logs"
+echo "Logs output_dir is" $logs_output_dir
 
-if [ $output_path == "none" ];  then
-    previews_s3_output_dir="file:."
-else
-    previews_s3_output_dir="${processing_s3_output_dir}/previews"
-fi
-echo "Previews s3_output_dir is" $previews_s3_output_dir
+previews_output_dir="${processing_output_dir}/previews"
+echo "Previews output_dir is" $previews_output_dir
 
 echo ........................................ previews log ................................................
-if [[ "$input_path" =~ "astroquery" ]]; then
-    previews_input_dir="file:."
-else
-    previews_input_dir=$input_path
-fi
+
+
 set -o pipefail && $TIME --verbose -o preview_metrics.txt \
-    python -m caldp.create_previews ${previews_input_dir}  ${previews_s3_output_dir} \
+    python -m caldp.create_previews $input_path $output_path/data $ipppssoot \
     2>&1 | tee preview.txt
+
 preview_exit_status=$?
 echo "Preview exit status ${preview_exit_status}"
+
 
 echo ........................................ process metrics .............................................
 cat process_metrics.txt
@@ -112,59 +108,8 @@ echo ........................................ preview metrics ..................
 cat preview_metrics.txt
 
 echo ........................................ handling outputs for ${output_location} ............................................
+
 # Note: this action is not logged since log files are being transferred.
-if [ $output_path != "none" ]; then
-    if [ $output_location == "s3" ]; then
-        # Copy out processing log and metrics
-        aws s3 cp  --quiet process.txt          ${logs_s3_output_dir}/
-        aws s3 cp  --quiet process_metrics.txt  ${logs_s3_output_dir}/
-
-        # Copy out preview log and metrics
-        aws s3 cp  --quiet preview.txt          ${logs_s3_output_dir}/
-        aws s3 cp  --quiet preview_metrics.txt  ${logs_s3_output_dir}/
-
-        if [[ $process_exit_status -eq 0 && $preview_exit_status -eq 0 ]]; then
-            message_type="dataset-processed"
-        else
-            message_type="dataset-error"
-        fi
-        echo "Messaging ${message_type}"
-        echo "${message_type} ${ipppssoot}" >${ipppssoot}
-        aws s3 cp --quiet ${ipppssoot}  ${output_path}/messages/${message_type}/${ipppssoot}
-    fi
-    if [ $output_location == "file" ]; then
-        stripped_output=`echo $output_path | cut -d':' -f2`
-        messages_output_dir="${stripped_output}/messages"
-        echo "Messages output dir is" $messages_output_dir
-
-        mkdir -p ${logs_s3_output_dir}
-        # Copy out processing log and metrics
-        cp  process.txt          ${logs_s3_output_dir}/
-        cp  process_metrics.txt  ${logs_s3_output_dir}/
-
-        # Copy out preview log and metrics
-        cp  preview.txt          ${logs_s3_output_dir}/
-        cp  preview_metrics.txt  ${logs_s3_output_dir}/
-
-        if [[ $process_exit_status -eq 0 && $preview_exit_status -eq 0 ]]; then
-            message_type="dataset-processed"
-        else
-            message_type="dataset-error"
-        fi
-        echo "Messaging ${message_type}"
-        echo "${message_type} ${ipppssoot}" >${ipppssoot}
-        # outputs file paths to
-        find ${stripped_output}/data -mindepth 1 -type f | grep ${ipppssoot:0:6} | while read file; do
-            echo "${DEV_HOME}/${file}" >> ${ipppssoot}
-        done
-
-        mkdir -p ${messages_output_dir}/${message_type}
-        cp ${ipppssoot}  ${messages_output_dir}/${message_type}/${ipppssoot}
-        if [[ $message_type == "dataset-processed" ]]; then
-            mkdir -p ${messages_output_dir}/dataset-synced
-            cp ${ipppssoot}  ${messages_output_dir}/dataset-synced
-        fi
-    fi
-fi
+python -m caldp.messages $input_path $output_path $ipppssoot
 
 [[ $process_exit_status -eq 0 && $preview_exit_status -eq 0 ]] || exit 1

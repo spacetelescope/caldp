@@ -48,6 +48,7 @@ develop-eggs
 distribute-*.tar.gz
 
 # Other
+.aws
 .cache
 .tox
 .*.sw[op]
@@ -55,10 +56,11 @@ distribute-*.tar.gz
 .project
 .pydevproject
 .settings
-
+crds_cache
 # Mac OSX
 .DS_Store
 
 .astropy
 .bash_history
 .vscode
+.python_history
