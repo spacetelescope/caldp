@@ -333,11 +333,6 @@ def list_outputs(ipppssoot, output_uri):
     return outputs
 
 
-# def list_fs(path):
-#     """List local files at `path` for defining truth data and actual files."""
-#     return pipe(f"/usr/bin/find {path} -type f", "xargs ls -lt", "awk -e {print($5,$9);}")
-
-
 def pipe(*args, encoding="utf-8", print_output=False, raise_exception=False):
     """Every arg should be a subprocess command string which will be run and piped to
     any subsequent args in a linear process chain.  Each arg will be split into command
@@ -381,7 +376,6 @@ def check_inputs(input_uri, expected_inputs, actual_inputs):
 
 
 def check_outputs(output_uri, expected_outputs, actual_outputs):
-    # if output_uri.startswith("file"):
     for name, size in expected_outputs.items():
         assert os.path.basename(name) in list(actual_outputs.keys())
         assert (
@@ -395,15 +389,18 @@ def check_logs(input_uri, output_uri, ipppssoot):
     assert len(get_logs) == 4
     output_uri, output_path = messages.path_finder(input_uri, output_uri, ipppssoot)
     log_path = messages.Logs(output_path, output_uri).log_output
-    if output_uri.startswith("file"):
-        assert os.path.exists(log_path)
-    elif output_uri.startswith("s3"):
+    if CALDP_S3_TEST_OUTPUTS and output_uri.startswith("s3"):
         s3_logs = list_objects(log_path)
         assert len(s3_logs) == 4
+    else:
+        assert os.path.exists(log_path)
 
 
 def check_messages(ipppssoot, output_uri):
-    if output_uri.startswith("file"):
+    if CALDP_S3_TEST_OUTPUTS and output_uri.lower().startswith("s3"):
+        message_path = list_objects(f"{output_uri}/messages/")
+        assert message_path[0].split("/")[-1] == ipppssoot
+    else:
         working_dir = os.getcwd()
         proc_msg = os.path.join(working_dir, "messages", "dataset-processed", ipppssoot)
         err_msg = os.path.join(working_dir, "messages", "dataset-error", ipppssoot)
@@ -411,7 +408,3 @@ def check_messages(ipppssoot, output_uri):
             assert True
         elif os.path.exists(err_msg):
             assert True
-    elif output_uri.startswith("s3"):
-        message_path = list_objects(f"{output_uri}/messages/")
-        assert message_path[0].split("/")[-1] == ipppssoot
-        # assert ipppssoot in message_path[0]

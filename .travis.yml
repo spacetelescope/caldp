@@ -33,7 +33,7 @@ jobs:
       script:
         - source "$HOME/miniconda3/etc/profile.d/conda.sh"
         - conda activate caldp_${HSTCAL}
-        - pytest caldp --cov=caldp --cov-fail-under 80  --capture=tee-sys
+        - pytest caldp --cov=caldp --cov-fail-under 77  --capture=tee-sys
       after_success:
         - bash <(curl -s https://codecov.io/bash)
 
@@ -46,7 +46,7 @@ jobs:
       script:
         - source "$HOME/miniconda3/etc/profile.d/conda.sh"
         - conda activate caldp_${HSTCAL}
-        - pytest caldp --cov=caldp  --cov-fail-under 80  --capture=tee-sys
+        - pytest caldp --cov=caldp  --cov-fail-under 77  --capture=tee-sys
       after_success:
         - bash <(curl -s https://codecov.io/bash)
 

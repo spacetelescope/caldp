@@ -121,7 +121,6 @@ class Messages:
 
 
 def log_metrics(log_file, metrics):
-
     res = {}
     res["walltime"] = time.time()
     res["clocktime"] = time.clock()
@@ -161,13 +160,12 @@ def main(input_uri, output_uri_prefix, ipppssoot):
     msg = Messages(output_uri, output_path, ipppssoot)
     stat = msg.status_check()
     msg_file = msg.make_messages(stat)
-
-    if output_uri.startswith("file"):
-        logs.copy_logs()
-        msg.sync_dataset(stat)
-    elif output_uri.startswith("s3"):
+    if output_uri.startswith("s3"):
         logs.upload_logs()
         msg.upload_messages(stat, msg_file)
+    else:
+        logs.copy_logs()
+        msg.sync_dataset(stat)
 
 
 def cmd(argv):
