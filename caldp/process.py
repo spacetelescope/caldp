@@ -102,7 +102,7 @@ def get_output_path(output_uri, ipppssoot):
         or a directory path.
 
     >>> get_output_path("s3://temp/batch-2020-02-13T10:33:00", "IC0B02020")
-    's3://temp/batch-2020-02-13T10:33:00/wfc3/IC0B02020'
+    's3://temp/batch-2020-02-13T10:33:00/data/wfc3/IC0B02020'
     """
     instrument_name = get_instrument(ipppssoot)
     if output_uri.startswith("none"):
@@ -113,9 +113,12 @@ def get_output_path(output_uri, ipppssoot):
             output_prefix = test_prefix
         else:
             output_prefix = os.path.join(os.getcwd(), test_prefix)
-    # s3 or astroquery:
-    else:
-        output_prefix = output_uri
+    # s3 - force consistency of paths with caldp-process script
+    elif output_uri.startswith("s3"):
+        if output_uri.endswith("/data"):
+            output_prefix = output_uri
+        else:
+            output_prefix = output_uri + "/data"
     return output_prefix + "/" + instrument_name + "/" + ipppssoot
 
 
@@ -353,7 +356,7 @@ class InstrumentManager:
         Extracts, then saves file paths to a sorted list.
         Returns sorted list of file paths (`input_files`)
         """
-        self.divider("Retrieving data files for:", self.ipppssoot)
+        self.divider("Retrieving data files from s3:", self.ipppssoot)
         import tarfile
 
         in_bucket = self.input_uri.replace("s3://", "")
