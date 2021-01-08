@@ -116,6 +116,8 @@ def get_output_path(output_uri, ipppssoot):
             output_prefix = output_uri
         else:
             output_prefix = output_uri + "/data"
+    else:
+        output_prefix = output_uri
     return output_prefix + "/" + instrument_name + "/" + ipppssoot
 
 
