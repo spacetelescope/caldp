@@ -111,12 +111,6 @@ def get_output_path(output_uri, ipppssoot):
             output_prefix = test_prefix
         else:
             output_prefix = os.path.join(os.getcwd(), test_prefix)
-    # s3 - force consistency of paths with caldp-process script
-    elif output_uri.startswith("s3"):
-        if output_uri.endswith("/data"):
-            output_prefix = output_uri
-        else:
-            output_prefix = output_uri + "/data"
     else:
         output_prefix = output_uri
     # force consistency of paths with caldp-process script
