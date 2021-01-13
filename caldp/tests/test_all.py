@@ -364,23 +364,23 @@ def expected(RESULTS, ipppssoot):
     expected_outputs, expected_inputs = {}, {}
     for (name, size) in parse_results(results[ipppssoot]):
         if name.startswith("outputs"):
+            name = os.path.basename(name)
             expected_outputs[name] = size
         else:
+            name = os.path.basename(name)
             expected_inputs[name] = size
     return expected_inputs, expected_outputs
 
 
 def check_inputs(input_uri, expected_inputs, actual_inputs):
     for name in list(expected_inputs.keys()):
-        assert os.path.basename(name) in list(actual_inputs.keys())
+        assert name in list(actual_inputs.keys())
 
 
 def check_outputs(output_uri, expected_outputs, actual_outputs):
     for name, size in expected_outputs.items():
-        assert os.path.basename(name) in list(actual_outputs.keys())
-        assert (
-            abs(actual_outputs[os.path.basename(name)] - size) < CALDP_TEST_FILE_SIZE_THRESHOLD * size
-        ), "bad size for " + repr(name)
+        assert name in list(actual_outputs.keys())
+        assert abs(actual_outputs[name] - size) < CALDP_TEST_FILE_SIZE_THRESHOLD * size, "bad size for " + repr(name)
 
 
 def check_logs(input_uri, output_uri, ipppssoot):
