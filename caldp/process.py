@@ -88,20 +88,17 @@ def get_output_path(output_uri, ipppssoot):
     directory base path,  and an `ipppssoot` dataset name,  generate a full
     S3 output path (or directory) where outputs from processing `ipppssoot`
     should be stored.
-
     Parameters
     ----------
     output_uri : str
         A combination of S3 bucket and object directory prefix
     ipppssoot : str
         HST-style dataset name for which outputs will be stored.
-
     Returns
     -------
     object_path : str
         A fully specified S3 object, including bucket, directory, and filename,
         or a directory path.
-
     >>> get_output_path("s3://temp/batch-2020-02-13T10:33:00", "IC0B02020")
     's3://temp/batch-2020-02-13T10:33:00/data/wfc3/IC0B02020'
     """
@@ -114,6 +111,12 @@ def get_output_path(output_uri, ipppssoot):
             output_prefix = test_prefix
         else:
             output_prefix = os.path.join(os.getcwd(), test_prefix)
+    # s3 - force consistency of paths with caldp-process script
+    elif output_uri.startswith("s3"):
+        if output_uri.endswith("/data"):
+            output_prefix = output_uri
+        else:
+            output_prefix = output_uri + "/data"
     else:
         output_prefix = output_uri
     # force consistency of paths with caldp-process script
