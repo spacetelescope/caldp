@@ -15,6 +15,7 @@ import shutil
 import glob
 import re
 import subprocess
+import tarfile
 
 # -----------------------------------------------------------------------------
 
@@ -110,14 +111,13 @@ def get_output_path(output_uri, ipppssoot):
             output_prefix = test_prefix
         else:
             output_prefix = os.path.join(os.getcwd(), test_prefix)
-    # s3 - force consistency of paths with caldp-process script
-    elif output_uri.startswith("s3"):
-        if output_uri.endswith("/data"):
-            output_prefix = output_uri
-        else:
-            output_prefix = output_uri + "/data"
     else:
         output_prefix = output_uri
+    # force consistency of paths with caldp-process script
+    if not output_prefix.endswith("/data"):
+        output_prefix = output_prefix + "/data"
+    else:
+        output_prefix = output_prefix
     return output_prefix + "/" + instrument_name + "/" + ipppssoot
 
 
@@ -355,16 +355,17 @@ class InstrumentManager:
         Extracts, then saves file paths to a sorted list.
         Returns sorted list of file paths (`input_files`)
         """
-        self.divider("Retrieving data files for:", self.ipppssoot)
-        import tarfile
-
-        in_bucket = self.input_uri.replace("s3://", "")
+        self.divider("Retrieving data files from s3:", self.ipppssoot)
         client = boto3.client("s3")
-
         key = self.ipppssoot + ".tar.gz"
+        s3_path = self.input_uri.replace("s3://", "").split("/")
+        bucket, prefix = s3_path[0], "/".join(s3_path[1:])
+        if len(prefix) == 0:
+            obj = key
+        else:
+            obj = prefix + "/" + key
         with open(key, "wb") as f:
-            client.download_fileobj(in_bucket, key, f)  # 'odfa0120.tar.gz'
-
+            client.download_fileobj(bucket, obj, f)  # 'odfa0120.tar.gz'
         with tarfile.open(key, "r:gz") as tar_ref:
             tar_ref.extractall()
             # then delete tars

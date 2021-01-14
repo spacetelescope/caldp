@@ -19,8 +19,9 @@ class Logs:
         return str(self.log_output)
 
     def findlogs(self):
-        search_log = f"{os.getcwd()}/*.txt"
-        log_source = list(glob.glob(search_log))
+        proc = list(glob.glob(f"{os.getcwd()}/process*.txt"))
+        prev = list(glob.glob(f"{os.getcwd()}/preview*.txt"))
+        log_source = proc + prev
         filenames = [os.path.basename(log) for log in log_source]
         log_dest = [self.log_output + "/" + name for name in filenames]
         return dict(zip(log_source, log_dest))
@@ -123,7 +124,7 @@ class Messages:
 def log_metrics(log_file, metrics):
     res = {}
     res["walltime"] = time.time()
-    res["clocktime"] = time.clock()
+    res["clocktime"] = time.process_time()
     res["cpu"] = psutil.cpu_percent(interval=None)
     res["memory"] = psutil.virtual_memory().percent
     res["swap"] = psutil.swap_memory().percent
