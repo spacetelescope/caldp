@@ -1,0 +1,11 @@
+--- __init__.py.orig    2021-01-15 18:46:20.226242517 +0000
++++ __init__.py 2021-01-15 18:46:38.826241089 +0000
+@@ -27,7 +27,7 @@
+ def _get_bibtex():
+     citation_file = os.path.join(os.path.dirname(__file__), 'CITATION.rst')
+ 
+-    with open(citation_file, 'r') as citation:
++    with open(citation_file, 'r', encoding='utf8') as citation:
+         refs = citation.read().split('@software')[1:]
+         if len(refs) == 0:
+             return ''

@@ -63,7 +63,8 @@ RUN yum install -y \
    libpng-devel \
    libjpeg-devel \
    libcurl-devel \
-   tar
+   tar \
+   patch
 
 # Install fitscut
 COPY scripts/caldp-install-fitscut  .
@@ -83,3 +84,4 @@ RUN mkdir -p /grp/crds/cache && chown -R developer.developer /grp/crds/cache
 
 USER developer
 RUN cd caldp  &&  pip install .[dev,test]
+RUN cd /opt/conda/lib/python3.6/site-packages/photutils && patch -p 0 __init__.py /home/developer/caldp/ascii_fix.patch
