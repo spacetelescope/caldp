@@ -12,7 +12,7 @@ export CALDP_IMAGE_REPO=alphasentaurii/caldp
 #export CALDP_IMAGE_REPO=218835028644.dkr.ecr.us-east-1.amazonaws.com/caldp
 
 # Base image with CALDP package and fitscut added.
-export CALDP_IMAGE_TAG=latest
+export CALDP_IMAGE_TAG=CALDP_20201208_DRZ_final
 export CALDP_DOCKER_IMAGE=${CALDP_IMAGE_REPO}:${CALDP_IMAGE_TAG}
 
 # Fundamental calibration s/w image CALDP image inherits from

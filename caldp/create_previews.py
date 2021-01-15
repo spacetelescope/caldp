@@ -91,6 +91,31 @@ def get_inputs(ipppssoot, input_dir):
     return list(sorted(inputs))
 
 
+def get_suffix(instr):
+    if instr == 'stis':
+        req_sfx = ['x1d','sx1']
+    elif instr == 'cos':
+        req_sfx = ['x1d', 'x1dsum']+['x1dsum'+str(x) for x in range(1, 5)]
+    elif instr == 'acs':
+        req_sfx = ''
+    elif instr == 'wf3c':
+        req_sfx = ''
+    return req_sfx
+
+
+def get_preview_inputs(instr, input_paths):
+    req_sfx = get_suffix(instr)
+    preview_inputs = []
+    for input_path in input_paths:
+        if req_sfx:
+            file_sfx = os.path.basename(input_path).split(".")[0].split('_')[1]
+            if file_sfx in req_sfx:
+                preview_inputs.append(input_path)
+        else:
+            preview_inputs.append(input_path)
+    return preview_inputs
+
+
 def get_previews(input_dir):
     png_search = f"{input_dir}/*.png"
     jpg_search = f"{input_dir}/*.jpg"
@@ -101,13 +126,13 @@ def get_previews(input_dir):
     return list(sorted(preview_files))
 
 
-def create_previews(input_dir, input_paths):
+def create_previews(input_dir, preview_inputs):
     """Generates previews based on s3 downloads
     Returns a list of file paths to previews
     """
-    log.info("Processing", len(input_paths), "FITS files from ", input_dir)
+    log.info("Processing", len(preview_inputs), "FITS file(s) from ", input_dir)
     # Generate previews to local preview folder inside ipppssoot folder
-    for input_path in input_paths:
+    for input_path in preview_inputs:
         log.info("Generating previews for", input_path)
         filename_base = os.path.basename(input_path).split(".")[0]
         generate_previews(input_path, input_dir, filename_base)
@@ -157,8 +182,10 @@ def main(ipppssoot, input_uri_prefix, output_uri_prefix):
     input_dir = os.path.join(cwd, in_path)
     input_paths = get_inputs(ipppssoot, input_dir)
     output_path = process.get_output_path(output_uri_prefix, ipppssoot) + "/previews"
+    instr = process.get_instrument(ipppssoot)
+    preview_inputs = get_preview_inputs(instr, input_paths)
     # create previews
-    previews = create_previews(input_dir, input_paths)
+    previews = create_previews(input_dir, preview_inputs)
     # upload/copy previews
     if len(previews) > 0:
         if output_uri_prefix.startswith("s3"):
@@ -194,7 +221,6 @@ def cmdline():
         output_uri_prefix = args.output_uri_prefix
 
     main(args.ipppssoot, args.input_uri_prefix, output_uri_prefix)
-
 
 if __name__ == "__main__":
     cmdline()
