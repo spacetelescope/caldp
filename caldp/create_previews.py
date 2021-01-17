@@ -97,9 +97,9 @@ def get_suffix(instr):
     elif instr == 'cos':
         req_sfx = ['x1d', 'x1dsum']+['x1dsum'+str(x) for x in range(1, 5)]
     elif instr == 'acs':
-        req_sfx = ''
+        req_sfx = ['drc','drz','raw', 'flc', 'flt']
     elif instr == 'wf3c':
-        req_sfx = ''
+        req_sfx = ['drc','drz','raw', 'flc', 'flt']
     return req_sfx
 
 
@@ -107,12 +107,11 @@ def get_preview_inputs(instr, input_paths):
     req_sfx = get_suffix(instr)
     preview_inputs = []
     for input_path in input_paths:
-        if req_sfx:
-            file_sfx = os.path.basename(input_path).split(".")[0].split('_')[1]
-            if file_sfx in req_sfx:
-                preview_inputs.append(input_path)
-        else:
+        file_sfx = os.path.basename(input_path).split(".")[0].split('_')[1]
+        if file_sfx in req_sfx:
             preview_inputs.append(input_path)
+        else:
+            continue
     return preview_inputs
 
 
