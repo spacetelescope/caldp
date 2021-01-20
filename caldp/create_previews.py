@@ -9,7 +9,7 @@ import shutil
 import boto3
 from astropy.io import fits
 
-from caldp import log, process
+from caldp import log, process, utility
 
 # -------------------------------------------------------------------------------------------------------
 
@@ -97,21 +97,26 @@ def get_suffix(instr):
     elif instr == 'cos':
         req_sfx = ['x1d', 'x1dsum']+['x1dsum'+str(x) for x in range(1, 5)]
     elif instr == 'acs':
-        req_sfx = ['drc','drz','raw', 'flc', 'flt']
+        req_sfx = ['crj', 'drc', 'drz', 'raw', 'flc', 'flt']
     elif instr == 'wf3c':
-        req_sfx = ['drc','drz','raw', 'flc', 'flt']
+        req_sfx = ['drc', 'drz', 'flc', 'flt', 'ima', 'raw',]
+    else:
+        req_sfx = ''
     return req_sfx
 
 
 def get_preview_inputs(instr, input_paths):
     req_sfx = get_suffix(instr)
     preview_inputs = []
-    for input_path in input_paths:
-        file_sfx = os.path.basename(input_path).split(".")[0].split('_')[1]
-        if file_sfx in req_sfx:
-            preview_inputs.append(input_path)
-        else:
-            continue
+    if req_sfx:
+        for input_path in input_paths:
+            file_sfx = os.path.basename(input_path).split(".")[0].split('_')[1]
+            if file_sfx in req_sfx:
+                preview_inputs.append(input_path)
+            else:
+                continue
+    else:
+        preview_inputs = input_paths
     return preview_inputs
 
 
@@ -188,6 +193,10 @@ def main(ipppssoot, input_uri_prefix, output_uri_prefix):
     # upload/copy previews
     if len(previews) > 0:
         if output_uri_prefix.startswith("s3"):
+            # copy previews for consistency with local output file structure
+            output_dir = process.get_output_path("file:outputs", ipppssoot) + "/previews"
+            os.makedirs(output_dir, exist_ok=True)
+            copy_previews(previews, output_dir)
             log.info("Uploading previews...")
             upload_previews(previews, output_path)
         elif output_uri_prefix.startswith("file"):
@@ -198,6 +207,8 @@ def main(ipppssoot, input_uri_prefix, output_uri_prefix):
             return
     else:
         log.error("Error - Previews not generated.")
+    # create and upload tarfile
+    utility.main(ipppssoot, input_uri_prefix, output_uri_prefix)
     del logger
 
 

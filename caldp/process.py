@@ -124,7 +124,7 @@ def get_output_path(output_uri, ipppssoot):
 # -------------------------------------------------------------
 
 
-def upload_filepath(filepath, s3_filepath):
+def upload_filepath(ipppssoot, src_filepath, dest_filepath):
     """Given `filepath` to upload, copy it to `s3_filepath`.
 
     Parameters
@@ -138,18 +138,23 @@ def upload_filepath(filepath, s3_filepath):
     Returns
     ------
     None
-    """
-    if s3_filepath.startswith("s3"):
+    """ 
+    if dest_filepath.startswith("s3"):
+        # make copies for consistency with local output file structure
+        output_dir = get_output_path("file:outputs", ipppssoot)
+        os.makedirs(os.path.dirname(output_dir), exist_ok=True)
+        local_outpath = os.path.join(output_dir, os.path.basename(dest_filepath))
+        shutil.copy(src_filepath, local_outpath)
+        # upload to s3
+        s3_filepath = dest_filepath[5:]
         client = boto3.client("s3")
-        if s3_filepath.startswith("s3://"):
-            s3_filepath = s3_filepath[5:]
         parts = s3_filepath.split("/")
         bucket, objectname = parts[0], "/".join(parts[1:])
-        with open(filepath, "rb") as f:
+        with open(src_filepath, "rb") as f:
             client.upload_fileobj(f, bucket, objectname)
     else:
-        os.makedirs(os.path.dirname(s3_filepath), exist_ok=True)
-        shutil.copy(filepath, s3_filepath)
+        os.makedirs(os.path.dirname(dest_filepath), exist_ok=True)
+        shutil.copy(src_filepath, dest_filepath)
 
 
 # -----------------------------------------------------------------------------
@@ -521,7 +526,7 @@ class InstrumentManager:
         for filepath in outputs:
             output_filename = f"{output_path}/{os.path.basename(filepath)}"
             log.info(f"\t{output_filename}")
-            upload_filepath(filepath, output_filename)
+            upload_filepath(self.ipppssoot, filepath, output_filename)
         self.divider("Saving outputs complete.")
 
     def track_versions(self, files, apply_to="_raw"):

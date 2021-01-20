@@ -16,7 +16,7 @@ env:
         - uref_linux=$uref
         - DOCKER_REPO=alphasentaurii/caldp
         - DOCKER_TAG=latest
-        - CAL_BASE_IMAGE=stsci/hst-pipeline:CALDP_20201208_DRZ_final
+        - CAL_BASE_IMAGE=stsci/hst-pipeline:latest
         - CALDP_TEST_FILE_SIZE_THRESHOLD=0.30
 
 jobs:
