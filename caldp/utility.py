@@ -18,16 +18,19 @@ def get_path(output_uri, ipppssoot):
 
 def find_files(file_path):
     data_sfx = ["fits", "tra"]
-    img_sfx = ["png", "jpg", "fits"]
+    img_sfx = ["png", "jpg"]
     file_list = []
     for _, _, files in os.walk(file_path):
         for f in files:
             file_sfx = f.split(".")[-1]
-            if file_sfx in data_sfx:
-                file_list.append(f)
-            elif file_sfx in img_sfx:
-                p = os.path.join("previews", f)
+            file_type = f.split("_")[-1].split(".")[0]
+            p = os.path.join("previews", f)
+            if file_sfx in img_sfx:
                 file_list.append(p)
+            elif file_type == "prev":
+                file_list.append(p)
+            elif file_sfx in data_sfx:
+                file_list.append(f)
             else:
                 continue
     return file_list
@@ -59,7 +62,7 @@ def upload_tar(tar, output_path):
     client = boto3.client("s3")
     parts = output_path[5:].split("/")
     bucket, prefix = parts[0], "/".join(parts[1:])
-    objectname = prefix + os.path.basename(tar)
+    objectname = prefix + "/" + os.path.basename(tar)
     print("Uploading: ", objectname)
     with open(tar, "rb") as f:
         client.upload_fileobj(f, bucket, objectname)
