@@ -19,7 +19,7 @@ def get_path(output_uri, ipppssoot):
 
 def find_files(file_path):
     data_sfx = ['fits', 'tra']
-    img_sfx = ['png', 'jpg']
+    img_sfx = ['png', 'jpg', 'fits']
     file_list = []
     for _, _, files in os.walk(file_path):
         for f in files:
@@ -34,9 +34,10 @@ def find_files(file_path):
     return file_list
 
 
-def make_tar(file_list, ipppssoot):
+def make_tar(file_list, file_path, ipppssoot):
     working_dir = os.getcwd()
-    tar_name = ipppssoot+".tar.gz"
+    os.chdir(file_path)
+    tar_name = ipppssoot + ".tar.gz"
     print("Creating tarfile: ", tar_name)
     if os.path.exists(tar_name):
         os.remove(tar_name) # clean up from prev attempts
@@ -51,6 +52,7 @@ def make_tar(file_list, ipppssoot):
     print("Cleaning up...")
     os.remove(tar_name)
     print("Done.")
+    os.chdir(working_dir)
     return tar_dest
 
 
@@ -67,7 +69,7 @@ def upload_tar(tar, output_path):
 def main(ipppssoot, input_uri, output_uri):
     output_path, file_path = get_path(output_uri, ipppssoot)
     file_list = find_files(file_path)
-    tar = make_tar(file_list, ipppssoot)
+    tar = make_tar(file_list, file_path, ipppssoot)
     if output_uri.startswith('s3'):
         upload_tar(tar, output_path)
 

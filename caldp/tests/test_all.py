@@ -200,6 +200,12 @@ RESULTS = [
     ),
 ]
 
+# TARFILES = [
+#     ("j8cb010b0", "65099 j8cb010b0.tar.gz")
+#     ("obes03010", "obes03010.tar.gz"
+#     ("la8q99030", "la8q99030.tar.gz")
+#     ("ib8t01010", "ib8t01010.tar.gz")
+# ]
 
 SHORT_TEST_IPPPSSOOTS = [result[0] for result in RESULTS][:1]
 LONG_TEST_IPPPSSOOTS = [result[0] for result in RESULTS][1:]

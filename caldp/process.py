@@ -142,7 +142,7 @@ def upload_filepath(ipppssoot, src_filepath, dest_filepath):
     if dest_filepath.startswith("s3"):
         # make copies for consistency with local output file structure
         output_dir = get_output_path("file:outputs", ipppssoot)
-        os.makedirs(os.path.dirname(output_dir), exist_ok=True)
+        os.makedirs(output_dir, exist_ok=True)
         local_outpath = os.path.join(output_dir, os.path.basename(dest_filepath))
         shutil.copy(src_filepath, local_outpath)
         # upload to s3

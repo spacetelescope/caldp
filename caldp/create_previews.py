@@ -110,7 +110,7 @@ def get_preview_inputs(instr, input_paths):
     preview_inputs = []
     if req_sfx:
         for input_path in input_paths:
-            file_sfx = os.path.basename(input_path).split(".")[0].split('_')[1]
+            file_sfx = os.path.basename(input_path).split(".")[0].split('_')[-1]
             if file_sfx in req_sfx:
                 preview_inputs.append(input_path)
             else:
