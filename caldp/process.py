@@ -138,7 +138,7 @@ def upload_filepath(ipppssoot, src_filepath, dest_filepath):
     Returns
     ------
     None
-    """ 
+    """
     if dest_filepath.startswith("s3"):
         # make copies for consistency with local output file structure
         output_dir = get_output_path("file:outputs", ipppssoot)

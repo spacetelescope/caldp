@@ -92,16 +92,23 @@ def get_inputs(ipppssoot, input_dir):
 
 
 def get_suffix(instr):
-    if instr == 'stis':
-        req_sfx = ['x1d','sx1']
-    elif instr == 'cos':
-        req_sfx = ['x1d', 'x1dsum']+['x1dsum'+str(x) for x in range(1, 5)]
-    elif instr == 'acs':
-        req_sfx = ['crj', 'drc', 'drz', 'raw', 'flc', 'flt']
-    elif instr == 'wf3c':
-        req_sfx = ['drc', 'drz', 'flc', 'flt', 'ima', 'raw',]
+    if instr == "stis":
+        req_sfx = ["x1d", "sx1"]
+    elif instr == "cos":
+        req_sfx = ["x1d", "x1dsum"] + ["x1dsum" + str(x) for x in range(1, 5)]
+    elif instr == "acs":
+        req_sfx = ["crj", "drc", "drz", "raw", "flc", "flt"]
+    elif instr == "wf3c":
+        req_sfx = [
+            "drc",
+            "drz",
+            "flc",
+            "flt",
+            "ima",
+            "raw",
+        ]
     else:
-        req_sfx = ''
+        req_sfx = ""
     return req_sfx
 
 
@@ -110,7 +117,7 @@ def get_preview_inputs(instr, input_paths):
     preview_inputs = []
     if req_sfx:
         for input_path in input_paths:
-            file_sfx = os.path.basename(input_path).split(".")[0].split('_')[-1]
+            file_sfx = os.path.basename(input_path).split(".")[0].split("_")[-1]
             if file_sfx in req_sfx:
                 preview_inputs.append(input_path)
             else:
@@ -231,6 +238,7 @@ def cmdline():
         output_uri_prefix = args.output_uri_prefix
 
     main(args.ipppssoot, args.input_uri_prefix, output_uri_prefix)
+
 
 if __name__ == "__main__":
     cmdline()
