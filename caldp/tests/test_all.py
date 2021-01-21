@@ -200,12 +200,12 @@ RESULTS = [
     ),
 ]
 
-# TARFILES = [
-#     ("j8cb010b0", "65099 j8cb010b0.tar.gz")
-#     ("obes03010", "obes03010.tar.gz"
-#     ("la8q99030", "la8q99030.tar.gz")
-#     ("ib8t01010", "ib8t01010.tar.gz")
-# ]
+TARFILES = [
+    ("j8cb010b0", "32587357 j8cb010b0.tar.gz"),
+    ("obes03010", "32802664 obes03010.tar.gz"),
+    ("la8q99030", "11883493 la8q99030.tar.gz"),
+    ("ib8t01010", "277775706 ib8t01010.tar.gz"),
+]
 
 SHORT_TEST_IPPPSSOOTS = [result[0] for result in RESULTS][:1]
 LONG_TEST_IPPPSSOOTS = [result[0] for result in RESULTS][1:]
@@ -262,6 +262,7 @@ def coretst(temp_dir, ipppssoot, input_uri, output_uri):
         actual_outputs = list_outputs(ipppssoot, output_uri)
         check_inputs(input_uri, expected_inputs, actual_inputs)
         check_outputs(output_uri, expected_outputs, actual_outputs)
+        check_tarfiles(TARFILES, ipppssoot, output_uri)
         messages.main(input_uri, output_uri, ipppssoot)
         check_logs(input_uri, output_uri, ipppssoot)
         check_messages(ipppssoot, output_uri)
@@ -387,6 +388,22 @@ def check_outputs(output_uri, expected_outputs, actual_outputs):
     for name, size in expected_outputs.items():
         assert name in list(actual_outputs.keys())
         assert abs(actual_outputs[name] - size) < CALDP_TEST_FILE_SIZE_THRESHOLD * size, "bad size for " + repr(name)
+
+
+def check_tarfiles(TARFILES, ipppssoot, output_uri):
+    tarfiles = dict(TARFILES)
+    expected = {}
+    for (name, size) in parse_results(tarfiles[ipppssoot]):
+        expected[name] = size
+    working_dir = os.getcwd()
+    actual = {}
+    for root, _, files in os.walk(working_dir):
+        for f in sorted(files, key=lambda f: os.path.getsize(root + os.sep + f)):
+            if f == f"{ipppssoot}.tar.gz":
+                actual[f] = os.path.getsize(root + os.sep + f)
+    for name, size in expected.items():
+        assert name in list(actual.keys())
+        assert abs(actual[name] - size) < CALDP_TEST_FILE_SIZE_THRESHOLD * size, "bad size for " + repr(name)
 
 
 def check_logs(input_uri, output_uri, ipppssoot):
