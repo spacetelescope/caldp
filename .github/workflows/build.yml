@@ -1,0 +1,39 @@
+name: build and test
+
+on: push
+
+jobs:
+  pytest:
+    name: pytest native functional tests
+    runs-on: ubuntu-18.04
+
+    strategy:
+      matrix:
+        HSTCAL: [stable, latest]
+
+    steps:
+      - name: set up python 3.6.10
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.6.10
+
+      - name: install dependencies
+        run: pip install coverage
+
+      - name: checkout code
+        uses: actions/checkout@v2
+
+      - name: set up environment
+        run: scripts/caldp-cal-env-github-actions ${{ matrix.HSTCAL }} >> $GITHUB_ENV
+
+      - name: install
+        run: scripts/caldp-install-all ${{ matrix.HSTCAL }}
+
+      - name: run pytest
+        run: |
+          source "$HOME/miniconda3/etc/profile.d/conda.sh"
+          conda activate caldp_${{ matrix.HSTCAL }}
+          pytest caldp --cov=caldp --cov-fail-under 77 --capture=tee-sys
+
+      - name: compute test coverage
+        uses: codecov/codecov-action@v1
