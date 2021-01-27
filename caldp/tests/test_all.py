@@ -7,6 +7,7 @@ import pytest
 from caldp import process
 from caldp import create_previews
 from caldp import messages
+from caldp import utility
 
 # ----------------------------------------------------------------------------------------
 
@@ -303,6 +304,8 @@ def coretst(temp_dir, ipppssoot, input_uri, output_uri):
         check_tarfiles(S3_OUTPUTS, actual_outputs, ipppssoot, output_uri)
         check_logs(input_uri, output_uri, ipppssoot)
         check_messages(ipppssoot, output_uri, status="processed")
+        if input_uri.startswith("file"):
+            utility_check(ipppssoot, input_uri, output_uri)
     finally:
         os.chdir(temp_dir)
 
@@ -323,6 +326,24 @@ def setup_io(ipppssoot, input_uri, output_uri):
         os.chdir("inputs")
         process.download_inputs(ipppssoot, input_uri, output_uri)  # get inputs separately
     os.chdir(working_dir)
+
+
+def utility_check(ipppssoot, input_uri, output_uri):
+    if output_uri.startswith("file"):
+        output_path = process.get_output_path(output_uri, ipppssoot)
+        local_outpath = utility.get_path(output_uri, ipppssoot)
+        file_list = utility.find_files(local_outpath)
+        assert len(file_list) > 0
+        tar = utility.make_tar(file_list, local_outpath, ipppssoot)
+        assert os.path.exists(tar)
+        file_list.append(tar)
+        logs = messages.Logs(output_path, output_uri, ipppssoot)
+        log_path = os.path.abspath(logs.get_log_output())
+        for f in os.listdir(log_path):
+            file_list.append(os.path.join(log_path, f))
+        utility.clean_up(file_list, ipppssoot, dirs=["previews", "logs"])
+        messages.clean_up(ipppssoot, IO="messages")
+        assert len(os.listdir(local_outpath)) == 0
 
 
 def list_files(startpath, ipppssoot):
