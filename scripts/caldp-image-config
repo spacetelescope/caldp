@@ -15,10 +15,6 @@ export CALDP_IMAGE_REPO=alphasentaurii/caldp
 export CALDP_IMAGE_TAG=latest 
 export CALDP_DOCKER_IMAGE=${CALDP_IMAGE_REPO}:${CALDP_IMAGE_TAG}
 
-export BASE_IMAGE_TAG=CALDP_20201208_DRZ_final
 # Fundamental calibration s/w image CALDP image inherits from
-<<<<<<< HEAD
 export BASE_IMAGE_TAG=CALDP_20201208_DRZ_final
-=======
->>>>>>> 305f1df1f503b332f0d17980981cff4c74ce9b36
 export CAL_BASE_IMAGE=stsci/hst-pipeline:${BASE_IMAGE_TAG}
