@@ -84,4 +84,4 @@ RUN mkdir -p /grp/crds/cache && chown -R developer.developer /grp/crds/cache
 
 USER developer
 RUN cd caldp  &&  pip install .[dev,test]
-RUN cd /opt/conda/lib/python3.6/site-packages/photutils && patch -p 0 __init__.py /home/developer/caldp/ascii_fix.patch
+RUN cd /opt/conda/lib/python3.6/site-packages/photutils && patch -p 0 -F 3 __init__.py /home/developer/caldp/ascii_fix.patch
