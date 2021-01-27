@@ -1,11 +1,10 @@
 import sys
 import os
 import glob
-import shutil
 import tarfile
 import boto3
 import threading
-from caldp import process, messages
+from caldp import process
 
 
 def get_path(output_uri, ipppssoot):
@@ -14,6 +13,7 @@ def get_path(output_uri, ipppssoot):
     else:
         local_outpath = process.get_output_path(output_uri, ipppssoot)
     return os.path.abspath(local_outpath)
+
 
 def find_files(file_path):
     search_fits = f"{file_path}/*.fits"
@@ -50,8 +50,8 @@ def upload_tar(tar, output_path):
     with open(tar, "rb") as f:
         client.upload_fileobj(f, bucket, objectname, Callback=ProgressPercentage(tar))
 
-class ProgressPercentage(object):
 
+class ProgressPercentage(object):
     def __init__(self, filename):
         self._filename = filename
         self._size = float(os.path.getsize(filename))
@@ -63,10 +63,7 @@ class ProgressPercentage(object):
         with self._lock:
             self._seen_so_far += bytes_amount
             percentage = (self._seen_so_far / self._size) * 100
-            sys.stdout.write(
-                "\r%s  %s / %s  (%.2f%%)" % (
-                    self._filename, self._seen_so_far, self._size,
-                    percentage))
+            sys.stdout.write("\r%s  %s / %s  (%.2f%%)" % (self._filename, self._seen_so_far, self._size, percentage))
             sys.stdout.flush()
 
 

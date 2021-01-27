@@ -30,7 +30,7 @@ except ImportError:
 
 from crds.bestrefs import bestrefs
 
-from caldp import log, utility, messages
+from caldp import log, messages
 
 # import caldp     (see track_versions)
 
@@ -102,19 +102,21 @@ def get_output_path(output_uri, ipppssoot):
     >>> get_output_path("s3://caldp-output-test/outputs", "j8cb010b0")
     's3://caldp-output-test/outputs/j8cb010b0'
     """
-    #instrument_name = get_instrument(ipppssoot)
+    # instrument_name = get_instrument(ipppssoot)
     if output_uri.startswith("none"):
         return "none"
     elif output_uri.startswith("file"):
         prefix = output_uri.split(":")[-1]
-        output_path = os.path.join(prefix, ipppssoot) # 'outputs/obes03010'
+        output_path = os.path.join(prefix, ipppssoot)  # 'outputs/obes03010'
     else:
-        bucket = output_uri[5:].split('/')[0]
+        bucket = output_uri[5:].split("/")[0]
         output_path = f"s3://{bucket}/outputs/{ipppssoot}"
 
     return output_path
 
+
 # -------------------------------------------------------------
+
 
 def upload_filepath(ipppssoot, src_filepath, dest_filepath):
     """Given `filepath` to upload, copy it to `s3_filepath`.
@@ -669,9 +671,9 @@ def process(ipppssoot, input_uri, output_uri):
     """
     output_path = get_output_path(output_uri, ipppssoot)
     msg = messages.Messages(output_uri, output_path, ipppssoot)
-    msg.start_message() # submit-ipst
+    msg.start_message()  # submit-ipst
     process_log = log.CaldpLogger(enable_console=False, log_file="process.txt")
-    msg.process_message() # processing-ipst
+    msg.process_message()  # processing-ipst
     manager = get_instrument_manager(ipppssoot, input_uri, output_uri)
     manager.main()
     del process_log

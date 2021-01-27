@@ -2,7 +2,6 @@
 assigning references, and basic calibrations.
 """
 import os
-import glob
 import subprocess
 import pytest
 from caldp import process
@@ -209,17 +208,17 @@ S3_OUTPUTS = [
         824 preview_metrics.txt
         57047 process.txt
         820 process_metrics.txt
-        """
+        """,
     ),
     (
-        "obes03010", 
+        "obes03010",
         """
         32802820 obes03010.tar.gz
         11611 preview.txt
         823 preview_metrics.txt
         29773 process.txt
         819 process_metrics.txt
-        """
+        """,
     ),
     (
         "la8q99030",
@@ -229,7 +228,7 @@ S3_OUTPUTS = [
         827 preview_metrics.txt
         9782 process.txt
         824 process_metrics.txt
-        """
+        """,
     ),
     (
         "ib8t01010",
@@ -239,9 +238,8 @@ S3_OUTPUTS = [
         828 preview_metrics.txt
         91292 process.txt
         827 process_metrics.txt
-        """
+        """,
     ),
-
 ]
 
 
@@ -416,7 +414,9 @@ def check_outputs(output_uri, expected_outputs, actual_outputs):
     if output_uri.startswith("file"):
         for name, size in expected_outputs.items():
             assert name in list(actual_outputs.keys())
-            assert abs(actual_outputs[name] - size) < CALDP_TEST_FILE_SIZE_THRESHOLD * size, "bad size for " + repr(name)
+            assert abs(actual_outputs[name] - size) < CALDP_TEST_FILE_SIZE_THRESHOLD * size, "bad size for " + repr(
+                name
+            )
 
 
 def check_tarfiles(TARFILES, actual_outputs, ipppssoot, output_uri):
@@ -427,7 +427,7 @@ def check_tarfiles(TARFILES, actual_outputs, ipppssoot, output_uri):
             expected[name] = size
         for name, size in expected.items():
             assert name in list(actual_outputs.keys())
-            #assert abs(actual_outputs[name] - size) < CALDP_TEST_FILE_SIZE_THRESHOLD * size, "bad size for " + repr(name)
+            # assert abs(actual_outputs[name] - size) < CALDP_TEST_FILE_SIZE_THRESHOLD * size, "bad size for " + repr(name)
 
 
 def check_logs(input_uri, output_uri, ipppssoot):

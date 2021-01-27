@@ -213,7 +213,7 @@ def main(ipppssoot, input_uri_prefix, output_uri_prefix):
         elif output_uri_prefix.startswith("file"):
             preview_output = process.get_output_path(output_uri_prefix, ipppssoot) + "/previews"
             os.makedirs(preview_output, exist_ok=True)
-            copy_previews(previews, preview_output)       
+            copy_previews(previews, preview_output)
         else:
             return
     else:
