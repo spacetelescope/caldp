@@ -7,28 +7,40 @@ import boto3
 import time
 from caldp import process
 from caldp import log
+from caldp import utility
 
 
 class Logs:
-    def __init__(self, output_path, output_uri):
+    def __init__(self, output_path, output_uri, ipppssoot):
         self.output_path = output_path
         self.output_uri = output_uri
-        self.log_output = os.path.join(self.output_path, "logs")
+        self.ipppssoot = ipppssoot
 
-    def __repr__(self):
-        return str(self.log_output)
+    def get_log_output(self, local=True):
+        if local is True:
+            if self.output_uri.startswith("file"):
+                log_output = os.path.join(self.output_path, "logs")
+                os.makedirs(log_output, exist_ok=True)
+            else:
+                log_output = utility.get_path(self.output_uri, self.ipppssoot)
+        elif local is False:
+            log_output = self.output_path
+        return log_output
 
-    def findlogs(self):
+    def findlogs(self, log_output):
         proc = list(glob.glob(f"{os.getcwd()}/process*.txt"))
         prev = list(glob.glob(f"{os.getcwd()}/preview*.txt"))
         log_source = proc + prev
         filenames = [os.path.basename(log) for log in log_source]
-        log_dest = [self.log_output + "/" + name for name in filenames]
+        log_dest = [log_output + "/" + name for name in filenames]
         return dict(zip(log_source, log_dest))
 
     def copy_logs(self):
-        log_dict = self.findlogs()
-        os.makedirs(self.log_output, exist_ok=True)
+        log_output = self.get_log_output(local=True)
+        if self.output_uri.startswith("file"):
+            log_dict = self.findlogs(log_output)
+        elif self.output_uri.startswith("s3"):
+            log_dict = self.findlogs(log_output)
         log.info("Saving log files...")
         for k, v in log_dict.items():
             try:
@@ -39,9 +51,10 @@ class Logs:
         log.info("Log files saved.")
 
     def upload_logs(self):
-        log_dict = self.findlogs()
+        log_output = self.get_log_output(local=False)
+        log_dict = self.findlogs(log_output)
         client = boto3.client("s3")
-        parts = self.log_output[5:].split("/")
+        parts = self.output_path[5:].split("/")
         bucket, objectname = parts[0], "/".join(parts[1:])
         log.info("Uploading log files...")
         for k, v in log_dict.items():
@@ -49,6 +62,7 @@ class Logs:
             with open(k, "rb") as f:
                 client.upload_fileobj(f, bucket, obj)
                 log.info(f"\t{v}.")
+                os.remove(k)
         log.info("Log files uploaded.")
 
 
@@ -57,68 +71,119 @@ class Messages:
         self.output_uri = output_uri
         self.output_path = output_path
         self.ipppssoot = ipppssoot
+        self.msg_dir = os.path.join(os.getcwd(), "messages")
+        self.stat = 0
+        self.name = None
+        self.file = None
 
-    def status_check(self):
-        cwd = os.getcwd()
-        for _, _, files in os.walk(cwd):
-            for f in files:
-                if f.endswith("process_metrics.txt"):
-                    process_metrics = os.path.abspath(f)
-                    continue
-                if f.endswith("preview_metrics.txt"):
-                    preview_metrics = os.path.abspath(f)
-        with open(process_metrics) as f:
-            proc_stat = f.readlines()[-1].strip("\t").strip("\n")[-1]
-        with open(preview_metrics) as f:
-            prev_stat = f.readlines()[-1].strip("\t").strip("\n")[-1]
-        status = int(proc_stat) + int(prev_stat)
-        if status > 0:
-            stat = "dataset-error"
-        else:
-            stat = "dataset-processed"
-        return stat
+    def clear_messages(self):
+        previous_files = [f"error-{self.ipppssoot}", f"processing-{self.ipppssoot}", f"processed-{self.ipppssoot}"]
+        for f in previous_files:
+            self.remove_message(f)
 
-    def make_messages(self, stat):
-        base = os.getcwd()
-        msg_dir = os.path.join(base, "messages", stat)
-        os.makedirs(msg_dir, exist_ok=True)
-        msg_file = msg_dir + f"/{self.ipppssoot}"
-        with open(msg_file, "w") as m:
-            m.write(f"{stat} {self.ipppssoot}\n")
-            log.info(f"Message file saved: {os.path.abspath(msg_file)}")
-        return os.path.abspath(msg_file)
+    def start_message(self):
+        os.makedirs(self.msg_dir, exist_ok=True)
+        self.clear_messages()
+        if self.stat == 0:
+            self.name = f"submit-{self.ipppssoot}"
+            self.file = f"{self.msg_dir}/{self.name}"
+            self.write_message()
+            self.stat += 1  # increment status
+        return self
 
-    def upload_messages(self, stat, msg_file):
-        client = boto3.client("s3")
-        parts = self.output_uri[5:].split("/")
-        bucket = parts[0]
-        if len(parts) > 1:
-            objectname = parts[1] + f"/messages/{stat}/{self.ipppssoot}"
-        else:
-            objectname = f"messages/{stat}/{self.ipppssoot}"
-        log.info("Uploading message file...")
-        with open(msg_file, "rb") as f:
-            client.upload_fileobj(f, bucket, objectname)
-        log.info(f"\ts3://{bucket}/{objectname}")
-        log.info("Message file uploaded.")
+    def process_message(self):
+        last_file = self.file
+        if self.stat == 1:
+            self.name = f"processing-{self.ipppssoot}"
+            self.file = f"{self.msg_dir}/{self.name}"
+            self.write_message()
+            self.remove_message(last_file)
+            self.stat += 1
+            self.upload_message()
+            return self
 
-    def sync_dataset(self, stat):
-        preview_output = os.path.join(self.output_path, "previews")
-        files = glob.glob(f"{self.output_path}/{self.ipppssoot[0:5]}*")
-        files.extend(glob.glob(f"{preview_output}/{self.ipppssoot[0:5]}*"))
-        outputs = list(sorted(files))
+    def preview_message(self):
+        self.stat = 2
+        self.name = f"processing-{self.ipppssoot}"
+        self.file = f"{self.msg_dir}/{self.name}"
+        return self
 
-        if stat == "dataset-processed":
-            base = os.getcwd()
-            sync_dir = os.path.join(base, "messages", "dataset-synced")
-            os.makedirs(sync_dir, exist_ok=True)
-            sync_msg = sync_dir + "/" + self.ipppssoot
+    def final_message(self):
+        if self.stat == 2:
+            for _, _, files in os.walk(os.getcwd()):
+                for f in files:
+                    if f == "process_metrics.txt":
+                        proc_metrics = os.path.abspath(f)
+                        continue
+                    if f == "preview_metrics.txt":
+                        prev_metrics = os.path.abspath(f)
+
+            with open(proc_metrics) as proc:
+                proc_stat = proc.readlines()[-1].strip("\t").strip("\n")[-1]
+            with open(prev_metrics) as prev:
+                prev_stat = prev.readlines()[-1].strip("\t").strip("\n")[-1]
+
+            result = int(proc_stat) + int(prev_stat)
+
+            if result > 0:
+                self.name = f"error-{self.ipppssoot}"
+                self.stat = -1
+            else:
+                self.name = f"processed-{self.ipppssoot}"
+                self.stat += 1
+
+            last_file = self.file
+            self.file = f"{self.msg_dir}/{self.name}"
+            self.write_message()
+            self.remove_message(last_file)
+            self.sync_dataset()
+            self.upload_message()
+            return self
+
+    def write_message(self):
+        with open(self.file, "w") as m:
+            m.write(f"{self.name}\n")
+            log.info(f"Message file created: {os.path.abspath(self.file)}")
+
+    def remove_message(self, last_file):
+        if self.output_uri is None:
+            return
+        elif os.path.exists(last_file):
+            os.remove(last_file)
+        if self.output_uri.startswith("s3"):
+            obj = os.path.basename(last_file)
+            s3 = boto3.resource("s3")  # client = boto3.client('s3')
+            bucket = self.output_uri[5:].split("/")[0]
+            key = f"messages/{obj}"
+            s3.Object(bucket, key).delete()  # client.delete_object(Bucket='mybucketname', Key='myfile.whatever')
+
+    def upload_message(self):
+        if self.output_uri.startswith("s3"):
+            client = boto3.client("s3")
+            bucket = self.output_uri[5:].split("/")[0]
+            objectname = f"messages/{self.name}"
+            log.info("Uploading message file...")
+            with open(self.file, "rb") as f:
+                client.upload_fileobj(f, bucket, objectname)
+            log.info(f"\ts3://{bucket}/{objectname}")
+            log.info("Message file uploaded.")
+
+    def sync_dataset(self):
+        if self.output_uri.startswith("file"):
+            preview_output = os.path.join(self.output_path, "previews")
+            files = glob.glob(f"{self.output_path}/{self.ipppssoot[0:5]}*")
+            files.extend(glob.glob(f"{preview_output}/{self.ipppssoot[0:5]}*"))
+            outputs = list(sorted(files))
             for line in outputs:
-                with open(sync_msg, "a") as m:
+                with open(self.file, "a") as m:
                     m.write(f"{line}\n")
-            log.info(f"Dataset synced: {os.path.abspath(sync_msg)}")
-        else:
-            log.error("Error found - skipping data sync.")
+            log.info(f"Dataset synced: {outputs}")
+
+        elif self.output_uri.startswith("s3"):
+            s3_path = f"{self.output_path}/{self.ipppssoot}.tar.gz"
+            with open(self.file, "w") as m:
+                m.write(s3_path)
+            log.info(f"Dataset synced: {s3_path}")
 
 
 def log_metrics(log_file, metrics):
@@ -139,14 +204,31 @@ def log_metrics(log_file, metrics):
     return res
 
 
+def clean_up(ipppssoot, IO):
+    print(f"Cleaning up {IO}...")
+    folder = os.path.join(os.getcwd(), IO)
+    if IO == "messages":
+        file_list = list(glob.glob(f"{folder}/*"))
+        for f in file_list:
+            os.remove(f)
+    else:
+        ipst = os.path.join(folder, ipppssoot)
+        file_list = list(glob.glob(f"{ipst}/*"))
+        for f in file_list:
+            os.remove(f)
+        os.rmdir(ipst)
+    os.rmdir(folder)
+    print("Done.")
+
+
 def path_finder(input_uri, output_uri_prefix, ipppssoot):
-    if output_uri_prefix.lower().startswith("none"):
+    if output_uri_prefix is None:
         if input_uri.startswith("file"):
             output_uri = input_uri
             output_dir = output_uri.split(":")[-1] or "."
             output_path = os.path.abspath(output_dir)
         else:
-            output_dir = os.path.join(os.getcwd(), ipppssoot)
+            output_dir = os.path.join(os.getcwd(), "inputs", ipppssoot)
             output_uri = f"file:{output_dir}"
             output_path = os.path.abspath(output_dir)
     else:
@@ -156,17 +238,19 @@ def path_finder(input_uri, output_uri_prefix, ipppssoot):
 
 
 def main(input_uri, output_uri_prefix, ipppssoot):
+    """This function is designed to run after calibration has completed."""
     output_uri, output_path = path_finder(input_uri, output_uri_prefix, ipppssoot)
-    logs = Logs(output_path, output_uri)
+    logs = Logs(output_path, output_uri, ipppssoot)
+    logs.copy_logs()
     msg = Messages(output_uri, output_path, ipppssoot)
-    stat = msg.status_check()
-    msg_file = msg.make_messages(stat)
+    msg.preview_message()
+    msg.final_message()
     if output_uri.startswith("s3"):
         logs.upload_logs()
-        msg.upload_messages(stat, msg_file)
-    else:
-        logs.copy_logs()
-        msg.sync_dataset(stat)
+        clean_up(ipppssoot, IO="outputs")
+        clean_up(ipppssoot, IO="messages")
+        if not input_uri.startswith("file"):
+            clean_up(ipppssoot, IO="inputs")
 
 
 def cmd(argv):
@@ -174,6 +258,8 @@ def cmd(argv):
     input_uri = str(argv[1])
     output_uri_prefix = str(argv[2])
     ipppssoot = str(argv[3])
+    if output_uri_prefix.lower().startswith("none"):
+        output_uri_prefix = None
     main(input_uri, output_uri_prefix, ipppssoot)
 
 
