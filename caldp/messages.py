@@ -146,7 +146,9 @@ class Messages:
             log.info(f"Message file created: {os.path.abspath(self.file)}")
 
     def remove_message(self, last_file):
-        if os.path.exists(last_file):
+        if self.output_uri is None:
+            return
+        elif os.path.exists(last_file):
             os.remove(last_file)
         if self.output_uri.startswith("s3"):
             obj = os.path.basename(last_file)
@@ -220,13 +222,13 @@ def clean_up(ipppssoot, IO):
 
 
 def path_finder(input_uri, output_uri_prefix, ipppssoot):
-    if output_uri_prefix.lower().startswith("none"):
+    if output_uri_prefix is None:
         if input_uri.startswith("file"):
             output_uri = input_uri
             output_dir = output_uri.split(":")[-1] or "."
             output_path = os.path.abspath(output_dir)
         else:
-            output_dir = os.path.join(os.getcwd(), ipppssoot)
+            output_dir = os.path.join(os.getcwd(), "inputs", ipppssoot)
             output_uri = f"file:{output_dir}"
             output_path = os.path.abspath(output_dir)
     else:
@@ -256,6 +258,8 @@ def cmd(argv):
     input_uri = str(argv[1])
     output_uri_prefix = str(argv[2])
     ipppssoot = str(argv[3])
+    if output_uri_prefix.lower().startswith("none"):
+        output_uri_prefix = None
     main(input_uri, output_uri_prefix, ipppssoot)
 
 

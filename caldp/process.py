@@ -103,7 +103,7 @@ def get_output_path(output_uri, ipppssoot):
     's3://caldp-output-test/outputs/j8cb010b0'
     """
     # instrument_name = get_instrument(ipppssoot)
-    if output_uri.startswith("none"):
+    if output_uri is None:
         return "none"
     elif output_uri.startswith("file"):
         prefix = output_uri.split(":")[-1]
@@ -669,6 +669,8 @@ def process(ipppssoot, input_uri, output_uri):
     -------
     None
     """
+    if output_uri is None:
+        output_uri, output_path = messages.path_finder(input_uri, output_uri, ipppssoot)
     output_path = get_output_path(output_uri, ipppssoot)
     msg = messages.Messages(output_uri, output_path, ipppssoot)
     msg.start_message()  # submit-ipst
