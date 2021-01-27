@@ -42,31 +42,31 @@ RESULTS = [
 11520 inputs/j8cb010b0_asn.fits
 2257920 inputs/j8cb01u3q_raw.fits
 2257920 inputs/j8cb01u2q_raw.fits
-18457 outputs/acs/j8cb010b0/previews/j8cb010b1_crj.jpg
-1036 outputs/acs/j8cb010b0/previews/j8cb010b1_crj_thumb.jpg
-31941 outputs/acs/j8cb010b0/previews/j8cb010b1_drz.jpg
-1920 outputs/acs/j8cb010b0/previews/j8cb010b1_drz_thumb.jpg
-21728 outputs/acs/j8cb010b0/previews/j8cb01u3q_raw.jpg
-1156 outputs/acs/j8cb010b0/previews/j8cb01u3q_raw_thumb.jpg
-18712 outputs/acs/j8cb010b0/previews/j8cb01u2q_flt.jpg
-1084 outputs/acs/j8cb010b0/previews/j8cb01u2q_flt_thumb.jpg
-21587 outputs/acs/j8cb010b0/previews/j8cb01u2q_raw.jpg
-1159 outputs/acs/j8cb010b0/previews/j8cb01u2q_raw_thumb.jpg
-18748 outputs/acs/j8cb010b0/previews/j8cb01u3q_flt.jpg
-1083 outputs/acs/j8cb010b0/previews/j8cb01u3q_flt_thumb.jpg
-2257920 outputs/acs/j8cb010b0/j8cb01u3q_raw.fits
-51840 outputs/acs/j8cb010b0/j8cb01u3q_flt_hlet.fits
-10820160 outputs/acs/j8cb010b0/j8cb01u3q_flt.fits
-2818 outputs/acs/j8cb010b0/j8cb01u3q.tra
-2257920 outputs/acs/j8cb010b0/j8cb01u2q_raw.fits
-51840 outputs/acs/j8cb010b0/j8cb01u2q_flt_hlet.fits
-10820160 outputs/acs/j8cb010b0/j8cb01u2q_flt.fits
-3547 outputs/acs/j8cb010b0/j8cb01u2q.tra
-15963840 outputs/acs/j8cb010b0/j8cb010b1_drz.fits
-10535040 outputs/acs/j8cb010b0/j8cb010b1_crj.fits
-5446 outputs/acs/j8cb010b0/j8cb010b1.tra
-11520 outputs/acs/j8cb010b0/j8cb010b0_asn.fits
-16493 outputs/acs/j8cb010b0/j8cb010b0.tra
+18457 outputs/j8cb010b0/previews/j8cb010b1_crj.jpg
+1036 outputs/j8cb010b0/previews/j8cb010b1_crj_thumb.jpg
+31941 outputs/j8cb010b0/previews/j8cb010b1_drz.jpg
+1920 outputs/j8cb010b0/previews/j8cb010b1_drz_thumb.jpg
+21728 outputs/j8cb010b0/previews/j8cb01u3q_raw.jpg
+1156 outputs/j8cb010b0/previews/j8cb01u3q_raw_thumb.jpg
+18712 outputs/j8cb010b0/previews/j8cb01u2q_flt.jpg
+1084 outputs/j8cb010b0/previews/j8cb01u2q_flt_thumb.jpg
+21587 outputs/j8cb010b0/previews/j8cb01u2q_raw.jpg
+1159 outputs/j8cb010b0/previews/j8cb01u2q_raw_thumb.jpg
+18748 outputs/j8cb010b0/previews/j8cb01u3q_flt.jpg
+1083 outputs/j8cb010b0/previews/j8cb01u3q_flt_thumb.jpg
+2257920 outputs/j8cb010b0/j8cb01u3q_raw.fits
+51840 outputs/j8cb010b0/j8cb01u3q_flt_hlet.fits
+10820160 outputs/j8cb010b0/j8cb01u3q_flt.fits
+2818 outputs/j8cb010b0/j8cb01u3q.tra
+2257920 outputs/j8cb010b0/j8cb01u2q_raw.fits
+51840 outputs/j8cb010b0/j8cb01u2q_flt_hlet.fits
+10820160 outputs/j8cb010b0/j8cb01u2q_flt.fits
+3547 outputs/j8cb010b0/j8cb01u2q.tra
+15963840 outputs/j8cb010b0/j8cb010b1_drz.fits
+10535040 outputs/j8cb010b0/j8cb010b1_crj.fits
+5446 outputs/j8cb010b0/j8cb010b1.tra
+11520 outputs/j8cb010b0/j8cb010b0_asn.fits
+16493 outputs/j8cb010b0/j8cb010b0.tra
 """,
     ),
     (
@@ -81,15 +81,15 @@ RESULTS = [
 2260800 obes03010_wav.fits
 4501440 obes03010_raw.fits
 11520 obes03010_asn.fits
-121908 outputs/stis/obes03010/previews/obes03010_sx1.png
-8486 outputs/stis/obes03010/previews/obes03010_sx1_thumb.png
-4501440 outputs/stis/obes03010/obes03010_raw.fits
-80640 outputs/stis/obes03010/obes03010_sx1.fits
-2260800 outputs/stis/obes03010/obes03010_wav.fits
-10537920 outputs/stis/obes03010/obes03010_crj.fits
-14477760 outputs/stis/obes03010/obes03010_sx2.fits
-11520 outputs/stis/obes03010/obes03010_asn.fits
-21052800 outputs/stis/obes03010/obes03010_flt.fits
+121908 outputs/obes03010/previews/obes03010_sx1.png
+8486 outputs/obes03010/previews/obes03010_sx1_thumb.png
+4501440 outputs/obes03010/obes03010_raw.fits
+80640 outputs/obes03010/obes03010_sx1.fits
+2260800 outputs/obes03010/obes03010_wav.fits
+10537920 outputs/obes03010/obes03010_crj.fits
+14477760 outputs/obes03010/obes03010_sx2.fits
+11520 outputs/obes03010/obes03010_asn.fits
+21052800 outputs/obes03010/obes03010_flt.fits
         """,
     ),
     (
@@ -116,27 +116,27 @@ RESULTS = [
 806400 la8q99ixq_lampflash.fits
 2560320 la8q99ixq_rawtag.fits
 218880 la8q99ixq_spt.fits
-235844 outputs/cos/la8q99030/previews/la8q99ixq_x1d.png
-115200 outputs/cos/la8q99030/previews/la8q99ixq_x1d_prev.fits
-7799 outputs/cos/la8q99030/previews/la8q99ixq_x1d_thumb.png
-234387 outputs/cos/la8q99030/previews/la8q99030_x1dsum.png
-115200 outputs/cos/la8q99030/previews/la8q99030_x1dsum_prev.fits
-7745 outputs/cos/la8q99030/previews/la8q99030_x1dsum_thumb.png
-234667 outputs/cos/la8q99030/previews/la8q99030_x1dsum3.png
-115200 outputs/cos/la8q99030/previews/la8q99030_x1dsum3_prev.fits
-7745 outputs/cos/la8q99030/previews/la8q99030_x1dsum3_thumb.png
-2560320 outputs/cos/la8q99030/la8q99ixq_rawtag.fits
-218880 outputs/cos/la8q99030/la8q99ixq_spt.fits
-429120 outputs/cos/la8q99030/la8q99ixq_x1d.fits
-13092480 outputs/cos/la8q99030/la8q99ixq_flt.fits
-806400 outputs/cos/la8q99030/la8q99ixq_lampflash.fits
-13092480 outputs/cos/la8q99030/la8q99ixq_counts.fits
-12441600 outputs/cos/la8q99030/la8q99ixq_corrtag.fits
-259200 outputs/cos/la8q99030/la8q99030_x1dsum3.fits
-4870 outputs/cos/la8q99030/la8q99ixq.tra
-11520 outputs/cos/la8q99030/la8q99030_asn.fits
-218880 outputs/cos/la8q99030/la8q99030_jnk.fits
-259200 outputs/cos/la8q99030/la8q99030_x1dsum.fits
+235844 outputs/la8q99030/previews/la8q99ixq_x1d.png
+115200 outputs/la8q99030/previews/la8q99ixq_x1d_prev.fits
+7799 outputs/la8q99030/previews/la8q99ixq_x1d_thumb.png
+234387 outputs/la8q99030/previews/la8q99030_x1dsum.png
+115200 outputs/la8q99030/previews/la8q99030_x1dsum_prev.fits
+7745 outputs/la8q99030/previews/la8q99030_x1dsum_thumb.png
+234667 outputs/la8q99030/previews/la8q99030_x1dsum3.png
+115200 outputs/la8q99030/previews/la8q99030_x1dsum3_prev.fits
+7745 outputs/la8q99030/previews/la8q99030_x1dsum3_thumb.png
+2560320 outputs/la8q99030/la8q99ixq_rawtag.fits
+218880 outputs/la8q99030/la8q99ixq_spt.fits
+429120 outputs/la8q99030/la8q99ixq_x1d.fits
+13092480 outputs/la8q99030/la8q99ixq_flt.fits
+806400 outputs/la8q99030/la8q99ixq_lampflash.fits
+13092480 outputs/la8q99030/la8q99ixq_counts.fits
+12441600 outputs/la8q99030/la8q99ixq_corrtag.fits
+259200 outputs/la8q99030/la8q99030_x1dsum3.fits
+4870 outputs/la8q99030/la8q99ixq.tra
+11520 outputs/la8q99030/la8q99030_asn.fits
+218880 outputs/la8q99030/la8q99030_jnk.fits
+259200 outputs/la8q99030/la8q99030_x1dsum.fits
         """,
     ),
     (
@@ -169,43 +169,81 @@ RESULTS = [
 157746240 ib8t01htq_ima.fits
 31901760 ib8t01hwq_raw.fits
 31901760 ib8t01htq_raw.fits
-48819 outputs/wfc3/ib8t01010/previews/ib8t01htq_ima.jpg
-1877 outputs/wfc3/ib8t01010/previews/ib8t01htq_ima_thumb.jpg
-205588 outputs/wfc3/ib8t01010/previews/ib8t01hwq_raw.jpg
-1997 outputs/wfc3/ib8t01010/previews/ib8t01hwq_raw_thumb.jpg
-27459 outputs/wfc3/ib8t01010/previews/ib8t01010_drz.jpg
-1841 outputs/wfc3/ib8t01010/previews/ib8t01010_drz_thumb.jpg
-38031 outputs/wfc3/ib8t01010/previews/ib8t01htq_flt.jpg
-1615 outputs/wfc3/ib8t01010/previews/ib8t01htq_flt_thumb.jpg
-37404 outputs/wfc3/ib8t01010/previews/ib8t01hwq_flt.jpg
-1551 outputs/wfc3/ib8t01010/previews/ib8t01hwq_flt_thumb.jpg
-206484 outputs/wfc3/ib8t01010/previews/ib8t01htq_raw.jpg
-2058 outputs/wfc3/ib8t01010/previews/ib8t01htq_raw_thumb.jpg
-46513 outputs/wfc3/ib8t01010/previews/ib8t01hwq_ima.jpg
-1859 outputs/wfc3/ib8t01010/previews/ib8t01hwq_ima_thumb.jpg
-31901760 outputs/wfc3/ib8t01010/ib8t01hwq_raw.fits
-157746240 outputs/wfc3/ib8t01010/ib8t01hwq_ima.fits
-8640 outputs/wfc3/ib8t01010/ib8t01hwq_flt_hlet.fits
-16623360 outputs/wfc3/ib8t01010/ib8t01hwq_flt.fits
-31901760 outputs/wfc3/ib8t01010/ib8t01htq_raw.fits
-4192 outputs/wfc3/ib8t01010/ib8t01hwq.tra
-157746240 outputs/wfc3/ib8t01010/ib8t01htq_ima.fits
-16623360 outputs/wfc3/ib8t01010/ib8t01htq_flt.fits
-8640 outputs/wfc3/ib8t01010/ib8t01htq_flt_hlet.fits
-12654720 outputs/wfc3/ib8t01010/ib8t01010_drz.fits
-4733 outputs/wfc3/ib8t01010/ib8t01htq.tra
-11520 outputs/wfc3/ib8t01010/ib8t01010_asn.fits
-16110 outputs/wfc3/ib8t01010/ib8t01010.tra
+48819 outputs/ib8t01010/previews/ib8t01htq_ima.jpg
+1877 outputs/ib8t01010/previews/ib8t01htq_ima_thumb.jpg
+205588 outputs/ib8t01010/previews/ib8t01hwq_raw.jpg
+1997 outputs/ib8t01010/previews/ib8t01hwq_raw_thumb.jpg
+27459 outputs/ib8t01010/previews/ib8t01010_drz.jpg
+1841 outputs/ib8t01010/previews/ib8t01010_drz_thumb.jpg
+38031 outputs/ib8t01010/previews/ib8t01htq_flt.jpg
+1615 outputs/ib8t01010/previews/ib8t01htq_flt_thumb.jpg
+37404 outputs/ib8t01010/previews/ib8t01hwq_flt.jpg
+1551 outputs/ib8t01010/previews/ib8t01hwq_flt_thumb.jpg
+206484 outputs/ib8t01010/previews/ib8t01htq_raw.jpg
+2058 outputs/ib8t01010/previews/ib8t01htq_raw_thumb.jpg
+46513 outputs/ib8t01010/previews/ib8t01hwq_ima.jpg
+1859 outputs/ib8t01010/previews/ib8t01hwq_ima_thumb.jpg
+31901760 outputs/ib8t01010/ib8t01hwq_raw.fits
+157746240 outputs/ib8t01010/ib8t01hwq_ima.fits
+8640 outputs/ib8t01010/ib8t01hwq_flt_hlet.fits
+16623360 outputs/ib8t01010/ib8t01hwq_flt.fits
+31901760 outputs/ib8t01010/ib8t01htq_raw.fits
+4192 outputs/ib8t01010/ib8t01hwq.tra
+157746240 outputs/ib8t01010/ib8t01htq_ima.fits
+16623360 outputs/ib8t01010/ib8t01htq_flt.fits
+8640 outputs/ib8t01010/ib8t01htq_flt_hlet.fits
+12654720 outputs/ib8t01010/ib8t01010_drz.fits
+4733 outputs/ib8t01010/ib8t01htq.tra
+11520 outputs/ib8t01010/ib8t01010_asn.fits
+16110 outputs/ib8t01010/ib8t01010.tra
         """,
     ),
 ]
 
-TARFILES = [
-    ("j8cb010b0", "32587357 j8cb010b0.tar.gz"),
-    ("obes03010", "32802664 obes03010.tar.gz"),
-    ("la8q99030", "11883493 la8q99030.tar.gz"),
-    ("ib8t01010", "277775706 ib8t01010.tar.gz"),
+S3_OUTPUTS = [
+    (
+        "j8cb010b0",
+        """
+        32586581 j8cb010b0.tar.gz
+        12721 preview.txt
+        824 preview_metrics.txt
+        57047 process.txt
+        820 process_metrics.txt
+        """
+    ),
+    (
+        "obes03010", 
+        """
+        32802820 obes03010.tar.gz
+        11611 preview.txt
+        823 preview_metrics.txt
+        29773 process.txt
+        819 process_metrics.txt
+        """
+    ),
+    (
+        "la8q99030",
+        """
+        11883173 la8q99030.tar.gz
+        6445 preview.txt
+        827 preview_metrics.txt
+        9782 process.txt
+        824 process_metrics.txt
+        """
+    ),
+    (
+        "ib8t01010",
+        """
+        277780489 ib8t01010.tar.gz
+        93209 preview.txt
+        828 preview_metrics.txt
+        91292 process.txt
+        827 process_metrics.txt
+        """
+    ),
+
 ]
+
 
 SHORT_TEST_IPPPSSOOTS = [result[0] for result in RESULTS][:1]
 LONG_TEST_IPPPSSOOTS = [result[0] for result in RESULTS][1:]
@@ -255,6 +293,7 @@ def coretst(temp_dir, ipppssoot, input_uri, output_uri):
 
         process.process(ipppssoot, input_uri, output_uri)
         messages.log_metrics(log_file="process.txt", metrics="process_metrics.txt")
+        check_messages(ipppssoot, output_uri, status="processing")
         create_previews.main(ipppssoot, input_uri, output_uri)
         messages.log_metrics(log_file="preview.txt", metrics="preview_metrics.txt")
         expected_inputs, expected_outputs = expected(RESULTS, ipppssoot)
@@ -262,10 +301,10 @@ def coretst(temp_dir, ipppssoot, input_uri, output_uri):
         actual_outputs = list_outputs(ipppssoot, output_uri)
         check_inputs(input_uri, expected_inputs, actual_inputs)
         check_outputs(output_uri, expected_outputs, actual_outputs)
-        check_tarfiles(TARFILES, ipppssoot, output_uri)
         messages.main(input_uri, output_uri, ipppssoot)
+        check_tarfiles(S3_OUTPUTS, actual_outputs, ipppssoot, output_uri)
         check_logs(input_uri, output_uri, ipppssoot)
-        check_messages(ipppssoot, output_uri)
+        check_messages(ipppssoot, output_uri, status="processed")
     finally:
         os.chdir(temp_dir)
 
@@ -299,23 +338,12 @@ def list_files(startpath, ipppssoot):
 
 def list_objects(path):
     object_dict = {}
-    log_list, msg_list = [], []
     output = pipe(f"aws s3 ls --recursive {path}")
     results = [(int(line.split()[2]), line.split()[3]) for line in output.splitlines() if line.strip()]
     for (size, name) in results:
-        if "logs" in name:
-            log_list.append(name)
-        elif "messages" in name:
-            msg_list.append(name)
-        else:
-            filename = os.path.basename(name)
-            object_dict[filename] = size
-    if "logs" in path:
-        return log_list
-    elif "messages" in path:
-        return msg_list
-    else:
-        return object_dict
+        filename = os.path.basename(name)
+        object_dict[filename] = size
+    return object_dict
 
 
 def list_inputs(ipppssoot, input_uri):
@@ -323,7 +351,7 @@ def list_inputs(ipppssoot, input_uri):
     if input_uri.startswith("file"):
         input_path = os.path.join(working_dir, "inputs")
     else:
-        input_path = os.path.join(working_dir, ipppssoot)
+        input_path = os.path.join(working_dir, "inputs", ipppssoot)
     inputs = list_files(input_path, ipppssoot)
     return inputs
 
@@ -385,48 +413,40 @@ def check_inputs(input_uri, expected_inputs, actual_inputs):
 
 
 def check_outputs(output_uri, expected_outputs, actual_outputs):
-    for name, size in expected_outputs.items():
-        assert name in list(actual_outputs.keys())
-        assert abs(actual_outputs[name] - size) < CALDP_TEST_FILE_SIZE_THRESHOLD * size, "bad size for " + repr(name)
+    if output_uri.startswith("file"):
+        for name, size in expected_outputs.items():
+            assert name in list(actual_outputs.keys())
+            assert abs(actual_outputs[name] - size) < CALDP_TEST_FILE_SIZE_THRESHOLD * size, "bad size for " + repr(name)
 
 
-def check_tarfiles(TARFILES, ipppssoot, output_uri):
-    tarfiles = dict(TARFILES)
-    expected = {}
-    for (name, size) in parse_results(tarfiles[ipppssoot]):
-        expected[name] = size
-    working_dir = os.getcwd()
-    actual = {}
-    for root, _, files in os.walk(working_dir):
-        for f in sorted(files, key=lambda f: os.path.getsize(root + os.sep + f)):
-            if f == f"{ipppssoot}.tar.gz":
-                actual[f] = os.path.getsize(root + os.sep + f)
-    for name, size in expected.items():
-        assert name in list(actual.keys())
-        assert abs(actual[name] - size) < CALDP_TEST_FILE_SIZE_THRESHOLD * size, "bad size for " + repr(name)
+def check_tarfiles(TARFILES, actual_outputs, ipppssoot, output_uri):
+    if CALDP_S3_TEST_OUTPUTS and output_uri.lower().startswith("s3"):
+        tarfiles = dict(S3_OUTPUTS)
+        expected = {}
+        for (name, size) in parse_results(tarfiles[ipppssoot]):
+            expected[name] = size
+        for name, size in expected.items():
+            assert name in list(actual_outputs.keys())
+            #assert abs(actual_outputs[name] - size) < CALDP_TEST_FILE_SIZE_THRESHOLD * size, "bad size for " + repr(name)
 
 
 def check_logs(input_uri, output_uri, ipppssoot):
-    working_dir = os.getcwd()
-    get_logs = list(glob.glob(f"{working_dir}/*.txt"))
-    assert len(get_logs) == 4
-    output_uri, output_path = messages.path_finder(input_uri, output_uri, ipppssoot)
-    log_path = messages.Logs(output_path, output_uri).log_output
-    if CALDP_S3_TEST_OUTPUTS and output_uri.startswith("s3"):
-        s3_logs = list_objects(log_path)
-        assert len(s3_logs) == 4
-    else:
+    if output_uri.startswith("file"):
+        output_uri, output_path = messages.path_finder(input_uri, output_uri, ipppssoot)
+        logs = messages.Logs(output_path, output_uri, ipppssoot)
+        log_path = logs.get_log_output()
         assert os.path.exists(log_path)
 
 
-def check_messages(ipppssoot, output_uri):
+def check_messages(ipppssoot, output_uri, status):
     if CALDP_S3_TEST_OUTPUTS and output_uri.lower().startswith("s3"):
-        message_path = list_objects(f"{output_uri}/messages/")
-        assert message_path[0].split("/")[-1] == ipppssoot
+        s3_messages = list_objects(f"{output_uri}/messages")
+        expected_message = f"{status}-{ipppssoot}"
+        assert expected_message in list(s3_messages.keys())
     else:
         working_dir = os.getcwd()
-        proc_msg = os.path.join(working_dir, "messages", "dataset-processed", ipppssoot)
-        err_msg = os.path.join(working_dir, "messages", "dataset-error", ipppssoot)
+        proc_msg = os.path.join(working_dir, "messages", f"{status}-{ipppssoot}")
+        err_msg = os.path.join(working_dir, "messages", f"error-{ipppssoot}")
         if os.path.exists(proc_msg):
             assert True
         elif os.path.exists(err_msg):

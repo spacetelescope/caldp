@@ -9,7 +9,9 @@ import shutil
 import boto3
 from astropy.io import fits
 
-from caldp import log, process, utility
+from caldp import log
+from caldp import process
+from caldp import utility, messages
 
 # -------------------------------------------------------------------------------------------------------
 
@@ -98,7 +100,7 @@ def get_suffix(instr):
         req_sfx = ["x1d", "x1dsum"] + ["x1dsum" + str(x) for x in range(1, 5)]
     elif instr == "acs":
         req_sfx = ["crj", "drc", "drz", "raw", "flc", "flt"]
-    elif instr == "wf3c":
+    elif instr == "wfc3":
         req_sfx = [
             "drc",
             "drz",
@@ -183,39 +185,39 @@ def main(ipppssoot, input_uri_prefix, output_uri_prefix):
     """Generates previews based on input and output directories
     according to specified args
     """
-    # set appropriate path variables
+    output_path = utility.get_path(output_uri_prefix, ipppssoot)
+    msg = messages.Messages(output_uri_prefix, output_path, ipppssoot)
+    msg.preview_message()
     logger = log.CaldpLogger(enable_console=False, log_file="preview.txt")
+    # set appropriate path variables
     cwd = os.getcwd()
     if input_uri_prefix.startswith("file"):
         in_path = input_uri_prefix.split(":")[-1] or "."
     else:
-        in_path = ipppssoot
+        in_path = f"inputs/{ipppssoot}"
     input_dir = os.path.join(cwd, in_path)
     input_paths = get_inputs(ipppssoot, input_dir)
-    output_path = process.get_output_path(output_uri_prefix, ipppssoot) + "/previews"
     instr = process.get_instrument(ipppssoot)
     preview_inputs = get_preview_inputs(instr, input_paths)
     # create previews
     previews = create_previews(input_dir, preview_inputs)
     # upload/copy previews
     if len(previews) > 0:
+        log.info("Saving previews...")
         if output_uri_prefix.startswith("s3"):
-            # copy previews for consistency with local output file structure
-            output_dir = process.get_output_path("file:outputs", ipppssoot) + "/previews"
-            os.makedirs(output_dir, exist_ok=True)
-            copy_previews(previews, output_dir)
+            preview_output = process.get_output_path("file:outputs", ipppssoot) + "/previews"
+            os.makedirs(preview_output, exist_ok=True)
+            copy_previews(previews, preview_output)
             log.info("Uploading previews...")
-            upload_previews(previews, output_path)
+            utility.run_previews(ipppssoot, output_uri_prefix)
         elif output_uri_prefix.startswith("file"):
-            log.info("Saving previews...")
-            os.makedirs(output_path, exist_ok=True)
-            copy_previews(previews, output_path)
+            preview_output = process.get_output_path(output_uri_prefix, ipppssoot) + "/previews"
+            os.makedirs(preview_output, exist_ok=True)
+            copy_previews(previews, preview_output)       
         else:
             return
     else:
         log.error("Error - Previews not generated.")
-    # create and upload tarfile
-    utility.main(ipppssoot, input_uri_prefix, output_uri_prefix)
     del logger
 
 
