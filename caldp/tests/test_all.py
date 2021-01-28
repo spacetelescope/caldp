@@ -7,7 +7,8 @@ import pytest
 from caldp import process
 from caldp import create_previews
 from caldp import messages
-from caldp import utility
+from caldp import file_ops
+from caldp import main
 
 # ----------------------------------------------------------------------------------------
 
@@ -200,15 +201,17 @@ RESULTS = [
     ),
 ]
 
+TARFILES = [("j8cb010b0", "32586581 j8cb010b0.tar.gz")]
+
 S3_OUTPUTS = [
     (
         "j8cb010b0",
         """
         32586581 j8cb010b0.tar.gz
-        12721 preview.txt
-        824 preview_metrics.txt
-        57047 process.txt
-        820 process_metrics.txt
+        3726 preview.txt
+        112 preview_metrics.txt
+        8701 process.txt
+        112 process_metrics.txt
         """,
     ),
     (
@@ -245,7 +248,7 @@ S3_OUTPUTS = [
 
 
 SHORT_TEST_IPPPSSOOTS = [result[0] for result in RESULTS][:1]
-LONG_TEST_IPPPSSOOTS = [result[0] for result in RESULTS][1:]
+LONG_TEST_IPPPSSOOTS = [result[0] for result in RESULTS]#[1:]
 
 LONG_TEST_IPPPSSOOTS += SHORT_TEST_IPPPSSOOTS  # Include all for creating test cases.
 
@@ -301,11 +304,11 @@ def coretst(temp_dir, ipppssoot, input_uri, output_uri):
         check_inputs(input_uri, expected_inputs, actual_inputs)
         check_outputs(output_uri, expected_outputs, actual_outputs)
         messages.main(input_uri, output_uri, ipppssoot)
-        check_tarfiles(S3_OUTPUTS, actual_outputs, ipppssoot, output_uri)
+        check_s3_outputs(S3_OUTPUTS, actual_outputs, ipppssoot, output_uri)
         check_logs(input_uri, output_uri, ipppssoot)
         check_messages(ipppssoot, output_uri, status="processed")
-        if input_uri.startswith("file"):
-            utility_check(ipppssoot, input_uri, output_uri)
+        if input_uri.startswith("file"): # create tarfile if s3 bucket access unavailable
+            file_ops_check(ipppssoot, input_uri, output_uri)
     finally:
         os.chdir(temp_dir)
 
@@ -328,22 +331,27 @@ def setup_io(ipppssoot, input_uri, output_uri):
     os.chdir(working_dir)
 
 
-def utility_check(ipppssoot, input_uri, output_uri):
+def file_ops_check(ipppssoot, input_uri, output_uri):
+    """Create a tarfile from outputs - only runs for a single dataset (test_io)
+    Workaround to improve test coverage when s3 bucket access is unavailable.  
+    """
     if output_uri.startswith("file"):
-        output_path = process.get_output_path(output_uri, ipppssoot)
-        local_outpath = utility.get_path(output_uri, ipppssoot)
-        file_list = utility.find_files(local_outpath)
+        #output_path = process.get_output_path(output_uri, ipppssoot)
+        local_outpath = file_ops.get_local_outpath(output_uri, ipppssoot)
+        file_list = file_ops.find_files(local_outpath)
         assert len(file_list) > 0
-        tar = utility.make_tar(file_list, local_outpath, ipppssoot)
+        tar = file_ops.make_tar(file_list, local_outpath, ipppssoot)
         assert os.path.exists(tar)
-        file_list.append(tar)
-        logs = messages.Logs(output_path, output_uri, ipppssoot)
-        log_path = os.path.abspath(logs.get_log_output())
-        for f in os.listdir(log_path):
-            file_list.append(os.path.join(log_path, f))
-        utility.clean_up(file_list, ipppssoot, dirs=["previews", "logs"])
-        messages.clean_up(ipppssoot, IO="messages")
-        assert len(os.listdir(local_outpath)) == 0
+        actual_tarfiles = list_files(os.path.dirname(tar), ipppssoot)
+        check_tarfiles(TARFILES, actual_tarfiles, ipppssoot, output_uri)
+        # file_list.append(tar)
+        # logs = messages.Logs(output_path, output_uri, ipppssoot)
+        # log_path = os.path.abspath(logs.get_log_output())
+        # for f in os.listdir(log_path):
+        #     file_list.append(os.path.join(log_path, f))
+        # file_ops.clean_up(file_list, ipppssoot, dirs=["previews", "logs"])
+        # messages.clean_up(ipppssoot, IO="messages")
+        # assert len(os.listdir(local_outpath)) == 0
 
 
 def list_files(startpath, ipppssoot):
@@ -439,8 +447,16 @@ def check_outputs(output_uri, expected_outputs, actual_outputs):
                 name
             )
 
+def check_tarfiles(TARFILES, actual_tarfiles, ipppssoot, output_uri):
+    tarfiles = dict(TARFILES)
+    expected = {}
+    for (name, size) in parse_results(tarfiles[ipppssoot]):
+        expected[name] = size
+    for name, size in expected.items():
+        assert name in list(actual_tarfiles.keys())
 
-def check_tarfiles(TARFILES, actual_outputs, ipppssoot, output_uri):
+
+def check_s3_outputs(TARFILES, actual_outputs, ipppssoot, output_uri):
     if CALDP_S3_TEST_OUTPUTS and output_uri.lower().startswith("s3"):
         tarfiles = dict(S3_OUTPUTS)
         expected = {}
@@ -448,7 +464,7 @@ def check_tarfiles(TARFILES, actual_outputs, ipppssoot, output_uri):
             expected[name] = size
         for name, size in expected.items():
             assert name in list(actual_outputs.keys())
-            # assert abs(actual_outputs[name] - size) < CALDP_TEST_FILE_SIZE_THRESHOLD * size, "bad size for " + repr(name)
+            assert abs(actual_outputs[name] - size) < CALDP_TEST_FILE_SIZE_THRESHOLD * size, "bad size for " + repr(name)
 
 
 def check_logs(input_uri, output_uri, ipppssoot):

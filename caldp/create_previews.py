@@ -11,7 +11,7 @@ from astropy.io import fits
 
 from caldp import log
 from caldp import process
-from caldp import utility, messages
+from caldp import file_ops, messages
 
 # -------------------------------------------------------------------------------------------------------
 
@@ -185,7 +185,7 @@ def main(ipppssoot, input_uri_prefix, output_uri_prefix):
     """Generates previews based on input and output directories
     according to specified args
     """
-    output_path = utility.get_path(output_uri_prefix, ipppssoot)
+    output_path = file_ops.get_local_outpath(output_uri_prefix, ipppssoot)
     msg = messages.Messages(output_uri_prefix, output_path, ipppssoot)
     msg.preview_message()
     logger = log.CaldpLogger(enable_console=False, log_file="preview.txt")
@@ -209,7 +209,7 @@ def main(ipppssoot, input_uri_prefix, output_uri_prefix):
             os.makedirs(preview_output, exist_ok=True)
             copy_previews(previews, preview_output)
             log.info("Uploading previews...")
-            utility.run_previews(ipppssoot, output_uri_prefix)
+            file_ops.tar_outputs(ipppssoot, output_uri_prefix)
         elif output_uri_prefix.startswith("file"):
             preview_output = process.get_output_path(output_uri_prefix, ipppssoot) + "/previews"
             os.makedirs(preview_output, exist_ok=True)

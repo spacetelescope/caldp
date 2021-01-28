@@ -7,7 +7,9 @@ import threading
 from caldp import process
 
 
-def get_path(output_uri, ipppssoot):
+def get_local_outpath(output_uri, ipppssoot):
+    """Returns full path to folder containing output files.
+    """
     if output_uri.startswith("s3"):
         local_outpath = process.get_output_path("file:outputs", ipppssoot)
     else:
@@ -67,24 +69,24 @@ class ProgressPercentage(object):
             sys.stdout.flush()
 
 
-def clean_up(file_list, ipppssoot, dirs=None):
-    print("Cleaning up...")
-    for f in file_list:
-        try:
-            os.remove(f)
-        except FileNotFoundError:
-            pass
-    if dirs is not None:
-        for d in dirs:
-            subdir = os.path.abspath(f"outputs/{ipppssoot}/{d}")
-            os.rmdir(subdir)
-    print("Done.")
+# def clean_up(file_list, ipppssoot, dirs=None):
+#     print("Cleaning up...")
+#     for f in file_list:
+#         try:
+#             os.remove(f)
+#         except FileNotFoundError:
+#             pass
+#     if dirs is not None:
+#         for d in dirs:
+#             subdir = os.path.abspath(f"outputs/{ipppssoot}/{d}")
+#             os.rmdir(subdir)
+#     print("Done.")
 
 
-def run_previews(ipppssoot, output_uri):
+def tar_outputs(ipppssoot, output_uri):
     output_path = process.get_output_path(output_uri, ipppssoot)
-    local_outpath = get_path(output_uri, ipppssoot)
+    local_outpath = get_local_outpath(output_uri, ipppssoot)
     file_list = find_files(local_outpath)
     tar = make_tar(file_list, local_outpath, ipppssoot)
     upload_tar(tar, output_path)
-    clean_up(file_list, ipppssoot, dirs=["previews"])
+    #clean_up(file_list, ipppssoot, dirs=["previews"])

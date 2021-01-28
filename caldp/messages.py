@@ -7,7 +7,7 @@ import boto3
 import time
 from caldp import process
 from caldp import log
-from caldp import utility
+from caldp import file_ops
 
 
 class Logs:
@@ -22,7 +22,7 @@ class Logs:
                 log_output = os.path.join(self.output_path, "logs")
                 os.makedirs(log_output, exist_ok=True)
             else:
-                log_output = utility.get_path(self.output_uri, self.ipppssoot)
+                log_output = file_ops.get_local_outpath(self.output_uri, self.ipppssoot)
         elif local is False:
             log_output = self.output_path
         return log_output
@@ -67,6 +67,20 @@ class Logs:
 
 
 class Messages:
+    """Create and update message file according to processing status
+    stat : integer value denoting the status
+    name : status (string) used for naming the message file based on stat
+    file : full path the message file, named according to status
+    All message files are updated in place inside the messages directory.
+    If s3 is the output_uri, the messages will be update on s3 as well.
+
+    When stat is incremented, the status (filename) updates
+    0: None (default state)
+    1: 'submit-ipppssoot'
+    2: 'processing-ipppssoot'
+    3: 'processed-ipppssoot'
+    -1: 'error-ipppssoot'
+    """
     def __init__(self, output_uri, output_path, ipppssoot):
         self.output_uri = output_uri
         self.output_path = output_path
@@ -204,21 +218,21 @@ def log_metrics(log_file, metrics):
     return res
 
 
-def clean_up(ipppssoot, IO):
-    print(f"Cleaning up {IO}...")
-    folder = os.path.join(os.getcwd(), IO)
-    if IO == "messages":
-        file_list = list(glob.glob(f"{folder}/*"))
-        for f in file_list:
-            os.remove(f)
-    else:
-        ipst = os.path.join(folder, ipppssoot)
-        file_list = list(glob.glob(f"{ipst}/*"))
-        for f in file_list:
-            os.remove(f)
-        os.rmdir(ipst)
-    os.rmdir(folder)
-    print("Done.")
+# def clean_up(ipppssoot, IO):
+#     print(f"Cleaning up {IO}...")
+#     folder = os.path.join(os.getcwd(), IO)
+#     if IO == "messages":
+#         file_list = list(glob.glob(f"{folder}/*"))
+#         for f in file_list:
+#             os.remove(f)
+#     else:
+#         ipst = os.path.join(folder, ipppssoot)
+#         file_list = list(glob.glob(f"{ipst}/*"))
+#         for f in file_list:
+#             os.remove(f)
+#         os.rmdir(ipst)
+#     os.rmdir(folder)
+#     print("Done.")
 
 
 def path_finder(input_uri, output_uri_prefix, ipppssoot):
@@ -247,10 +261,10 @@ def main(input_uri, output_uri_prefix, ipppssoot):
     msg.final_message()
     if output_uri.startswith("s3"):
         logs.upload_logs()
-        clean_up(ipppssoot, IO="outputs")
-        clean_up(ipppssoot, IO="messages")
-        if not input_uri.startswith("file"):
-            clean_up(ipppssoot, IO="inputs")
+        # clean_up(ipppssoot, IO="outputs")
+        # clean_up(ipppssoot, IO="messages")
+        # if not input_uri.startswith("file"):
+        #     clean_up(ipppssoot, IO="inputs")
 
 
 def cmd(argv):

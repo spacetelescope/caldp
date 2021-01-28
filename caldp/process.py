@@ -134,12 +134,11 @@ def upload_filepath(ipppssoot, src_filepath, dest_filepath):
     None
     """
     if dest_filepath.startswith("s3"):
-        # make copies for consistency with local output file structure
+        # make copies locally to be included in tarfile for s3
         output_dir = get_output_path("file:outputs", ipppssoot)
         os.makedirs(output_dir, exist_ok=True)
         local_outpath = os.path.join(output_dir, os.path.basename(dest_filepath))
         shutil.copy(src_filepath, local_outpath)
-
     else:
         os.makedirs(os.path.dirname(dest_filepath), exist_ok=True)
         shutil.copy(src_filepath, dest_filepath)
