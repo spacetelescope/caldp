@@ -508,6 +508,7 @@ def check_messages(ipppssoot, output_uri, status):
         elif os.path.exists(err_msg):
             assert True
 
+
 def message_status_check(input_uri, output_uri, ipppssoot):
     output_path = file_ops.get_local_outpath(output_uri, ipppssoot)
     msg = messages.Messages(output_uri, output_path, ipppssoot)
@@ -535,5 +536,3 @@ def message_status_check(input_uri, output_uri, ipppssoot):
         assert msg.name == f"error-{ipppssoot}"
     elif msg.stat == 3:
         assert msg.name == f"processed-{ipppssoot}"
- 
-
