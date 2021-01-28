@@ -81,6 +81,7 @@ class Messages:
     3: 'processed-ipppssoot'
     -1: 'error-ipppssoot'
     """
+
     def __init__(self, output_uri, output_path, ipppssoot):
         self.output_uri = output_uri
         self.output_path = output_path

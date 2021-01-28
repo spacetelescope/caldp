@@ -8,7 +8,6 @@ from caldp import process
 from caldp import create_previews
 from caldp import messages
 from caldp import file_ops
-from caldp import main
 
 # ----------------------------------------------------------------------------------------
 
@@ -248,7 +247,7 @@ S3_OUTPUTS = [
 
 
 SHORT_TEST_IPPPSSOOTS = [result[0] for result in RESULTS][:1]
-LONG_TEST_IPPPSSOOTS = [result[0] for result in RESULTS]#[1:]
+LONG_TEST_IPPPSSOOTS = [result[0] for result in RESULTS]  # [1:]
 
 LONG_TEST_IPPPSSOOTS += SHORT_TEST_IPPPSSOOTS  # Include all for creating test cases.
 
@@ -307,8 +306,11 @@ def coretst(temp_dir, ipppssoot, input_uri, output_uri):
         check_s3_outputs(S3_OUTPUTS, actual_outputs, ipppssoot, output_uri)
         check_logs(input_uri, output_uri, ipppssoot)
         check_messages(ipppssoot, output_uri, status="processed")
-        if input_uri.startswith("file"): # create tarfile if s3 bucket access unavailable
-            file_ops_check(ipppssoot, input_uri, output_uri)
+        if input_uri.startswith("file"):  # create tarfile if s3 bucket access unavailable
+            actual_tarfiles = file_ops_check(ipppssoot, input_uri, output_uri)
+            check_tarfiles(TARFILES, actual_tarfiles, ipppssoot, output_uri)
+            check_pathfinder(ipppssoot)
+            message_status_check(input_uri, output_uri, ipppssoot)
     finally:
         os.chdir(temp_dir)
 
@@ -333,17 +335,17 @@ def setup_io(ipppssoot, input_uri, output_uri):
 
 def file_ops_check(ipppssoot, input_uri, output_uri):
     """Create a tarfile from outputs - only runs for a single dataset (test_io)
-    Workaround to improve test coverage when s3 bucket access is unavailable.  
+    Workaround to improve test coverage when s3 bucket access is unavailable.
     """
     if output_uri.startswith("file"):
-        #output_path = process.get_output_path(output_uri, ipppssoot)
-        local_outpath = file_ops.get_local_outpath(output_uri, ipppssoot)
-        file_list = file_ops.find_files(local_outpath)
+        tar, file_list, local_outpath = file_ops.tar_outputs(ipppssoot, output_uri)
+        output_path = process.get_output_path(output_uri, ipppssoot)
+        assert os.path.abspath(output_path) == local_outpath
         assert len(file_list) > 0
-        tar = file_ops.make_tar(file_list, local_outpath, ipppssoot)
         assert os.path.exists(tar)
         actual_tarfiles = list_files(os.path.dirname(tar), ipppssoot)
-        check_tarfiles(TARFILES, actual_tarfiles, ipppssoot, output_uri)
+        return actual_tarfiles
+
         # file_list.append(tar)
         # logs = messages.Logs(output_path, output_uri, ipppssoot)
         # log_path = os.path.abspath(logs.get_log_output())
@@ -447,6 +449,7 @@ def check_outputs(output_uri, expected_outputs, actual_outputs):
                 name
             )
 
+
 def check_tarfiles(TARFILES, actual_tarfiles, ipppssoot, output_uri):
     tarfiles = dict(TARFILES)
     expected = {}
@@ -454,6 +457,7 @@ def check_tarfiles(TARFILES, actual_tarfiles, ipppssoot, output_uri):
         expected[name] = size
     for name, size in expected.items():
         assert name in list(actual_tarfiles.keys())
+        assert abs(actual_tarfiles[name] - size) < CALDP_TEST_FILE_SIZE_THRESHOLD * size, "bad size for " + repr(name)
 
 
 def check_s3_outputs(TARFILES, actual_outputs, ipppssoot, output_uri):
@@ -464,7 +468,22 @@ def check_s3_outputs(TARFILES, actual_outputs, ipppssoot, output_uri):
             expected[name] = size
         for name, size in expected.items():
             assert name in list(actual_outputs.keys())
-            assert abs(actual_outputs[name] - size) < CALDP_TEST_FILE_SIZE_THRESHOLD * size, "bad size for " + repr(name)
+            assert abs(actual_outputs[name] - size) < CALDP_TEST_FILE_SIZE_THRESHOLD * size, "bad size for " + repr(
+                name
+            )
+
+
+def check_pathfinder(ipppssoot):
+    input_uri_prefix = "file:inputs"
+    output_uri_prefix = None
+    output_uri, output_path = messages.path_finder(input_uri_prefix, output_uri_prefix, ipppssoot)
+    assert output_uri == input_uri_prefix
+    assert output_path == os.path.abspath("inputs")
+
+    input_uri_prefix = "astroquery:"
+    output_uri, output_path = messages.path_finder(input_uri_prefix, output_uri_prefix, ipppssoot)
+    prefix = os.path.join(os.getcwd(), "inputs", ipppssoot)
+    assert output_uri == f"file:{prefix}"
 
 
 def check_logs(input_uri, output_uri, ipppssoot):
@@ -488,3 +507,33 @@ def check_messages(ipppssoot, output_uri, status):
             assert True
         elif os.path.exists(err_msg):
             assert True
+
+def message_status_check(input_uri, output_uri, ipppssoot):
+    output_path = file_ops.get_local_outpath(output_uri, ipppssoot)
+    msg = messages.Messages(output_uri, output_path, ipppssoot)
+    assert msg.msg_dir == os.path.join(os.getcwd(), "messages")
+    assert msg.stat == 0
+
+    msg.start_message()
+    assert os.path.exists(msg.msg_dir)
+    assert msg.name == f"submit-{ipppssoot}"
+    assert msg.file == f"{msg.msg_dir}/{msg.name}"
+    assert msg.stat == 1
+
+    msg.process_message()
+    assert msg.name == f"processing-{ipppssoot}"
+    assert msg.file == f"{msg.msg_dir}/{msg.name}"
+    assert msg.stat == 2
+
+    msg.preview_message()
+    assert msg.name == f"processing-{ipppssoot}"
+    assert msg.file == f"{msg.msg_dir}/{msg.name}"
+    assert msg.stat == 2
+
+    msg.final_message()
+    if msg.stat == -1:
+        assert msg.name == f"error-{ipppssoot}"
+    elif msg.stat == 3:
+        assert msg.name == f"processed-{ipppssoot}"
+ 
+

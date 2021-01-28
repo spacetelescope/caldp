@@ -8,8 +8,7 @@ from caldp import process
 
 
 def get_local_outpath(output_uri, ipppssoot):
-    """Returns full path to folder containing output files.
-    """
+    """Returns full path to folder containing output files."""
     if output_uri.startswith("s3"):
         local_outpath = process.get_output_path("file:outputs", ipppssoot)
     else:
@@ -49,8 +48,9 @@ def upload_tar(tar, output_path):
     bucket, prefix = parts[0], "/".join(parts[1:])
     objectname = prefix + "/" + os.path.basename(tar)
     print(f"Uploading: s3://{bucket}/{objectname}")
-    with open(tar, "rb") as f:
-        client.upload_fileobj(f, bucket, objectname, Callback=ProgressPercentage(tar))
+    if output_path.startswith("s3"):
+        with open(tar, "rb") as f:
+            client.upload_fileobj(f, bucket, objectname, Callback=ProgressPercentage(tar))
 
 
 class ProgressPercentage(object):
@@ -89,4 +89,6 @@ def tar_outputs(ipppssoot, output_uri):
     file_list = find_files(local_outpath)
     tar = make_tar(file_list, local_outpath, ipppssoot)
     upload_tar(tar, output_path)
-    #clean_up(file_list, ipppssoot, dirs=["previews"])
+    # clean_up(file_list, ipppssoot, dirs=["previews"])
+    if output_uri.startswith("file"):  # test cov only
+        return tar, file_list, local_outpath
