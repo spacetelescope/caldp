@@ -1,6 +1,6 @@
 name: code checks
 
-on: push
+on: [push, pull_request]
 
 jobs:
   bandit:
