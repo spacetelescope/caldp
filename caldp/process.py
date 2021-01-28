@@ -30,7 +30,7 @@ except ImportError:
 
 from crds.bestrefs import bestrefs
 
-from caldp import log
+from caldp import log, messages
 
 # import caldp     (see track_versions)
 
@@ -99,32 +99,26 @@ def get_output_path(output_uri, ipppssoot):
     object_path : str
         A fully specified S3 object, including bucket, directory, and filename,
         or a directory path.
-    >>> get_output_path("s3://temp/batch-2020-02-13T10:33:00", "IC0B02020")
-    's3://temp/batch-2020-02-13T10:33:00/data/wfc3/IC0B02020'
+    >>> get_output_path("s3://caldp-output-test/outputs", "j8cb010b0")
+    's3://caldp-output-test/outputs/j8cb010b0'
     """
-    instrument_name = get_instrument(ipppssoot)
-    if output_uri.startswith("none"):
+    # instrument_name = get_instrument(ipppssoot)
+    if output_uri is None:
         return "none"
     elif output_uri.startswith("file"):
-        test_prefix = output_uri.split(":")[-1]
-        if test_prefix.startswith("/"):
-            output_prefix = test_prefix
-        else:
-            output_prefix = os.path.join(os.getcwd(), test_prefix)
+        prefix = output_uri.split(":")[-1]
+        output_path = os.path.join(prefix, ipppssoot)  # 'outputs/obes03010'
     else:
-        output_prefix = output_uri
-    # force consistency of paths with caldp-process script
-    if not output_prefix.endswith("/data"):
-        output_prefix = output_prefix + "/data"
-    else:
-        output_prefix = output_prefix
-    return output_prefix + "/" + instrument_name + "/" + ipppssoot
+        bucket = output_uri[5:].split("/")[0]
+        output_path = f"s3://{bucket}/outputs/{ipppssoot}"
+
+    return output_path
 
 
 # -------------------------------------------------------------
 
 
-def upload_filepath(filepath, s3_filepath):
+def upload_filepath(ipppssoot, src_filepath, dest_filepath):
     """Given `filepath` to upload, copy it to `s3_filepath`.
 
     Parameters
@@ -139,17 +133,15 @@ def upload_filepath(filepath, s3_filepath):
     ------
     None
     """
-    if s3_filepath.startswith("s3"):
-        client = boto3.client("s3")
-        if s3_filepath.startswith("s3://"):
-            s3_filepath = s3_filepath[5:]
-        parts = s3_filepath.split("/")
-        bucket, objectname = parts[0], "/".join(parts[1:])
-        with open(filepath, "rb") as f:
-            client.upload_fileobj(f, bucket, objectname)
+    if dest_filepath.startswith("s3"):
+        # make copies locally to be included in tarfile for s3
+        output_dir = get_output_path("file:outputs", ipppssoot)
+        os.makedirs(output_dir, exist_ok=True)
+        local_outpath = os.path.join(output_dir, os.path.basename(dest_filepath))
+        shutil.copy(src_filepath, local_outpath)
     else:
-        os.makedirs(os.path.dirname(s3_filepath), exist_ok=True)
-        shutil.copy(filepath, s3_filepath)
+        os.makedirs(os.path.dirname(dest_filepath), exist_ok=True)
+        shutil.copy(src_filepath, dest_filepath)
 
 
 # -----------------------------------------------------------------------------
@@ -342,7 +334,7 @@ class InstrumentManager:
         Returns path to subdirectory (named using ipppssoot).
         """
         cwd = os.getcwd()
-        input_path = os.path.join(cwd, self.ipppssoot)
+        input_path = os.path.join(cwd, "inputs", self.ipppssoot)
         try:
             os.makedirs(input_path, exist_ok=True)
         except FileExistsError:
@@ -439,7 +431,7 @@ class InstrumentManager:
 
         else:
             base_path = os.getcwd()
-            subfolder = os.path.join(base_path, self.ipppssoot)
+            subfolder = os.path.join(base_path, "inputs", self.ipppssoot)
             search_fits = f"{subfolder}/{self.ipppssoot.lower()[0:5]}*.fits"
             search_tra = f"{subfolder}/{self.ipppssoot.lower()[0:5]}*.tra"
 
@@ -514,14 +506,14 @@ class InstrumentManager:
             for filename in delete:
                 os.remove(filename)
             outputs = self.find_output_files()  # get again
+        self.divider(f"Saving {len(outputs)} outputs")
         if self.output_uri is None or self.output_uri.startswith("none"):
             return
         output_path = get_output_path(self.output_uri, self.ipppssoot)
-        self.divider(f"Saving {len(outputs)} outputs to:", output_path)
         for filepath in outputs:
             output_filename = f"{output_path}/{os.path.basename(filepath)}"
             log.info(f"\t{output_filename}")
-            upload_filepath(filepath, output_filename)
+            upload_filepath(self.ipppssoot, filepath, output_filename)
         self.divider("Saving outputs complete.")
 
     def track_versions(self, files, apply_to="_raw"):
@@ -676,7 +668,13 @@ def process(ipppssoot, input_uri, output_uri):
     -------
     None
     """
+    if output_uri is None:
+        output_uri, output_path = messages.path_finder(input_uri, output_uri, ipppssoot)
+    output_path = get_output_path(output_uri, ipppssoot)
+    msg = messages.Messages(output_uri, output_path, ipppssoot)
+    msg.start_message()  # submit-ipst
     process_log = log.CaldpLogger(enable_console=False, log_file="process.txt")
+    msg.process_message()  # processing-ipst
     manager = get_instrument_manager(ipppssoot, input_uri, output_uri)
     manager.main()
     del process_log

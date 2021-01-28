@@ -9,7 +9,9 @@ import shutil
 import boto3
 from astropy.io import fits
 
-from caldp import log, process
+from caldp import log
+from caldp import process
+from caldp import file_ops, messages
 
 # -------------------------------------------------------------------------------------------------------
 
@@ -91,6 +93,42 @@ def get_inputs(ipppssoot, input_dir):
     return list(sorted(inputs))
 
 
+def get_suffix(instr):
+    if instr == "stis":
+        req_sfx = ["x1d", "sx1"]
+    elif instr == "cos":
+        req_sfx = ["x1d", "x1dsum"] + ["x1dsum" + str(x) for x in range(1, 5)]
+    elif instr == "acs":
+        req_sfx = ["crj", "drc", "drz", "raw", "flc", "flt"]
+    elif instr == "wfc3":
+        req_sfx = [
+            "drc",
+            "drz",
+            "flc",
+            "flt",
+            "ima",
+            "raw",
+        ]
+    else:
+        req_sfx = ""
+    return req_sfx
+
+
+def get_preview_inputs(instr, input_paths):
+    req_sfx = get_suffix(instr)
+    preview_inputs = []
+    if req_sfx:
+        for input_path in input_paths:
+            file_sfx = os.path.basename(input_path).split(".")[0].split("_")[-1]
+            if file_sfx in req_sfx:
+                preview_inputs.append(input_path)
+            else:
+                continue
+    else:
+        preview_inputs = input_paths
+    return preview_inputs
+
+
 def get_previews(input_dir):
     png_search = f"{input_dir}/*.png"
     jpg_search = f"{input_dir}/*.jpg"
@@ -101,13 +139,13 @@ def get_previews(input_dir):
     return list(sorted(preview_files))
 
 
-def create_previews(input_dir, input_paths):
+def create_previews(input_dir, preview_inputs):
     """Generates previews based on s3 downloads
     Returns a list of file paths to previews
     """
-    log.info("Processing", len(input_paths), "FITS files from ", input_dir)
+    log.info("Processing", len(preview_inputs), "FITS file(s) from ", input_dir)
     # Generate previews to local preview folder inside ipppssoot folder
-    for input_path in input_paths:
+    for input_path in preview_inputs:
         log.info("Generating previews for", input_path)
         filename_base = os.path.basename(input_path).split(".")[0]
         generate_previews(input_path, input_dir, filename_base)
@@ -147,27 +185,35 @@ def main(ipppssoot, input_uri_prefix, output_uri_prefix):
     """Generates previews based on input and output directories
     according to specified args
     """
-    # set appropriate path variables
+    output_path = file_ops.get_local_outpath(output_uri_prefix, ipppssoot)
+    msg = messages.Messages(output_uri_prefix, output_path, ipppssoot)
+    msg.preview_message()
     logger = log.CaldpLogger(enable_console=False, log_file="preview.txt")
+    # set appropriate path variables
     cwd = os.getcwd()
     if input_uri_prefix.startswith("file"):
         in_path = input_uri_prefix.split(":")[-1] or "."
     else:
-        in_path = ipppssoot
+        in_path = f"inputs/{ipppssoot}"
     input_dir = os.path.join(cwd, in_path)
     input_paths = get_inputs(ipppssoot, input_dir)
-    output_path = process.get_output_path(output_uri_prefix, ipppssoot) + "/previews"
+    instr = process.get_instrument(ipppssoot)
+    preview_inputs = get_preview_inputs(instr, input_paths)
     # create previews
-    previews = create_previews(input_dir, input_paths)
+    previews = create_previews(input_dir, preview_inputs)
     # upload/copy previews
     if len(previews) > 0:
+        log.info("Saving previews...")
         if output_uri_prefix.startswith("s3"):
+            preview_output = process.get_output_path("file:outputs", ipppssoot) + "/previews"
+            os.makedirs(preview_output, exist_ok=True)
+            copy_previews(previews, preview_output)
             log.info("Uploading previews...")
-            upload_previews(previews, output_path)
+            file_ops.tar_outputs(ipppssoot, output_uri_prefix)
         elif output_uri_prefix.startswith("file"):
-            log.info("Saving previews...")
-            os.makedirs(output_path, exist_ok=True)
-            copy_previews(previews, output_path)
+            preview_output = process.get_output_path(output_uri_prefix, ipppssoot) + "/previews"
+            os.makedirs(preview_output, exist_ok=True)
+            copy_previews(previews, preview_output)
         else:
             return
     else:

@@ -76,16 +76,16 @@ fi
 echo ........................................ processing log ..............................................
 pwd
 set -o pipefail && $TIME --verbose -o process_metrics.txt \
-    python -m caldp.process $input_path $output_path/data $ipppssoot \
+    python -m caldp.process $input_path $output_path $ipppssoot \
     2>&1 | tee process.txt
 process_exit_status=$?
 echo "Processing exit status ${process_exit_status}"
 
-processing_output_dir=`caldp-get-output-path  $output_path/data $ipppssoot`
+processing_output_dir=`caldp-get-output-path  $output_path $ipppssoot`
 echo "Processing output_dir is" $processing_output_dir
 
-logs_output_dir="${processing_output_dir}/logs"
-echo "Logs output_dir is" $logs_output_dir
+# logs_output_dir="${processing_output_dir}/logs"
+# echo "Logs output_dir is" $logs_output_dir
 
 previews_output_dir="${processing_output_dir}/previews"
 echo "Previews output_dir is" $previews_output_dir
@@ -94,7 +94,7 @@ echo ........................................ previews log .....................
 
 
 set -o pipefail && $TIME --verbose -o preview_metrics.txt \
-    python -m caldp.create_previews $input_path $output_path/data $ipppssoot \
+    python -m caldp.create_previews $input_path $output_path $ipppssoot \
     2>&1 | tee preview.txt
 
 preview_exit_status=$?
@@ -107,7 +107,7 @@ cat process_metrics.txt
 echo ........................................ preview metrics .............................................
 cat preview_metrics.txt
 
-echo ........................................ handling outputs for ${output_location} ............................................
+echo ........................... handling outputs for ${output_location} ..................................
 
 # Note: this action is not logged since log files are being transferred.
 python -m caldp.messages $input_path $output_path $ipppssoot
