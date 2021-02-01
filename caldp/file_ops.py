@@ -1,44 +1,44 @@
 import sys
 import os
 import glob
+import shutil
 import tarfile
 import boto3
 import threading
 from caldp import process
+from caldp import log
+
+def get_output_dir(output_uri):
+    """Returns full path to output folder """
+    if output_uri.startswith("file"):
+        output_dir = output_uri.split(":")[-1]
+    elif output_uri.startswith("s3"):
+        output_dir = os.path.abspath("outputs")
+    return output_dir
 
 
-def get_local_outpath(output_uri, ipppssoot):
-    """Returns full path to folder containing output files."""
-    if output_uri.startswith("s3"):
-        local_outpath = process.get_output_path("file:outputs", ipppssoot)
-    else:
-        local_outpath = process.get_output_path(output_uri, ipppssoot)
-    return os.path.abspath(local_outpath)
-
-
-def find_files(file_path):
-    search_fits = f"{file_path}/*.fits"
-    search_tra = f"{file_path}/*.tra"
-    search_prev = f"{file_path}/previews/*"
+def find_files(ipppssoot):
+    search_fits = f"{ipppssoot}/*.fits"
+    search_tra = f"{ipppssoot}/*.tra"
+    search_prev = f"{ipppssoot}/previews/*"
     file_list = list(glob.glob(search_fits))
     file_list.extend(list(glob.glob(search_tra)))
     file_list.extend(list(glob.glob(search_prev)))
     return file_list
 
 
-def make_tar(file_list, file_path, ipppssoot):
-    working_dir = os.getcwd()
-    os.chdir(file_path)
-    tar_name = ipppssoot + ".tar.gz"
-    print("Creating tarfile: ", tar_name)
-    if os.path.exists(tar_name):
-        os.remove(tar_name)  # clean up from prev attempts
-    with tarfile.open(tar_name, "x:gz") as tar:
+def make_tar(file_list, ipppssoot):
+    tar = ipppssoot + ".tar.gz"
+    log.info("Creating tarfile: ", tar)
+    if os.path.exists(tar):
+        os.remove(tar)  # clean up from prev attempts
+    with tarfile.open(tar, "x:gz") as t:
         for f in file_list:
-            tar.add(f)
-    tar_dest = os.path.abspath(tar_name)
-    print("Tar successful: ", tar_dest)
-    os.chdir(working_dir)
+            t.add(f)
+    log.info("Tar successful: ", tar)
+    tar_dest = os.path.join(ipppssoot, tar)
+    shutil.copy(tar, ipppssoot)  # move tarfile to outputs/{ipst}
+    os.remove(tar)
     return tar_dest
 
 
@@ -47,7 +47,7 @@ def upload_tar(tar, output_path):
     parts = output_path[5:].split("/")
     bucket, prefix = parts[0], "/".join(parts[1:])
     objectname = prefix + "/" + os.path.basename(tar)
-    print(f"Uploading: s3://{bucket}/{objectname}")
+    log.info(f"Uploading: s3://{bucket}/{objectname}")
     if output_path.startswith("s3"):
         with open(tar, "rb") as f:
             client.upload_fileobj(f, bucket, objectname, Callback=ProgressPercentage(tar))
@@ -84,11 +84,14 @@ class ProgressPercentage(object):
 
 
 def tar_outputs(ipppssoot, output_uri):
+    working_dir = os.getcwd()
     output_path = process.get_output_path(output_uri, ipppssoot)
-    local_outpath = get_local_outpath(output_uri, ipppssoot)
-    file_list = find_files(local_outpath)
-    tar = make_tar(file_list, local_outpath, ipppssoot)
+    output_dir = get_output_dir(output_uri)
+    os.chdir(output_dir)  # create tarfile with ipst/*fits as top dir
+    file_list = find_files(ipppssoot)
+    tar = make_tar(file_list, ipppssoot)
     upload_tar(tar, output_path)
+    os.chdir(working_dir)
     # clean_up(file_list, ipppssoot, dirs=["previews"])
     if output_uri.startswith("file"):  # test cov only
-        return tar, file_list, local_outpath
+        return tar, file_list  # , local_outpath
