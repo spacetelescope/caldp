@@ -251,7 +251,8 @@ def path_finder(input_uri, output_uri_prefix, ipppssoot):
         output_path = process.get_output_path(output_uri, ipppssoot)
     return output_uri, output_path
 
-# find where to put logs 
+
+# find where to put logs
 def get_local_outpath(output_uri, ipppssoot):
     """Returns full path to folder containing output files."""
     if output_uri.startswith("s3"):

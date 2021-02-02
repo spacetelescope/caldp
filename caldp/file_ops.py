@@ -8,6 +8,7 @@ import threading
 from caldp import process
 from caldp import log
 
+
 def get_output_dir(output_uri):
     """Returns full path to output folder """
     if output_uri.startswith("file"):
