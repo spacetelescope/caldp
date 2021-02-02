@@ -338,12 +338,11 @@ def file_ops_check(ipppssoot, input_uri, output_uri):
     Workaround to improve test coverage when s3 bucket access is unavailable.
     """
     if output_uri.startswith("file"):
-        tar, file_list, local_outpath = file_ops.tar_outputs(ipppssoot, output_uri)
-        output_path = process.get_output_path(output_uri, ipppssoot)
-        assert os.path.abspath(output_path) == local_outpath
+        tar, file_list = file_ops.tar_outputs(ipppssoot, output_uri)
         assert len(file_list) > 0
-        assert os.path.exists(tar)
-        actual_tarfiles = list_files(os.path.dirname(tar), ipppssoot)
+        tarpath = os.path.join("outputs", tar)
+        assert os.path.exists(tarpath)
+        actual_tarfiles = list_files(os.path.dirname(tarpath), ipppssoot)
         return actual_tarfiles
 
         # file_list.append(tar)
@@ -510,7 +509,7 @@ def check_messages(ipppssoot, output_uri, status):
 
 
 def message_status_check(input_uri, output_uri, ipppssoot):
-    output_path = file_ops.get_local_outpath(output_uri, ipppssoot)
+    output_path = messages.get_local_outpath(output_uri, ipppssoot)
     msg = messages.Messages(output_uri, output_path, ipppssoot)
     assert msg.msg_dir == os.path.join(os.getcwd(), "messages")
     assert msg.stat == 0

@@ -335,10 +335,7 @@ class InstrumentManager:
         """
         cwd = os.getcwd()
         input_path = os.path.join(cwd, "inputs", self.ipppssoot)
-        try:
-            os.makedirs(input_path, exist_ok=True)
-        except FileExistsError:
-            pass
+        os.makedirs(input_path, exist_ok=True)
         return input_path
 
     def get_objects(self, input_path):
@@ -347,17 +344,18 @@ class InstrumentManager:
         Extracts, then saves file paths to a sorted list.
         Returns sorted list of file paths (`input_files`)
         """
-        self.divider("Retrieving data files from s3:", self.ipppssoot)
         client = boto3.client("s3")
         key = self.ipppssoot + ".tar.gz"
         s3_path = self.input_uri.replace("s3://", "").split("/")
         bucket, prefix = s3_path[0], "/".join(s3_path[1:])
         if len(prefix) == 0:
             obj = key
-        else:
-            obj = prefix + "/" + key
+        else:  # remove trailing slash from prefix if there is one
+            obj = prefix.strip("/") + "/" + key
+        self.divider(f"Retrieving tarfile: s3://{bucket}/{obj}")
         with open(key, "wb") as f:
             client.download_fileobj(bucket, obj, f)  # 'odfa0120.tar.gz'
+        self.divider(f"Extracting files from {key}")
         with tarfile.open(key, "r:gz") as tar_ref:
             tar_ref.extractall()
             # then delete tars
@@ -748,6 +746,8 @@ def main(argv):
     input_uri = argv[1]
     output_uri = argv[2]
     ipppssoots = argv[3:]
+    if input_uri.endswith("/"):
+        input_uri.rstrip("/")
     if output_uri.lower().startswith("none"):
         output_uri = None
     process_ipppssoots(ipppssoots, input_uri, output_uri)

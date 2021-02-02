@@ -7,7 +7,6 @@ import boto3
 import time
 from caldp import process
 from caldp import log
-from caldp import file_ops
 
 
 class Logs:
@@ -22,7 +21,7 @@ class Logs:
                 log_output = os.path.join(self.output_path, "logs")
                 os.makedirs(log_output, exist_ok=True)
             else:
-                log_output = file_ops.get_local_outpath(self.output_uri, self.ipppssoot)
+                log_output = get_local_outpath(self.output_uri, self.ipppssoot)
         elif local is False:
             log_output = self.output_path
         return log_output
@@ -62,7 +61,7 @@ class Logs:
             with open(k, "rb") as f:
                 client.upload_fileobj(f, bucket, obj)
                 log.info(f"\t{v}.")
-                os.remove(k)
+                # os.remove(k)
         log.info("Log files uploaded.")
 
 
@@ -201,6 +200,7 @@ class Messages:
             log.info(f"Dataset synced: {s3_path}")
 
 
+# for pytest cov (create metrics files similar to caldp-process bash script)
 def log_metrics(log_file, metrics):
     res = {}
     res["walltime"] = time.time()
@@ -235,7 +235,7 @@ def log_metrics(log_file, metrics):
 #     os.rmdir(folder)
 #     print("Done.")
 
-
+# primarily for test cov where output_uri is "none"
 def path_finder(input_uri, output_uri_prefix, ipppssoot):
     if output_uri_prefix is None:
         if input_uri.startswith("file"):
@@ -252,20 +252,30 @@ def path_finder(input_uri, output_uri_prefix, ipppssoot):
     return output_uri, output_path
 
 
+# find where to put logs
+def get_local_outpath(output_uri, ipppssoot):
+    """Returns full path to folder containing output files."""
+    if output_uri.startswith("s3"):
+        local_outpath = process.get_output_path("file:outputs", ipppssoot)
+    else:
+        local_outpath = process.get_output_path(output_uri, ipppssoot)
+    return local_outpath
+
+
 def main(input_uri, output_uri_prefix, ipppssoot):
     """This function is designed to run after calibration has completed."""
     output_uri, output_path = path_finder(input_uri, output_uri_prefix, ipppssoot)
     logs = Logs(output_path, output_uri, ipppssoot)
     logs.copy_logs()
-    msg = Messages(output_uri, output_path, ipppssoot)
-    msg.preview_message()
-    msg.final_message()
     if output_uri.startswith("s3"):
         logs.upload_logs()
         # clean_up(ipppssoot, IO="outputs")
         # clean_up(ipppssoot, IO="messages")
         # if not input_uri.startswith("file"):
         #     clean_up(ipppssoot, IO="inputs")
+    msg = Messages(output_uri, output_path, ipppssoot)
+    msg.preview_message()
+    msg.final_message()
 
 
 def cmd(argv):
