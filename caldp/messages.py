@@ -77,7 +77,7 @@ class Messages:
     0: None (default state)
     1: 'submit-ipppssoot'
     2: 'processing-ipppssoot'
-    3: 'processed-ipppssoot'
+    3: 'processed-ipppssoot.trigger'
     -1: 'error-ipppssoot'
     """
 
@@ -91,7 +91,7 @@ class Messages:
         self.file = None
 
     def clear_messages(self):
-        previous_files = [f"error-{self.ipppssoot}", f"processing-{self.ipppssoot}", f"processed-{self.ipppssoot}"]
+        previous_files = [f"error-{self.ipppssoot}", f"processing-{self.ipppssoot}", f"processed-{self.ipppssoot}.trigger"]
         for f in previous_files:
             self.remove_message(f)
 
@@ -143,7 +143,7 @@ class Messages:
                 self.name = f"error-{self.ipppssoot}"
                 self.stat = -1
             else:
-                self.name = f"processed-{self.ipppssoot}"
+                self.name = f"processed-{self.ipppssoot}.trigger"
                 self.stat += 1
 
             last_file = self.file
