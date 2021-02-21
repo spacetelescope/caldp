@@ -91,7 +91,11 @@ class Messages:
         self.file = None
 
     def clear_messages(self):
-        previous_files = [f"error-{self.ipppssoot}", f"processing-{self.ipppssoot}", f"processed-{self.ipppssoot}.trigger"]
+        previous_files = [
+            f"error-{self.ipppssoot}",
+            f"processing-{self.ipppssoot}",
+            f"processed-{self.ipppssoot}.trigger",
+        ]
         for f in previous_files:
             self.remove_message(f)
 
