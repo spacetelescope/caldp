@@ -27,12 +27,12 @@ def append_trailer(input_path, output_path, ipppssoot):
     and copies to outputs directory prior to appending log
     """
     try:
-        tra1 = list(glob.glob(f"{output_path}/{ipppssoot.lower()}.tra"))[0]
-        tra2 = list(glob.glob(f"{output_path}/{ipppssoot.lower()[0:5]}*.tra"))[0]
-        if os.path.exists(tra1):
-            trailer = tra1
-        elif os.path.exists(tra2):
-            trailer = tra2
+        tra1 = list(glob.glob(f"{output_path}/{ipppssoot.lower()}.tra"))
+        tra2 = list(glob.glob(f"{output_path}/{ipppssoot.lower()[0:5]}*.tra"))
+        if os.path.exists(tra1[0]):
+            trailer = tra1[0]
+        elif os.path.exists(tra2[0]):
+            trailer = tra2[0]
         else:
             log.error("Trailer file not found - skipping.")
 
@@ -126,7 +126,7 @@ def tar_outputs(ipppssoot, output_uri):
     working_dir = os.getcwd()
     output_path = process.get_output_path(output_uri, ipppssoot)
     output_dir = get_output_dir(output_uri)
-    os.chdir(output_dir)  # create tarfile with ipst/*fits as top dir
+    os.chdir(output_dir)  # create tarfile with ipst/*fits (ipst is parent dir)
     file_list = find_files(ipppssoot)
     tar = make_tar(file_list, ipppssoot)
     upload_tar(tar, output_path)

@@ -11,6 +11,11 @@ from caldp import file_ops
 
 # ----------------------------------------------------------------------------------------
 
+# Set default CRDS Context
+CRDS_CONTEXT = os.environ.get("CRDS_CONTEXT")
+if CRDS_CONTEXT == "":
+    os.environ["CRDS_CONTEXT"] = "hst_0860.pmap"
+
 # For applicable tests,  the product files associated with each ipppssoot below
 # must be present in the CWD after processing and be within 10% of the listed sizes.
 RESULTS = [
@@ -236,7 +241,6 @@ RESULTS = [
     #     ),
 ]
 
-
 TARFILES = [("j8cb010b0", "32586581 j8cb010b0.tar.gz")]
 
 S3_OUTPUTS = [
@@ -389,7 +393,11 @@ def check_tarball_out(ipppssoot, input_uri, output_uri):
         assert len(file_list) > 0
         tarpath = os.path.join("outputs", tar)
         assert os.path.exists(tarpath)
-        actual_tarfiles = list_files(os.path.dirname(tarpath), ipppssoot)
+        all_files = list_files(os.path.dirname(tarpath), ipppssoot)
+        actual_tarfiles = {}
+        for name, size in all_files.items():
+            if name.endswith(".tar.gz"):
+                actual_tarfiles[name] = size
         return actual_tarfiles
 
         # file_list.append(tar)
