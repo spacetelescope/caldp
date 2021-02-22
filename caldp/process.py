@@ -487,6 +487,9 @@ class InstrumentManager:
         unassoc = self.unassoc_files(files)
         if unassoc:
             self.run(self.stage1, *unassoc)
+            if self.stage2:
+                self.run(self.stage2, *unassoc)
+            return
 
     def output_files(self):
         """Selects files from the current working directory and uploads them
