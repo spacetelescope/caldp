@@ -64,9 +64,9 @@ RESULTS = [
 3547 outputs/j8cb010b0/j8cb01u2q.tra
 15963840 outputs/j8cb010b0/j8cb010b1_drz.fits
 10535040 outputs/j8cb010b0/j8cb010b1_crj.fits
-5446 outputs/j8cb010b0/j8cb010b1.tra
+5166 outputs/j8cb010b0/j8cb010b1.tra
 11520 outputs/j8cb010b0/j8cb010b0_asn.fits
-16493 outputs/j8cb010b0/j8cb010b0.tra
+20740 outputs/j8cb010b0/j8cb010b0.tra
 """,
     ),
     (
@@ -133,7 +133,7 @@ RESULTS = [
 13092480 outputs/la8q99030/la8q99ixq_counts.fits
 12441600 outputs/la8q99030/la8q99ixq_corrtag.fits
 259200 outputs/la8q99030/la8q99030_x1dsum3.fits
-4870 outputs/la8q99030/la8q99ixq.tra
+4890 outputs/la8q99030/la8q99ixq.tra
 11520 outputs/la8q99030/la8q99030_asn.fits
 218880 outputs/la8q99030/la8q99030_jnk.fits
 259200 outputs/la8q99030/la8q99030_x1dsum.fits
@@ -197,8 +197,45 @@ RESULTS = [
 11520 outputs/ib8t01010/ib8t01010_asn.fits
 16110 outputs/ib8t01010/ib8t01010.tra
         """,
-    ),
+    ),  # wfc3 and acs singletons
+    #     (
+    #         "ibc604b9q",
+    #         """
+    # 897 ibc604b9q.tra
+    # 32518080 ibc604b9q_raw.fits
+    # 221702 ibc604b9q_raw.jpg
+    # 842 ibc604b9q_raw_thumb.jpg
+    # 100800 ibc604b9q_spt.fits
+    # 5580 outputs/ibc604b9q/ibc604b9q.tra
+    # 32518080 outputs/ibc604b9q/ibc604b9q_raw.fits
+    # 100800 outputs/ibc604b9q/ibc604b9q_spt.fits
+    # 842 outputs/ibc604b9q/ibc604b9q_raw_thumb.jpg
+    # 221702 outputs/ibc604b9q/ibc604b9q_raw.jpg
+    #     """,
+    #     ),
+    #     (
+    #         "j8f54obeq"
+    #         """
+    # 184035 j8f54obeq_raw.jpg
+    # 7289 j8f54obeq_raw_thumb.jpg
+    # 178971 j8f54obeq_flt.jpg
+    # 7354 j8f54obeq_flt_thumb.jpg
+    # 2985 j8f54obeq.tra
+    # 10532160 j8f54obeq_flt.fits
+    # 2257920 j8f54obeq_raw.fits
+    # 54720 j8f54obeq_spt.fits
+    # 9232 outputs/j8f54obeq/j8f54obeq.tra
+    # 54720 outputs/j8f54obeq/j8f54obeq_spt.fits
+    # 2257920 outputs/j8f54obeq/j8f54obeq_raw.fits
+    # 10532160 outputs/j8f54obeq/j8f54obeq_flt.fits
+    # 7289 outputs/j8f54obeq/j8f54obeq_raw_thumb.jpg
+    # 184035 outputs/j8f54obeq/j8f54obeq_raw.jpg
+    # 7354 outputs/j8f54obeq/j8f54obeq_flt_thumb.jpg
+    # 178971 outputs/j8f54obeq/j8f54obeq_flt.jpg
+    #        """
+    #     ),
 ]
+
 
 TARFILES = [("j8cb010b0", "32586581 j8cb010b0.tar.gz")]
 
@@ -291,6 +328,7 @@ def coretst(temp_dir, ipppssoot, input_uri, output_uri):
     try:
         if input_uri.startswith("file"):
             setup_io(ipppssoot, input_uri, output_uri)
+            tarball = check_tarball_in(ipppssoot)
 
         process.process(ipppssoot, input_uri, output_uri)
         messages.log_metrics(log_file="process.txt", metrics="process_metrics.txt")
@@ -305,12 +343,13 @@ def coretst(temp_dir, ipppssoot, input_uri, output_uri):
         messages.main(input_uri, output_uri, ipppssoot)
         check_s3_outputs(S3_OUTPUTS, actual_outputs, ipppssoot, output_uri)
         check_logs(input_uri, output_uri, ipppssoot)
-        check_messages(ipppssoot, output_uri, status="processed")
-        if input_uri.startswith("file"):  # create tarfile if s3 bucket access unavailable
-            actual_tarfiles = file_ops_check(ipppssoot, input_uri, output_uri)
+        check_messages(ipppssoot, output_uri, status="processed.trigger")
+        if input_uri.startswith("file"):  # create tarfile if s3 access unavailable
+            actual_tarfiles = check_tarball_out(ipppssoot, input_uri, output_uri)
             check_tarfiles(TARFILES, actual_tarfiles, ipppssoot, output_uri)
             check_pathfinder(ipppssoot)
             message_status_check(input_uri, output_uri, ipppssoot)
+            os.remove(tarball)
     finally:
         os.chdir(temp_dir)
 
@@ -329,11 +368,19 @@ def setup_io(ipppssoot, input_uri, output_uri):
         os.makedirs("outputs", exist_ok=True)
         os.makedirs("inputs", exist_ok=True)
         os.chdir("inputs")
-        process.download_inputs(ipppssoot, input_uri, output_uri)  # get inputs separately
+        process.download_inputs(ipppssoot, input_uri, output_uri)
     os.chdir(working_dir)
 
 
-def file_ops_check(ipppssoot, input_uri, output_uri):
+def check_tarball_in(ipppssoot):
+    tarball = f"{ipppssoot.lower()}.tar.gz"
+    tarball_path = os.path.join("inputs", tarball)
+    if os.path.exists(tarball_path):
+        assert True
+    return tarball_path
+
+
+def check_tarball_out(ipppssoot, input_uri, output_uri):
     """Create a tarfile from outputs - only runs for a single dataset (test_io)
     Workaround to improve test coverage when s3 bucket access is unavailable.
     """
@@ -534,4 +581,4 @@ def message_status_check(input_uri, output_uri, ipppssoot):
     if msg.stat == -1:
         assert msg.name == f"error-{ipppssoot}"
     elif msg.stat == 3:
-        assert msg.name == f"processed-{ipppssoot}"
+        assert msg.name == f"processed-{ipppssoot}.trigger"

@@ -9,6 +9,44 @@ from caldp import process
 from caldp import log
 
 
+def get_input_path(input_uri, ipppssoot, make=False):
+    """Fetches the path to input files"""
+    cwd = os.getcwd()
+    if input_uri.startswith("file"):
+        input_path = input_uri.split(":")[-1]
+    else:
+        input_path = os.path.join(cwd, "inputs", ipppssoot)
+        if make is True:
+            os.makedirs(input_path, exist_ok=True)
+    return input_path
+
+
+def append_trailer(input_path, output_path, ipppssoot):
+    """Fetch process log and append to trailer file
+    Note: copies trailer file from inputs directory
+    and copies to outputs directory prior to appending log
+    """
+    try:
+        tra1 = list(glob.glob(f"{output_path}/{ipppssoot.lower()}.tra"))[0]
+        tra2 = list(glob.glob(f"{output_path}/{ipppssoot.lower()[0:5]}*.tra"))[0]
+        if os.path.exists(tra1):
+            trailer = tra1
+        elif os.path.exists(tra2):
+            trailer = tra2
+        else:
+            log.error("Trailer file not found - skipping.")
+
+        log.info(f"Updating {trailer} with process log:")
+        proc_log = list(glob.glob(f"{os.getcwd()}/process.txt"))[0]
+        with open(trailer, "a") as tra:
+            with open(proc_log, "r") as proc:
+                tra.write(proc.read())
+        log.info("Trailer file updated: ", trailer)
+    except IndexError:
+        log.error("Trailer file not found - skipping.")
+        return
+
+
 def get_output_dir(output_uri):
     """Returns full path to output folder """
     if output_uri.startswith("file"):

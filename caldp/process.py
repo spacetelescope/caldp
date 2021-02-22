@@ -276,14 +276,18 @@ class InstrumentManager:
         Issues an ERROR message and exits the program for any other non-zero
         value.
         """
+        # try:
         cmd = tuple(cmd.split()) + args  # Handle stage values with switches.
         self.divider("Running:", cmd)
-        err = subprocess.call(cmd)
+        # p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+        err = subprocess.call(cmd)  # err = p.wait()
         if err in self.ignore_err_nums:
             log.info("Ignoring error status =", err)
         elif err:
             log.error(self.ipppssoot, "Command:", repr(cmd), "exited with error status:", err)
-            sys.exit(1)  # should be 0-127, higher val's like 512 are set to 0 by shells
+            sys.exit(1)  # p.terminate()
+        # except AttributeError:
+        #    return
 
     # .............................................................
 
@@ -300,16 +304,15 @@ class InstrumentManager:
 
         # we'll need to move around a couple of times to get the cal code and local file movements working
         orig_wd = os.getcwd()
+        input_path = self.get_input_path()
         if self.input_uri.startswith("astroquery"):
-            input_path = self.get_input_path()
             os.chdir(input_path)
             input_files = self.download()
         elif self.input_uri.startswith("file"):
             input_files = self.find_input_files()
-            # mainly due to association processing, we need to be in the same place as the asn's
-            os.chdir(self.input_uri.split(":")[-1])
+            # need to be in the same place as asn's for association processing
+            os.chdir(input_path)
         elif self.input_uri.startswith("s3"):
-            input_path = self.get_input_path()
             os.chdir(input_path)
             input_files = self.get_objects(input_path)
         else:
@@ -329,13 +332,16 @@ class InstrumentManager:
     # -----------------------------------------------------------------------------
 
     def get_input_path(self):
-        """For S3 and Astroquery inputs.
-        Creates subfolder in current directory prior to downloading files.
+        """Creates subfolder in current directory prior to downloading files.
         Returns path to subdirectory (named using ipppssoot).
+        For file:, simply returns path to inputs.
         """
         cwd = os.getcwd()
-        input_path = os.path.join(cwd, "inputs", self.ipppssoot)
-        os.makedirs(input_path, exist_ok=True)
+        if self.input_uri.startswith("file"):
+            input_path = self.input_uri.split(":")[-1]
+        else:
+            input_path = os.path.join(cwd, "inputs", self.ipppssoot)
+            os.makedirs(input_path, exist_ok=True)
         return input_path
 
     def get_objects(self, input_path):
@@ -399,6 +405,17 @@ class InstrumentManager:
             base_path = os.path.join(os.getcwd(), test_path)
         else:
             raise ValueError(f"input path {test_path} does not exist")
+        # check for tarred inputs
+        cwd = os.getcwd()
+        search_tar = f"{base_path}/{self.ipppssoot.lower()[0:5]}*.tar.gz"
+        tar_files = glob.glob(search_tar)
+        if len(tar_files) == 1:
+            log.info("Extracting inputs from: ", tar_files)
+            os.chdir(base_path)
+            with tarfile.open(tar_files[0], "r:gz") as tar_ref:
+                tar_ref.extractall()
+        os.chdir(cwd)
+        # get input files
         search_str = f"{base_path}/{self.ipppssoot.lower()[0:5]}*.fits"
         self.divider("Finding input data using:", repr(search_str))
         # find the base path to the files
@@ -487,6 +504,8 @@ class InstrumentManager:
         unassoc = self.unassoc_files(files)
         if unassoc:
             self.run(self.stage1, *unassoc)
+            # if self.instrument_name == "acs" or "wfc3":
+            #    self.run(self.stage2, *unassoc)
 
     def output_files(self):
         """Selects files from the current working directory and uploads them
@@ -688,6 +707,11 @@ def download_inputs(ipppssoot, input_uri, output_uri):
     """
     manager = get_instrument_manager(ipppssoot, input_uri, output_uri)
     manager.download()
+    input_files = list(glob.glob("*.fits"))
+    tar = ipppssoot + ".tar.gz"
+    with tarfile.open(tar, "x:gz") as t:
+        for f in input_files:
+            t.add(f)
 
 
 # -----------------------------------------------------------------------------
