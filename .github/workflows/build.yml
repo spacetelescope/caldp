@@ -9,7 +9,7 @@ jobs:
 
     strategy:
       matrix:
-        HSTCAL: [stable]
+        HSTCAL: [CALDP_20201208_DRZ_final]
 
     steps:
       - name: set up python 3.6.10
