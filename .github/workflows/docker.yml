@@ -9,7 +9,7 @@ jobs:
 
     strategy:
       matrix:
-        HSTCAL: [stable, latest]
+        HSTCAL: [stable]
 
     steps:
       - name: checkout code
