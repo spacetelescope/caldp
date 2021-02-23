@@ -9,7 +9,7 @@ jobs:
 
     strategy:
       matrix:
-        HSTCAL: [stable, latest]
+        HSTCAL: [stable]
 
     steps:
       - name: set up python 3.6.10
@@ -33,6 +33,7 @@ jobs:
         run: |
           source "$HOME/miniconda3/etc/profile.d/conda.sh"
           conda activate caldp_${{ matrix.HSTCAL }}
+          export CRDS_CONTEXT=hst_0860.pmap
           pytest caldp --cov=caldp --cov-fail-under 70 --capture=tee-sys
 
       - name: compute test coverage
