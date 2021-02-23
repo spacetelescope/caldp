@@ -2,11 +2,6 @@
 
 # Primary command script passed into Batch container runs
 
-# Set default CRDS Context if none is set explicitly
-if [[ ${CRDS_CONTEXT} == "" ]]; then
-    export CRDS_CONTEXT=hst_0860.pmap
-fi
-
 # caldp-process  ipppssoot  <input_path>  <output_path>  <caldp_config>
 
 ipppssoot=$1

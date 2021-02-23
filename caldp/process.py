@@ -276,18 +276,14 @@ class InstrumentManager:
         Issues an ERROR message and exits the program for any other non-zero
         value.
         """
-        # try:
         cmd = tuple(cmd.split()) + args  # Handle stage values with switches.
         self.divider("Running:", cmd)
-        # p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-        err = subprocess.call(cmd)  # err = p.wait()
+        err = subprocess.call(cmd)
         if err in self.ignore_err_nums:
             log.info("Ignoring error status =", err)
         elif err:
             log.error(self.ipppssoot, "Command:", repr(cmd), "exited with error status:", err)
-            sys.exit(1)  # p.terminate()
-        # except AttributeError:
-        #    return
+            sys.exit(1)
 
     # .............................................................
 
@@ -322,7 +318,7 @@ class InstrumentManager:
 
         self.process(input_files)
 
-        # for moving files around, we need to chdir back for relative output path to work
+        # chdir back for relative output path
         os.chdir(orig_wd)
 
         self.output_files()
@@ -508,7 +504,7 @@ class InstrumentManager:
         unassoc = self.unassoc_files(files)
         if unassoc:
             self.run(self.stage1, *unassoc)
-            # if self.instrument_name == "acs" or "wfc3":
+            # if self.stage2:
             #    self.run(self.stage2, *unassoc)
 
     def output_files(self):
