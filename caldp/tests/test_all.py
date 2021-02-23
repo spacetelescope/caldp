@@ -203,8 +203,8 @@ RESULTS = [
 16110 outputs/ib8t01010/ib8t01010.tra
         """,
     ),  # wfc3 and acs singletons
-        (
-            "ibc604b9q",
+    (
+        "ibc604b9q",
         """
 927 ibc604b9q.tra
 32518080 ibc604b9q_raw.fits
@@ -215,9 +215,9 @@ RESULTS = [
 842 outputs/ibc604b9q/ibc604b9q_raw_thumb.jpg
 221702 outputs/ibc604b9q/ibc604b9q_raw.jpg
         """,
-        ),
-        (
-            "j8f54obeq",
+    ),
+    (
+        "j8f54obeq",
         """
 184035 j8f54obeq_raw.jpg
 7289 j8f54obeq_raw_thumb.jpg
@@ -234,7 +234,7 @@ RESULTS = [
 7354 outputs/j8f54obeq/j8f54obeq_flt_thumb.jpg
 178971 outputs/j8f54obeq/j8f54obeq_flt.jpg
         """,
-        ),
+    ),
 ]
 # 54720 j8f54obeq_spt.fits
 # 54720 outputs/j8f54obeq/j8f54obeq_spt.fits
@@ -290,7 +290,7 @@ S3_OUTPUTS = [
 SHORT_TEST_IPPPSSOOTS = [result[0] for result in RESULTS][:1]
 LONG_TEST_IPPPSSOOTS = [result[0] for result in RESULTS]  # [1:]
 
-#LONG_TEST_IPPPSSOOTS += SHORT_TEST_IPPPSSOOTS  # Include all for creating test cases.
+# LONG_TEST_IPPPSSOOTS += SHORT_TEST_IPPPSSOOTS  # Include all for creating test cases.
 
 
 # Leave S3 config undefined to skip S3 tests
