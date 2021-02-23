@@ -203,42 +203,38 @@ RESULTS = [
 16110 outputs/ib8t01010/ib8t01010.tra
         """,
     ),  # wfc3 and acs singletons
-    #     (
-    #         "ibc604b9q",
-    #         """
-    # 897 ibc604b9q.tra
-    # 32518080 ibc604b9q_raw.fits
-    # 221702 ibc604b9q_raw.jpg
-    # 842 ibc604b9q_raw_thumb.jpg
-    # 100800 ibc604b9q_spt.fits
-    # 5580 outputs/ibc604b9q/ibc604b9q.tra
-    # 32518080 outputs/ibc604b9q/ibc604b9q_raw.fits
-    # 100800 outputs/ibc604b9q/ibc604b9q_spt.fits
-    # 842 outputs/ibc604b9q/ibc604b9q_raw_thumb.jpg
-    # 221702 outputs/ibc604b9q/ibc604b9q_raw.jpg
-    #     """,
-    #     ),
-    #     (
-    #         "j8f54obeq"
-    #         """
-    # 184035 j8f54obeq_raw.jpg
-    # 7289 j8f54obeq_raw_thumb.jpg
-    # 178971 j8f54obeq_flt.jpg
-    # 7354 j8f54obeq_flt_thumb.jpg
-    # 2985 j8f54obeq.tra
-    # 10532160 j8f54obeq_flt.fits
-    # 2257920 j8f54obeq_raw.fits
-    # 54720 j8f54obeq_spt.fits
-    # 9232 outputs/j8f54obeq/j8f54obeq.tra
-    # 54720 outputs/j8f54obeq/j8f54obeq_spt.fits
-    # 2257920 outputs/j8f54obeq/j8f54obeq_raw.fits
-    # 10532160 outputs/j8f54obeq/j8f54obeq_flt.fits
-    # 7289 outputs/j8f54obeq/j8f54obeq_raw_thumb.jpg
-    # 184035 outputs/j8f54obeq/j8f54obeq_raw.jpg
-    # 7354 outputs/j8f54obeq/j8f54obeq_flt_thumb.jpg
-    # 178971 outputs/j8f54obeq/j8f54obeq_flt.jpg
-    #        """
-    #     ),
+    (
+        "ibc604b9q",
+        """
+927 ibc604b9q.tra
+32518080 ibc604b9q_raw.fits
+221702 ibc604b9q_raw.jpg
+842 ibc604b9q_raw_thumb.jpg
+5889 outputs/ibc604b9q/ibc604b9q.tra
+32518080 outputs/ibc604b9q/ibc604b9q_raw.fits
+842 outputs/ibc604b9q/ibc604b9q_raw_thumb.jpg
+221702 outputs/ibc604b9q/ibc604b9q_raw.jpg
+        """,
+    ),
+    (
+        "j8f54obeq",
+        """
+184035 j8f54obeq_raw.jpg
+7289 j8f54obeq_raw_thumb.jpg
+178971 j8f54obeq_flt.jpg
+7354 j8f54obeq_flt_thumb.jpg
+3095 j8f54obeq.tra
+10532160 j8f54obeq_flt.fits
+2257920 j8f54obeq_raw.fits
+9658 outputs/j8f54obeq/j8f54obeq.tra
+2257920 outputs/j8f54obeq/j8f54obeq_raw.fits
+10532160 outputs/j8f54obeq/j8f54obeq_flt.fits
+7289 outputs/j8f54obeq/j8f54obeq_raw_thumb.jpg
+184035 outputs/j8f54obeq/j8f54obeq_raw.jpg
+7354 outputs/j8f54obeq/j8f54obeq_flt_thumb.jpg
+178971 outputs/j8f54obeq/j8f54obeq_flt.jpg
+        """,
+    ),
 ]
 
 TARFILES = [("j8cb010b0", "32586581 j8cb010b0.tar.gz")]
