@@ -34,7 +34,7 @@ def append_trailer(input_path, output_path, ipppssoot):
         elif os.path.exists(tra2[0]):
             trailer = tra2[0]
         else:
-            log.error("Trailer file not found - skipping.")
+            log.info("Trailer file not found - skipping.")
 
         log.info(f"Updating {trailer} with process log:")
         proc_log = list(glob.glob(f"{os.getcwd()}/process.txt"))[0]
@@ -43,7 +43,7 @@ def append_trailer(input_path, output_path, ipppssoot):
                 tra.write(proc.read())
         log.info("Trailer file updated: ", trailer)
     except IndexError:
-        log.error("Trailer file not found - skipping.")
+        log.info("Trailer file not found - skipping.")
         return
 
 
