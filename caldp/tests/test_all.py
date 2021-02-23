@@ -203,8 +203,8 @@ RESULTS = [
 16110 outputs/ib8t01010/ib8t01010.tra
         """,
     ),  # wfc3 and acs singletons
-        (
-            "ibc604b9q",
+    (
+        "ibc604b9q",
         """
 927 ibc604b9q.tra
 32518080 ibc604b9q_raw.fits
@@ -215,9 +215,9 @@ RESULTS = [
 842 outputs/ibc604b9q/ibc604b9q_raw_thumb.jpg
 221702 outputs/ibc604b9q/ibc604b9q_raw.jpg
         """,
-        ),
-        (
-            "j8f54obeq",
+    ),
+    (
+        "j8f54obeq",
         """
 184035 j8f54obeq_raw.jpg
 7289 j8f54obeq_raw_thumb.jpg
@@ -234,7 +234,7 @@ RESULTS = [
 7354 outputs/j8f54obeq/j8f54obeq_flt_thumb.jpg
 178971 outputs/j8f54obeq/j8f54obeq_flt.jpg
         """,
-        ),
+    ),
 ]
 
 TARFILES = [("j8cb010b0", "32586581 j8cb010b0.tar.gz")]
