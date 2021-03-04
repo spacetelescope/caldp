@@ -191,7 +191,7 @@ def main(ipppssoot, input_uri_prefix, output_uri_prefix):
     logger = log.CaldpLogger(enable_console=False, log_file="preview.txt")
     input_dir = file_ops.get_input_path(input_uri_prefix, ipppssoot)
     # append process.txt to trailer file
-    file_ops.append_trailer(input_dir, output_path, ipppssoot)
+    # file_ops.append_trailer(input_dir, output_path, ipppssoot)
     input_paths = get_inputs(ipppssoot, input_dir)
     instr = process.get_instrument(ipppssoot)
     preview_inputs = get_preview_inputs(instr, input_paths)

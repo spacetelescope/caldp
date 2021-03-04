@@ -217,11 +217,11 @@ class InstrumentManager:
 
     def raw_files(self, files):
         """Return each name string in `files` with includes the substring '_raw'."""
-        return [f for f in files if "_raw" in f]
+        return [os.path.basename(f) for f in files if "_raw" in f]
 
     def assoc_files(self, files):
         """Return each name string in `files` which ends with '_asn.fits'."""
-        return [f for f in files if f.endswith("_asn.fits")]
+        return [os.path.basename(f) for f in files if f.endswith("_asn.fits")]
 
     def unassoc_files(self, files):  # can be overriden by subclasses
         """Overridable,  same as raw_files() by default."""
@@ -621,8 +621,8 @@ class StisManager(InstrumentManager):
         -------
         None
         """
-        raw = [f for f in files if f.endswith("_raw.fits")]
-        wav = [f for f in files if f.endswith("_wav.fits")]
+        raw = [os.path.basename(f) for f in files if f.endswith("_raw.fits")]
+        wav = [os.path.basename(f) for f in files if f.endswith("_wav.fits")]
         if raw:
             self.track_versions(files, "_raw")
             self.run(self.stage1, *raw)
@@ -632,7 +632,7 @@ class StisManager(InstrumentManager):
 
     def raw_files(self, files):
         """Returns only '_raw.fits', '_wav.fits', or '_tag.fits' members of `files`."""
-        return [f for f in files if f.endswith(("_raw.fits", "_wav.fits", "_tag.fits"))]
+        return [os.path.basename(f) for f in files if f.endswith(("_raw.fits", "_wav.fits", "_tag.fits"))]
 
 
 # ............................................................................
