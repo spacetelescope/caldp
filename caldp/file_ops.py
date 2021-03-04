@@ -21,7 +21,7 @@ def get_input_path(input_uri, ipppssoot, make=False):
     return input_path
 
 
-def append_trailer(input_path, output_path, ipppssoot): #pragma: no cover
+def append_trailer(input_path, output_path, ipppssoot):  # pragma: no cover
     """Fetch process log and append to trailer file
     Note: copies trailer file from inputs directory
     and copies to outputs directory prior to appending log
