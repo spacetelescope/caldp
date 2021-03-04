@@ -34,7 +34,7 @@ RESULTS = [
 1159 inputs/j8cb01u2q_raw_thumb.jpg
 18748 inputs/j8cb01u3q_flt.jpg
 1083 inputs/j8cb01u3q_flt_thumb.jpg
-16493 inputs/j8cb010b0.tra
+62666 inputs/j8cb010b0.tra
 51840 inputs/j8cb01u3q_flt_hlet.fits
 51840 inputs/j8cb01u2q_flt_hlet.fits
 15963840 inputs/j8cb010b1_drz.fits
@@ -71,7 +71,7 @@ RESULTS = [
 10535040 outputs/j8cb010b0/j8cb010b1_crj.fits
 5166 outputs/j8cb010b0/j8cb010b1.tra
 11520 outputs/j8cb010b0/j8cb010b0_asn.fits
-20740 outputs/j8cb010b0/j8cb010b0.tra
+62666 outputs/j8cb010b0/j8cb010b0.tra
 """,
     ),
     (
@@ -161,7 +161,7 @@ RESULTS = [
 2058 ib8t01htq_raw_thumb.jpg
 46513 ib8t01hwq_ima.jpg
 1859 ib8t01hwq_ima_thumb.jpg
-16110 ib8t01010.tra
+86860 ib8t01010.tra
 8640 ib8t01hwq_flt_hlet.fits
 8640 ib8t01htq_flt_hlet.fits
 12654720 ib8t01010_drz.fits
@@ -200,17 +200,17 @@ RESULTS = [
 12654720 outputs/ib8t01010/ib8t01010_drz.fits
 4733 outputs/ib8t01010/ib8t01htq.tra
 11520 outputs/ib8t01010/ib8t01010_asn.fits
-16110 outputs/ib8t01010/ib8t01010.tra
+86860 outputs/ib8t01010/ib8t01010.tra
         """,
     ),  # wfc3 and acs singletons
     (
         "ibc604b9q",
         """
-927 ibc604b9q.tra
+828 ibc604b9q.tra
 32518080 ibc604b9q_raw.fits
 221702 ibc604b9q_raw.jpg
 842 ibc604b9q_raw_thumb.jpg
-5889 outputs/ibc604b9q/ibc604b9q.tra
+828 outputs/ibc604b9q/ibc604b9q.tra
 32518080 outputs/ibc604b9q/ibc604b9q_raw.fits
 842 outputs/ibc604b9q/ibc604b9q_raw_thumb.jpg
 221702 outputs/ibc604b9q/ibc604b9q_raw.jpg
@@ -223,10 +223,10 @@ RESULTS = [
 7289 j8f54obeq_raw_thumb.jpg
 178971 j8f54obeq_flt.jpg
 7354 j8f54obeq_flt_thumb.jpg
-3095 j8f54obeq.tra
+2732 j8f54obeq.tra
 10532160 j8f54obeq_flt.fits
 2257920 j8f54obeq_raw.fits
-9658 outputs/j8f54obeq/j8f54obeq.tra
+2732 outputs/j8f54obeq/j8f54obeq.tra
 2257920 outputs/j8f54obeq/j8f54obeq_raw.fits
 10532160 outputs/j8f54obeq/j8f54obeq_flt.fits
 7289 outputs/j8f54obeq/j8f54obeq_raw_thumb.jpg
