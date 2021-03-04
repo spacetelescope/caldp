@@ -621,8 +621,8 @@ class StisManager(InstrumentManager):
         -------
         None
         """
-        raw = [f for f in files if f.endswith("_raw.fits")]
-        wav = [f for f in files if f.endswith("_wav.fits")]
+        raw = [os.path.basename(f) for f in files if f.endswith("_raw.fits")]
+        wav = [os.path.basename(f) for f in files if f.endswith("_wav.fits")]
         if raw:
             self.track_versions(files, "_raw")
             self.run(self.stage1, *raw)
@@ -632,7 +632,7 @@ class StisManager(InstrumentManager):
 
     def raw_files(self, files):
         """Returns only '_raw.fits', '_wav.fits', or '_tag.fits' members of `files`."""
-        return [f for f in files if f.endswith(("_raw.fits", "_wav.fits", "_tag.fits"))]
+        return [os.path.basename(f) for f in files if f.endswith(("_raw.fits", "_wav.fits", "_tag.fits"))]
 
 
 # ............................................................................
