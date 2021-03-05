@@ -439,18 +439,24 @@ class InstrumentManager:
             search_fits = f"{base_path}/{self.ipppssoot.lower()[0:5]}*.fits"
             # trailer files
             search_tra = f"{base_path}/{self.ipppssoot.lower()[0:5]}*.tra"
+            # env file
+            search_env = f"{base_path}/{self.ipppssoot.lower()}_cal_env.txt"
 
         else:
             base_path = os.getcwd()
             subfolder = os.path.join(base_path, "inputs", self.ipppssoot)
             search_fits = f"{subfolder}/{self.ipppssoot.lower()[0:5]}*.fits"
             search_tra = f"{subfolder}/{self.ipppssoot.lower()[0:5]}*.tra"
+            search_env = f"{subfolder}/{self.ipppssoot.lower()}_cal_env.txt"
 
         self.divider("Finding output data for:", repr(search_fits))
         files = glob.glob(search_fits)
 
         self.divider("Finding output trailers for:", repr(search_tra))
         files.extend(glob.glob(search_tra))
+
+        self.divider("Finding output cal env file for:", repr(search_env))
+        files.extend(glob.glob(search_env))
 
         return list(sorted(files))
 
@@ -529,7 +535,11 @@ class InstrumentManager:
             return
         output_path = get_output_path(self.output_uri, self.ipppssoot)
         for filepath in outputs:
-            output_filename = f"{output_path}/{os.path.basename(filepath)}"
+            # move the env file out of the way for on-premise archiving/cataloging
+            if filepath.endswith("_cal_env.txt"):
+                output_filename = f"{output_path}/env/{os.path.basename(filepath)}"
+            else:
+                output_filename = f"{output_path}/{os.path.basename(filepath)}"
             log.info(f"\t{output_filename}")
             upload_filepath(self.ipppssoot, filepath, output_filename)
         self.divider("Saving outputs complete.")
