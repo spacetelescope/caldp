@@ -23,7 +23,7 @@ import boto3
 
 from astropy.io import fits
 
-try:
+try:  # pragma: no cover
     from drizzlepac.haputils.astroquery_utils import retrieve_observation
 except ImportError:
     from drizzlepac.hlautils.astroquery_utils import retrieve_observation
@@ -314,6 +314,8 @@ class InstrumentManager:
         else:
             raise ValueError("input_uri should start with s3, astroquery or file")
 
+        self.set_env_vars()
+
         self.assign_bestrefs(input_files)
 
         self.process(input_files)
@@ -484,6 +486,24 @@ class InstrumentManager:
             sync_references=os.environ.get("CRDS_READONLY_CACHE", "0") != "1",
         )
         self.divider("Bestrefs complete.")
+
+    def set_env_vars(self):
+        """looks for an ipppssoot_cal_env.txt file and sets the key=value
+        pairs in the file in os.environ for the calibration code
+        """
+        env_file = f"{self.ipppssoot}_cal_env.txt"
+        if os.path.isfile(env_file):
+            self.divider(f"processing env file {env_file}")
+            with open(env_file, "r") as f:
+                for line in f.readlines():
+                    try:
+                        key, value = line.split("=")
+                    except ValueError:
+                        log.info(f"{line} is not a valid key=value pair")
+                        continue
+                    os.environ[key.strip()] = value.strip()
+                    log.info(f"setting {key}={value} in processing env")
+        return
 
     def process(self, files):
         """Runs each filepath in `files` through calibration processing.   Association
@@ -710,7 +730,7 @@ def process(ipppssoot, input_uri, output_uri):
     del process_log
 
 
-def download_inputs(ipppssoot, input_uri, output_uri):
+def download_inputs(ipppssoot, input_uri, output_uri, make_env=False):
     """This function sets up file inputs for CALDP based on downloads from
     astroquery to support testing the file based input mode.  The files for
      `ipppssoot` normally downloaded from astroquery: are downloaded and placed
@@ -721,6 +741,10 @@ def download_inputs(ipppssoot, input_uri, output_uri):
     manager = get_instrument_manager(ipppssoot, input_uri, output_uri)
     manager.download()
     input_files = list(glob.glob("*.fits"))
+    if make_env:  # ensures test coverage for InstrumentManager.set_env_vars()
+        with open(f"{ipppssoot}_cal_env.txt", "w") as f:
+            f.write("BadKey|ValuePair\n")
+            f.write("GoodKey=ValuePair\n")
     tar = ipppssoot + ".tar.gz"
     with tarfile.open(tar, "x:gz") as t:
         for f in input_files:
