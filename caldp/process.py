@@ -536,13 +536,15 @@ class InstrumentManager:
 
     def track_versions(self, files, apply_to="_raw"):
         """Add version keywords to raw_files(files)."""
-        import caldp
 
         csys_ver = os.environ.get("CSYS_VER", "UNDEFINED")
+        awsdpver = os.environ.get("AWSDPVER", "UNDEFINED")
+        awsysver = os.environ.get("AWSYSVER", "UNDEFINED")
         for filename in self.raw_files(files):
             if apply_to in filename:
                 fits.setval(filename, "CSYS_VER", value=csys_ver)
-                fits.setval(filename, "CALDPVER", value=caldp.__version__)
+                fits.setval(filename, "AWSDPVER", value=awsdpver)
+                fits.setval(filename, "AWSYSVER", value=awsysver)
 
 
 # -----------------------------------------------------------------------------
