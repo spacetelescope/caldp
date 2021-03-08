@@ -23,7 +23,7 @@ import boto3
 
 from astropy.io import fits
 
-try:
+try:  # pragma: no cover
     from drizzlepac.haputils.astroquery_utils import retrieve_observation
 except ImportError:
     from drizzlepac.hlautils.astroquery_utils import retrieve_observation
@@ -314,6 +314,8 @@ class InstrumentManager:
         else:
             raise ValueError("input_uri should start with s3, astroquery or file")
 
+        self.set_env_vars()
+
         self.assign_bestrefs(input_files)
 
         self.process(input_files)
@@ -439,18 +441,24 @@ class InstrumentManager:
             search_fits = f"{base_path}/{self.ipppssoot.lower()[0:5]}*.fits"
             # trailer files
             search_tra = f"{base_path}/{self.ipppssoot.lower()[0:5]}*.tra"
+            # env file
+            search_env = f"{base_path}/{self.ipppssoot.lower()}_cal_env.txt"
 
         else:
             base_path = os.getcwd()
             subfolder = os.path.join(base_path, "inputs", self.ipppssoot)
             search_fits = f"{subfolder}/{self.ipppssoot.lower()[0:5]}*.fits"
             search_tra = f"{subfolder}/{self.ipppssoot.lower()[0:5]}*.tra"
+            search_env = f"{subfolder}/{self.ipppssoot.lower()}_cal_env.txt"
 
         self.divider("Finding output data for:", repr(search_fits))
         files = glob.glob(search_fits)
 
         self.divider("Finding output trailers for:", repr(search_tra))
         files.extend(glob.glob(search_tra))
+
+        self.divider("Finding output cal env file for:", repr(search_env))
+        files.extend(glob.glob(search_env))
 
         return list(sorted(files))
 
@@ -478,6 +486,24 @@ class InstrumentManager:
             sync_references=os.environ.get("CRDS_READONLY_CACHE", "0") != "1",
         )
         self.divider("Bestrefs complete.")
+
+    def set_env_vars(self):
+        """looks for an ipppssoot_cal_env.txt file and sets the key=value
+        pairs in the file in os.environ for the calibration code
+        """
+        env_file = f"{self.ipppssoot}_cal_env.txt"
+        if os.path.isfile(env_file):
+            self.divider(f"processing env file {env_file}")
+            with open(env_file, "r") as f:
+                for line in f.readlines():
+                    try:
+                        key, value = line.split("=")
+                    except ValueError:
+                        log.info(f"{line} is not a valid key=value pair")
+                        continue
+                    os.environ[key.strip()] = value.strip()
+                    log.info(f"setting {key}={value} in processing env")
+        return
 
     def process(self, files):
         """Runs each filepath in `files` through calibration processing.   Association
@@ -529,7 +555,11 @@ class InstrumentManager:
             return
         output_path = get_output_path(self.output_uri, self.ipppssoot)
         for filepath in outputs:
-            output_filename = f"{output_path}/{os.path.basename(filepath)}"
+            # move the env file out of the way for on-premise archiving/cataloging
+            if filepath.endswith("_cal_env.txt"):
+                output_filename = f"{output_path}/env/{os.path.basename(filepath)}"
+            else:
+                output_filename = f"{output_path}/{os.path.basename(filepath)}"
             log.info(f"\t{output_filename}")
             upload_filepath(self.ipppssoot, filepath, output_filename)
         self.divider("Saving outputs complete.")
@@ -700,7 +730,7 @@ def process(ipppssoot, input_uri, output_uri):
     del process_log
 
 
-def download_inputs(ipppssoot, input_uri, output_uri):
+def download_inputs(ipppssoot, input_uri, output_uri, make_env=False):
     """This function sets up file inputs for CALDP based on downloads from
     astroquery to support testing the file based input mode.  The files for
      `ipppssoot` normally downloaded from astroquery: are downloaded and placed
@@ -711,6 +741,10 @@ def download_inputs(ipppssoot, input_uri, output_uri):
     manager = get_instrument_manager(ipppssoot, input_uri, output_uri)
     manager.download()
     input_files = list(glob.glob("*.fits"))
+    if make_env:  # ensures test coverage for InstrumentManager.set_env_vars()
+        with open(f"{ipppssoot}_cal_env.txt", "w") as f:
+            f.write("BadKey|ValuePair\n")
+            f.write("GoodKey=ValuePair\n")
     tar = ipppssoot + ".tar.gz"
     with tarfile.open(tar, "x:gz") as t:
         for f in input_files:

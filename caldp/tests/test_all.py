@@ -234,10 +234,47 @@ RESULTS = [
 7354 outputs/j8f54obeq/j8f54obeq_flt_thumb.jpg
 178971 outputs/j8f54obeq/j8f54obeq_flt.jpg
         """,
+    ),  # testing env file
+    (
+        "iacs01t4q",
+        """
+12600000 iacs01t4q_drz.fits
+83733 iacs01t4q_drz.jpg
+ 3604 iacs01t4q_drz_thumb.jpg
+16646400 iacs01t4q_flt.fits
+ 8640 iacs01t4q_flt_hlet.fits
+99891 iacs01t4q_flt.jpg
+ 3862 iacs01t4q_flt_thumb.jpg
+115686720 iacs01t4q_ima.fits
+  124877 iacs01t4q_ima.jpg
+ 4306 iacs01t4q_ima_thumb.jpg
+23400000 iacs01t4q_raw.fits
+  247834 iacs01t4q_raw.jpg
+ 2649 iacs01t4q_raw_thumb.jpg
+50921 iacs01t4q.tra
+35 outputs/iacs01t4q/env/iacs01t4q_cal_env.txt
+12600000 outputs/iacs01t4q/iacs01t4q_drz.fits
+16646400 outputs/iacs01t4q/iacs01t4q_flt.fits
+8640 outputs/iacs01t4q/iacs01t4q_flt_hlet.fits
+115686720 outputs/iacs01t4q/iacs01t4q_ima.fits
+23400000 outputs/iacs01t4q/iacs01t4q_raw.fits
+50921 outputs/iacs01t4q/iacs01t4q.tra
+83733 outputs/iacs01t4q/previews/iacs01t4q_drz.jpg
+3604 outputs/iacs01t4q/previews/iacs01t4q_drz_thumb.jpg
+99891 outputs/iacs01t4q/previews/iacs01t4q_flt.jpg
+3862 outputs/iacs01t4q/previews/iacs01t4q_flt_thumb.jpg
+124877 outputs/iacs01t4q/previews/iacs01t4q_ima.jpg
+4306 outputs/iacs01t4q/previews/iacs01t4q_ima_thumb.jpg
+247834 outputs/iacs01t4q/previews/iacs01t4q_raw.jpg
+2649 outputs/iacs01t4q/previews/iacs01t4q_raw_thumb.jpg
+        """,
     ),
 ]
 
-TARFILES = [("j8cb010b0", "32586581 j8cb010b0.tar.gz")]
+TARFILES = [
+    ("j8cb010b0", "32586581 j8cb010b0.tar.gz"),
+    ("iacs01t4q", "106921504 iacs01t4q.tar.gz"),
+]
 
 S3_OUTPUTS = [
     (
@@ -284,7 +321,8 @@ S3_OUTPUTS = [
 
 
 SHORT_TEST_IPPPSSOOTS = [result[0] for result in RESULTS][:1]
-LONG_TEST_IPPPSSOOTS = [result[0] for result in RESULTS]  # [1:]
+LONG_TEST_IPPPSSOOTS = [result[0] for result in RESULTS][:-1]  # [1:]
+ENV_TEST_IPPPSSOOTS = [result[0] for result in RESULTS][-1:]
 
 LONG_TEST_IPPPSSOOTS += SHORT_TEST_IPPPSSOOTS  # Include all for creating test cases.
 
@@ -303,6 +341,13 @@ CALDP_TEST_FILE_SIZE_THRESHOLD = float(os.environ.get("CALDP_TEST_FILE_SIZE_THRE
 @pytest.mark.parametrize("input_uri", ["file:inputs", "astroquery:", CALDP_S3_TEST_INPUTS])
 @pytest.mark.parametrize("ipppssoot", SHORT_TEST_IPPPSSOOTS)
 def test_io_modes(tmpdir, ipppssoot, input_uri, output_uri):
+    coretst(tmpdir, ipppssoot, input_uri, output_uri)
+
+
+@pytest.mark.parametrize("output_uri", ["file:outputs"])
+@pytest.mark.parametrize("input_uri", ["file:inputs"])
+@pytest.mark.parametrize("ipppssoot", ENV_TEST_IPPPSSOOTS)
+def test_env_file(tmpdir, ipppssoot, input_uri, output_uri):
     coretst(tmpdir, ipppssoot, input_uri, output_uri)
 
 
@@ -368,7 +413,7 @@ def setup_io(ipppssoot, input_uri, output_uri):
         os.makedirs("outputs", exist_ok=True)
         os.makedirs("inputs", exist_ok=True)
         os.chdir("inputs")
-        process.download_inputs(ipppssoot, input_uri, output_uri)
+        process.download_inputs(ipppssoot, input_uri, output_uri, make_env=True)
     os.chdir(working_dir)
 
 
