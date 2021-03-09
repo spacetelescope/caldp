@@ -72,7 +72,6 @@ if [ $output_path != "none" -a $output_location == 's3' ]; then
     fi
 fi
 
-
 echo ........................................ processing log ..............................................
 pwd
 set -o pipefail && $TIME --verbose -o process_metrics.txt \
@@ -83,9 +82,6 @@ echo "Processing exit status ${process_exit_status}"
 
 processing_output_dir=`caldp-get-output-path  $output_path $ipppssoot`
 echo "Processing output_dir is" $processing_output_dir
-
-# logs_output_dir="${processing_output_dir}/logs"
-# echo "Logs output_dir is" $logs_output_dir
 
 previews_output_dir="${processing_output_dir}/previews"
 echo "Previews output_dir is" $previews_output_dir
@@ -111,5 +107,30 @@ echo ........................... handling outputs for ${output_location} .......
 
 # Note: this action is not logged since log files are being transferred.
 python -m caldp.messages $input_path $output_path $ipppssoot
+messages_exit_status=$?
+echo "messages exit status = ${messages_exit_status}"
 
-[[ $process_exit_status -eq 0 && $preview_exit_status -eq 0 ]] || exit 1
+# This is iffy:  only report MemoryError if the program returns non-zero status.  Otherwise assume it dealt with it.
+if [[ $process_exit_status -ne 0 ]]; then
+    grep MemoryError process.txt
+    if [[ $? -eq 0 ]]; then
+        echo "MemoryError found in process.txt;  exiting with status 31,  SUBPROCESS_MEMORY_ERROR"
+        exit 31
+    else
+        echo "Exiting with processing status ${process_exit_status}"
+        exit $process_exit_status
+    fi
+fi
+
+if [[ $preview_exit_status -ne 0 ]]; then
+    echo "Exiting with preview status ${preview_exit_status}"
+    exit $preview_exit_status
+fi
+
+if [[ $messages_exit_status -ne 0 ]]; then
+    echo "Exiting with message status ${messages_exit_status}"
+    exit $preview_exit_status
+fi
+
+echo "Exiting normally, status 0"
+exit 0

@@ -99,13 +99,13 @@ class Messages:
         for f in previous_files:
             self.remove_message(f)
 
-    def start_message(self):
+    def init(self):
         os.makedirs(self.msg_dir, exist_ok=True)
         self.clear_messages()
         if self.stat == 0:
             self.name = f"submit-{self.ipppssoot}"
             self.file = f"{self.msg_dir}/{self.name}"
-            self.write_message()
+            # self.write_message()  # submit-xxx is written by CALCLOUD
             self.stat += 1  # increment status
         return self
 

@@ -11,7 +11,9 @@ from astropy.io import fits
 
 from caldp import log
 from caldp import process
-from caldp import file_ops, messages
+from caldp import file_ops
+from caldp import messages
+from caldp import sysexit
 
 # -------------------------------------------------------------------------------------------------------
 
@@ -236,4 +238,5 @@ def cmdline():
 
 
 if __name__ == "__main__":
-    cmdline()
+    with sysexit.exit_receiver():
+        cmdline()
