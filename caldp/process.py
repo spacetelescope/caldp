@@ -319,7 +319,7 @@ class InstrumentManager:
 
         # put the crds cache in a tmp dir to avoid collisions between jobs
         with tempfile.TemporaryDirectory(prefix=self.ipppssoot) as tmp_crds_cache:
-            os.environ['CRDS_PATH'] = tmp_crds_cache
+            os.environ["CRDS_PATH"] = tmp_crds_cache
 
             self.assign_bestrefs(input_files)
 
