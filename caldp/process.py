@@ -16,6 +16,7 @@ import glob
 import re
 import subprocess
 import tarfile
+import tempfile
 
 # -----------------------------------------------------------------------------
 
@@ -316,9 +317,13 @@ class InstrumentManager:
 
         self.set_env_vars()
 
-        self.assign_bestrefs(input_files)
+        # put the crds cache in a tmp dir to avoid collisions between jobs
+        with tempfile.TemporaryDirectory(prefix=self.ipppssoot) as tmp_crds_cache:
+            os.environ['CRDS_PATH'] = tmp_crds_cache
 
-        self.process(input_files)
+            self.assign_bestrefs(input_files)
+
+            self.process(input_files)
 
         # chdir back for relative output path
         os.chdir(orig_wd)
@@ -478,6 +483,7 @@ class InstrumentManager:
         None
         """
         self.divider("Computing bestrefs and downloading references.", files)
+        self.divider(f"using crds cache at {bestrefs.config.get_crds_path()}")
         bestrefs_files = self.raw_files(files)
         # Only sync reference files if the cache is read/write.
         bestrefs.assign_bestrefs(
