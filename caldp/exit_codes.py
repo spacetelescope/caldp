@@ -8,7 +8,9 @@ The intent of these codes is to identify specific error cases defined by CALDP.
 Any errors not explicitly handled by CALDP are intended to be mapped to
 generic values of 0 or 1 to prevent conflicts with these codes.
 """
-import sys
+
+_MEMORY_ERROR_NAMES = ["SUBPROCESS_MEMORY_ERROR", "CALDP_MEMORY_ERROR", "CONTAINER_MEMORY_ERROR"]
+
 
 _EXIT_CODES = dict(
     SUCCESS=0,
@@ -61,16 +63,21 @@ def explain(exit_code):
     """Return the text explanation for the specified `exit_code`.
 
     >>> explain(SUCCESS)
-    'EXIT SUCCESS[0]: Processing completed successfully.'
+    'EXIT - SUCCESS[0]: Processing completed successfully.'
 
     >>> explain("SUCCESS")
-    'EXIT SUCCESS[0]: Processing completed successfully.'
+    'EXIT - SUCCESS[0]: Processing completed successfully.'
 
     >>> explain(GENERIC_ERROR)
-    'EXIT GENERIC_ERROR[1]: An error with no specific CALDP handling occurred somewhere.'
+    'EXIT - GENERIC_ERROR[1]: An error with no specific CALDP handling occurred somewhere.'
 
     >>> explain(SUBPROCESS_MEMORY_ERROR)
-    'EXIT SUBPROCESS_MEMORY_ERROR[31]: A Python MemoryError was detected by scanning the process.txt log.'
+    'EXIT - SUBPROCESS_MEMORY_ERROR[31]: A Python MemoryError was detected by scanning the process.txt log.'
+
+    >>> explain(999)
+    Traceback (most recent call last):
+    ...
+    ValueError: Unhandled exit_code: 999
     """
     if exit_code in _CODE_TO_NAME:
         name = _CODE_TO_NAME[exit_code]
@@ -80,18 +87,8 @@ def explain(exit_code):
         exit_code = globals()[name]
         explanation = _NAME_EXPLANATIONS[name]
     else:
-        raise ValueError("Invalid exit_code: " + repr(exit_code))
-    return f"EXIT {name}[{exit_code}]: {explanation}"
-
-
-def print_explanations(error_codes):
-    """Print out the text explanation of each error code in `error_codes`.
-
-    >>> print_explanations([32])
-    EXIT CALDP_MEMORY_ERROR[32]: CALDP generated a Python MemoryError during processing or preview creation.
-    """
-    for code in error_codes:
-        print(explain(code))
+        raise ValueError("Unhandled exit_code: " + repr(exit_code))
+    return f"EXIT - {name}[{exit_code}]: {explanation}"
 
 
 def is_memory_error(exit_code):
@@ -117,25 +114,4 @@ def is_memory_error(exit_code):
     >>> is_memory_error("SUBPROCESS_MEMORY_ERROR")
     True
     """
-    memory_error_names = ["SUBPROCESS_MEMORY_ERROR", "CALDP_MEMORY_ERROR", "CONTAINER_MEMORY_ERROR"]
-    return (exit_code in [globals()[name] for name in memory_error_names]) or (exit_code in memory_error_names)
-
-
-def test():
-    import doctest
-
-    try:
-        from caldp import exit_codes
-    except ImportError:
-        from calcloud import exit_codes
-    return doctest.testmod(exit_codes)
-
-
-if __name__ == "__main__":
-    if len(sys.argv) == 2 and sys.argv[1] == "test":
-        print(test())
-    elif len(sys.argv) >= 2 and sys.argv[1] == "explain":
-        print_explanations(sys.argv[2:])
-    else:
-        print("usage: python -m caldp.exit_codes [test|explain] [explain_codes...]")
-        sys.exit(globals()["CMDLINE_ERROR"])  # the things we do for flake8...
+    return (exit_code in [globals()[name] for name in _MEMORY_ERROR_NAMES]) or (exit_code in _MEMORY_ERROR_NAMES)

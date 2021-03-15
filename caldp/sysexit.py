@@ -54,14 +54,14 @@ def exit_on_exception(exit_code, *args):
     ...    log.divider()
     ...    print("Trapping SystemExit normally caught by log.exit_reciever() at top level.")
     INFO - ----------------------------- Fatal Exception -----------------------------
-    ERROR - EXIT CMDLINE_ERROR[2]: The program command line invocation was incorrect.
     ERROR - As expected it failed.
     ERROR - Traceback (most recent call last):
-    ERROR -   File ".../caldp/caldp/sysexit.py", line ..., in exit_on_exception
+    ERROR -   File ".../sysexit.py", line ..., in exit_on_exception
     ERROR -     yield
-    ERROR -   File "<doctest caldp.sysexit.exit_on_exception[1]>", line ..., in <module>
+    ERROR -   File "<doctest ...sysexit.exit_on_exception[1]>", line ..., in <module>
     ERROR -     raise Exception("It failed!")
     ERROR - Exception: It failed!
+    EXIT - CMDLINE_ERROR[2]: The program command line invocation was incorrect.
     INFO - ---------------------------------------------------------------------------
     Trapping SystemExit normally caught by log.exit_reciever() at top level.
 
@@ -72,18 +72,34 @@ def exit_on_exception(exit_code, *args):
 
     >>> os.environ["CALDP_SIMULATE_ERROR"] = "2"
     >>> try: #doctest: +ELLIPSIS
-    ...    with exit_on_exception(2, "As expected a matching failure was simulated"):
+    ...    with exit_on_exception(2, "As expected a failure was simulated"):
     ...        print("should not see this")
     ... except SystemExit:
     ...    pass
     INFO - ----------------------------- Fatal Exception -----------------------------
-    ERROR - EXIT CMDLINE_ERROR[2]: The program command line invocation was incorrect.
-    ERROR - As expected a matching failure was simulated
+    ERROR - As expected a failure was simulated
     ERROR - Traceback (most recent call last):
-    ERROR -   File ".../caldp/caldp/sysexit.py", line ..., in exit_on_exception
+    ERROR -   File ".../sysexit.py", line ..., in exit_on_exception
     ERROR -     raise RuntimeError(f"Simulating error = {simulated_code}")
     ERROR - RuntimeError: Simulating error = 2
+    EXIT - CMDLINE_ERROR[2]: The program command line invocation was incorrect.
 
+    >>> os.environ["CALDP_SIMULATE_ERROR"] = str(exit_codes.CALDP_MEMORY_ERROR)
+    >>> try: #doctest: +ELLIPSIS
+    ...    with exit_on_exception(2, "Memory errors don't have to match"):
+    ...        print("Oh unhappy day.")
+    ... except SystemExit:
+    ...    pass
+    INFO - ----------------------------- Fatal Exception -----------------------------
+    ERROR - Memory errors don't have to match
+    ERROR - Traceback (most recent call last):
+    ERROR -   File ".../sysexit.py", line ..., in exit_on_exception
+    ERROR -     raise MemoryError("Simulated CALDP MemoryError.")
+    ERROR - MemoryError: Simulated CALDP MemoryError.
+    EXIT - CALDP_MEMORY_ERROR[32]: CALDP generated a Python MemoryError during processing or preview creation.
+
+
+    >>> os.environ["CALDP_SIMULATE_ERROR"] = "999"
     >>> with exit_on_exception(3, "Only matching error codes are simulated."):
     ...    print("should print normally")
     should print normally
@@ -93,59 +109,41 @@ def exit_on_exception(exit_code, *args):
     simulated_code = int(os.environ.get("CALDP_SIMULATE_ERROR", "0"))
     try:
         if simulated_code == exit_codes.CALDP_MEMORY_ERROR:
-            raise MemoryError("Simulated CALDP memory error.")
+            raise MemoryError("Simulated CALDP MemoryError.")
         elif simulated_code == exit_codes.SUBPROCESS_MEMORY_ERROR:
-            print("MemoryError", file=sys.stderr)
-            raise MemoryError("Simulated subprocess memory error.")
+            print("MemoryError", file=sys.stderr)  # Output to process log determines final program exit status
+            raise RuntimeError("Simulated subprocess memory error with subsequent generic program exception.")
         elif simulated_code == exit_codes.CONTAINER_MEMORY_ERROR:
             log.info("Simulating hard memory error by allocating memory")
-            _ = bytearray(1024 * 2 ** 30)  # 1024G XXXX NOT WORKING
+            _ = bytearray(1024 * 2 ** 30)  # XXXX does not trigger container limit as intended
         elif exit_code == simulated_code:
             raise RuntimeError(f"Simulating error = {simulated_code}")
         yield
     # don't mask memory errors or nested exit_on_exception handlers
-    except SystemExit as exc:
-        _report_exception(exc.code)
+    except SystemExit:
+        _report_exception(exit_code, *args)
         raise
-    except MemoryError:
-        _report_exception(exit_codes.CALDP_MEMORY_ERROR)
-        raise
-    except Exception:
-        _raise_exit_exception(exit_code, *args)
-
-
-def _raise_exit_exception(exit_code, *args):
-    """Call this function to terminate program execution with the error message
-    defined by `*args` eventually exiting with `exit_code`.
-
-    Each element of positional parameters *args is first converted to a string,
-    then all elements are joined seperated by spaces to form the completed'
-    exception ERROR message.
-
-    >>> try:
-    ...    _raise_exit_exception(exit_codes.GENERIC_ERROR, "this is a test exit exception.")
-    ...    print("won't get here.")
-    ... except SystemExit:
-    ...    log.divider()
-    ...    print("Trapping SystemExit normally caught by log.exit_reciever() at top level.")
-    INFO - ----------------------------- Fatal Exception -----------------------------
-    ERROR - EXIT GENERIC_ERROR[1]: An error with no specific CALDP handling occurred somewhere.
-    ERROR - this is a test exit exception.
-    INFO - ---------------------------------------------------------------------------
-    Trapping SystemExit normally caught by log.exit_reciever() at top level.
-    """
-    _report_exception(exit_code, *args)
-    sys.exit(exit_code)
+    # Map MemoryError to SytemExit(CALDP_MEMORY_ERROR).
+    except MemoryError as exc:
+        _report_exception(exit_codes.CALDP_MEMORY_ERROR, *args)
+        raise SystemExit(exit_codes.CALDP_MEMORY_ERROR) from exc
+    # All other exceptions are remapped to the SystemExit(exit_code) declared by exit_on_exception().
+    except Exception as exc:
+        _report_exception(exit_code, *args)
+        raise SystemExit(exit_code) from exc
 
 
 def _report_exception(exit_code, *args):
+    """Issue trigger output for exit_on_exception, including `exit_code` and
+    error message defined by `args`, as well as traceback.
+    """
     log.divider("Fatal Exception")
-    log.error(exit_codes.explain(exit_code))
     if args:
         log.error(*args)
     for line in traceback.format_exc().splitlines():
         if line != "NoneType: None":
             log.error(line)
+    print(exit_codes.explain(exit_code))
 
 
 @contextlib.contextmanager
@@ -161,27 +159,73 @@ def exit_receiver():
     exit_receiver() essentially does nothing.
 
     The program is exited with the numerical code passed to sys.exit().
+
+    >>> saved, os._exit = os._exit, lambda x: print(f"os._exit({x})")
+
+    >>> with exit_receiver():  #doctest: +ELLIPSIS
+    ...     print("Oh happy day.")
+    INFO - Container memory limit is:  ...
+    os._exit(0)
+
+    Generic unhandled exceptions are mapped to GENERIC_ERROR (1):
+
+    >>> with exit_receiver(): #doctest: +ELLIPSIS
+    ...     raise RuntimeError("Unhandled exception.")
+    INFO - Container memory limit is:  ...
+    os._exit(1)
+
+    MemoryError is remapped to CALDP_MEMORY_ERROR (32) inside exit_on_exception or not:
+
+    >>> with exit_receiver(): #doctest: +ELLIPSIS
+    ...     raise MemoryError("CALDP used up all memory directly.")
+    INFO - Container memory limit is: ...
+    os._exit(32)
+
+    Inside exit_on_exception, exit status is remapped to the exit_code parameter
+    of exit_on_exception():
+
+    >>> with exit_receiver(): #doctest: +ELLIPSIS
+    ...    with exit_on_exception(exit_codes.STAGE1_ERROR, "Stage1 processing failed for <ippssoot>"):
+    ...        raise RuntimeError("Some obscure error")
+    INFO - Container memory limit is:  ...
+    INFO - ----------------------------- Fatal Exception -----------------------------
+    ERROR - Stage1 processing failed for <ippssoot>
+    ERROR - Traceback (most recent call last):
+    ERROR -   File ".../sysexit.py", line ..., in exit_on_exception
+    ERROR -     yield
+    ERROR -   File "<doctest ...sysexit.exit_receiver[...]>", line ..., in <module>
+    ERROR -     raise RuntimeError("Some obscure error")
+    ERROR - RuntimeError: Some obscure error
+    EXIT - STAGE1_ERROR[23]: An error occurred in this instrument's stage1 processing step. e.g. calxxx
+    os._exit(23)
+
+    >>> os._exit = saved
+
     """
     try:
         log.info("Container memory limit is: ", get_linux_memory_limit())
-        yield
+        yield  # go off and execute the block
+        os._exit(exit_codes.SUCCESS)
     except SystemExit as exc:
         os._exit(exc.code)
     except MemoryError:
         os._exit(exit_codes.CALDP_MEMORY_ERROR)
     except Exception:
         os._exit(exit_codes.GENERIC_ERROR)
-    os._exit(exit_codes.SUCCESS)
 
 
 def get_linux_memory_limit():
-    """This generally shows the full address space by default."""
+    """This generally shows the full address space by default.
+
+    >>> limit = get_linux_memory_limit()
+    >>> assert isinstance(limit, int)
+    """
     if os.path.isfile("/sys/fs/cgroup/memory/memory.limit_in_bytes"):
         with open("/sys/fs/cgroup/memory/memory.limit_in_bytes") as limit:
             mem = int(limit.read())
         return mem
     else:
-        raise RuntimeError("get_linux_memory_limit() failed.")
+        raise RuntimeError("get_linux_memory_limit() failed.")  # pragma: no cover
 
 
 def set_process_memory_limit(mem_in_bytes):
@@ -190,15 +234,4 @@ def set_process_memory_limit(mem_in_bytes):
     will cause Python to generate a MemoryError rather than forcing a
     container memory limit kill.
     """
-    resource.setrlimit(resource.RLIMIT_AS, (mem_in_bytes, mem_in_bytes))
-
-
-def test():
-    from caldp import sysexit
-    import doctest
-
-    return doctest.testmod(sysexit)
-
-
-if __name__ == "__main__":
-    print(test())
+    resource.setrlimit(resource.RLIMIT_AS, (mem_in_bytes, mem_in_bytes))  # pragma: no cover
