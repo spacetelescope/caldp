@@ -7,6 +7,8 @@ import boto3
 import threading
 from caldp import process
 from caldp import log
+from caldp import exit_codes
+from caldp import sysexit
 
 
 def get_input_path(input_uri, ipppssoot, make=False):
@@ -82,14 +84,15 @@ def make_tar(file_list, ipppssoot):
 
 
 def upload_tar(tar, output_path):
-    client = boto3.client("s3")
-    parts = output_path[5:].split("/")
-    bucket, prefix = parts[0], "/".join(parts[1:])
-    objectname = prefix + "/" + os.path.basename(tar)
-    log.info(f"Uploading: s3://{bucket}/{objectname}")
-    if output_path.startswith("s3"):
-        with open(tar, "rb") as f:
-            client.upload_fileobj(f, bucket, objectname, Callback=ProgressPercentage(tar))
+    with sysexit.exit_on_exception(exit_codes.S3_UPLOAD_ERROR, "S3 tar upload of", tar, "to", output_path, "FAILED."):
+        client = boto3.client("s3")
+        parts = output_path[5:].split("/")
+        bucket, prefix = parts[0], "/".join(parts[1:])
+        objectname = prefix + "/" + os.path.basename(tar)
+        log.info(f"Uploading: s3://{bucket}/{objectname}")
+        if output_path.startswith("s3"):
+            with open(tar, "rb") as f:
+                client.upload_fileobj(f, bucket, objectname, Callback=ProgressPercentage(tar))
 
 
 class ProgressPercentage(object):

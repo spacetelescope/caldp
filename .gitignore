@@ -64,3 +64,5 @@ crds_cache
 .bash_history
 .vscode
 .python_history
+
+.eggs

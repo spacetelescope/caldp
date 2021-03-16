@@ -30,7 +30,10 @@ except ImportError:
 
 from crds.bestrefs import bestrefs
 
-from caldp import log, messages
+from caldp import log
+from caldp import messages
+from caldp import exit_codes
+from caldp import sysexit
 
 # import caldp     (see track_versions)
 
@@ -163,7 +166,8 @@ class InstrumentManager:
     delete_endings : list of str
         (class) Endings of filenames to remove prior to previews or S3 uploads.
     ignore_err_nums : list of int
-        (class) Nonzero calibration error codes which should be ignored.
+        (class) Nonzero calibration error codes which should be ignored. Different than
+        CALDP codes in error_codes.py.
     stage1 : str
         (class) Program name for basic calibration and all association or unassociated files.
     stage2 : str
@@ -250,7 +254,7 @@ class InstrumentManager:
         log.info(dash * 80)
         log.info(dash * 5, self.ipppssoot, msg, dash * (dashes - 6 - len(self.ipppssoot) - len(msg) - 1))
 
-    def run(self, cmd, *args):
+    def run(self, exit_code, cmd, *args):
         """Run the subprocess string `cmd`,  appending any extra values
         defined by `args`.
 
@@ -278,12 +282,18 @@ class InstrumentManager:
         """
         cmd = tuple(cmd.split()) + args  # Handle stage values with switches.
         self.divider("Running:", cmd)
-        err = subprocess.call(cmd)
-        if err in self.ignore_err_nums:
-            log.info("Ignoring error status =", err)
-        elif err:
-            log.error(self.ipppssoot, "Command:", repr(cmd), "exited with error status:", err)
-            sys.exit(1)
+        with sysexit.exit_on_exception(exit_code, self.ipppssoot, "Command:", repr(cmd)):
+            err = subprocess.call(cmd)
+            if err in self.ignore_err_nums:
+                log.info("Ignoring error status =", err)
+            elif err:
+                raise RuntimeError(f"Subprocess returned with non-zero status = {err}")
+
+    def run_stage1(self, *args):
+        return self.run(exit_codes.STAGE1_ERROR, self.stage1, *args)
+
+    def run_stage2(self, *args):
+        return self.run(exit_codes.STAGE2_ERROR, self.stage2, *args)
 
     # .............................................................
 
@@ -348,7 +358,6 @@ class InstrumentManager:
         Extracts, then saves file paths to a sorted list.
         Returns sorted list of file paths (`input_files`)
         """
-        client = boto3.client("s3")
         key = self.ipppssoot + ".tar.gz"
         s3_path = self.input_uri.replace("s3://", "").split("/")
         bucket, prefix = s3_path[0], "/".join(s3_path[1:])
@@ -357,14 +366,19 @@ class InstrumentManager:
         else:  # remove trailing slash from prefix if there is one
             obj = prefix.strip("/") + "/" + key
         self.divider(f"Retrieving tarfile: s3://{bucket}/{obj}")
-        with open(key, "wb") as f:
-            client.download_fileobj(bucket, obj, f)  # 'odfa0120.tar.gz'
-        self.divider(f"Extracting files from {key}")
-        with tarfile.open(key, "r:gz") as tar_ref:
-            tar_ref.extractall()
-            # then delete tars
-            os.remove(key)
+        with sysexit.exit_on_exception(
+            exit_codes.S3_DOWNLOAD_ERROR, f"Failed downloading or extracting s3://{bucket}/{obj}"
+        ):
+            client = boto3.client("s3")
+            with open(key, "wb") as f:
+                client.download_fileobj(bucket, obj, f)  # 'odfa0120.tar.gz'
 
+        with sysexit.exit_on_exception(exit_codes.INPUT_TAR_FILE_ERROR, "Failed extracting inputs from", key):
+            self.divider(f"Extracting files from {key}")
+            with tarfile.open(key, "r:gz") as tar_ref:
+                tar_ref.extractall()
+                # then delete tars
+        os.remove(key)
         self.divider("Gathering fits files for calibration")
         search_fits = f"{input_path}/{self.ipppssoot.lower()[0:5]}*.fits"
         self.divider("Finding input data using:", repr(search_fits))
@@ -382,10 +396,13 @@ class InstrumentManager:
             Local file system paths of files which were downloaded for `ipppssoot`,
             some of which will be selected for calibration processing.
         """
-        self.divider("Retrieving data files for:", self.download_suffixes)
-        files = retrieve_observation(self.ipppssoot, suffix=self.download_suffixes)
-        self.divider("Download data complete.")
-        return list(sorted([os.path.abspath(f) for f in files]))
+        with sysexit.exit_on_exception(
+            exit_codes.ASTROQUERY_ERROR, "Astroquery exception downloading suffixes:", self.download_suffixes
+        ):
+            self.divider("Retrieving data files for:", self.download_suffixes)
+            files = retrieve_observation(self.ipppssoot, suffix=self.download_suffixes)
+            self.divider("Download data complete.")
+            return list(sorted([os.path.abspath(f) for f in files]))
 
     def find_input_files(self):
         """Scrape the input_uri for the needed input_files.
@@ -407,11 +424,16 @@ class InstrumentManager:
         cwd = os.getcwd()
         search_tar = f"{base_path}/{self.ipppssoot.lower()[0:5]}*.tar.gz"
         tar_files = glob.glob(search_tar)
-        if len(tar_files) == 1:
-            log.info("Extracting inputs from: ", tar_files)
-            os.chdir(base_path)
-            with tarfile.open(tar_files[0], "r:gz") as tar_ref:
-                tar_ref.extractall()
+        with sysexit.exit_on_exception(exit_codes.INPUT_TAR_FILE_ERROR, "Failed extracting inputs from", tar_files):
+            if len(tar_files) == 0:
+                raise RuntimeError(f"No input tar files for: {repr(search_tar)}")
+            elif len(tar_files) == 1:
+                log.info("Extracting inputs from: ", tar_files)
+                os.chdir(base_path)
+                with tarfile.open(tar_files[0], "r:gz") as tar_ref:
+                    tar_ref.extractall()
+            else:
+                raise RuntimeError(f"Too many tar files for: {repr(search_tar)} = {tar_files}")
         os.chdir(cwd)
         # get input files
         search_str = f"{base_path}/{self.ipppssoot.lower()[0:5]}*.fits"
@@ -477,15 +499,16 @@ class InstrumentManager:
         -------
         None
         """
-        self.divider("Computing bestrefs and downloading references.", files)
-        bestrefs_files = self.raw_files(files)
-        # Only sync reference files if the cache is read/write.
-        bestrefs.assign_bestrefs(
-            bestrefs_files,
-            context=os.environ.get("CRDS_CONTEXT", default=None),
-            sync_references=os.environ.get("CRDS_READONLY_CACHE", "0") != "1",
-        )
-        self.divider("Bestrefs complete.")
+        with sysexit.exit_on_exception(exit_codes.BESTREFS_ERROR, "Failed computing or downloading reference files."):
+            self.divider("Computing bestrefs and downloading references.", files)
+            bestrefs_files = self.raw_files(files)
+            # Only sync reference files if the cache is read/write.
+            bestrefs.assign_bestrefs(
+                bestrefs_files,
+                context=os.environ.get("CRDS_CONTEXT", default=None),
+                sync_references=os.environ.get("CRDS_READONLY_CACHE", "0") != "1",
+            )
+            self.divider("Bestrefs complete.")
 
     def set_env_vars(self):
         """looks for an ipppssoot_cal_env.txt file and sets the key=value
@@ -523,15 +546,15 @@ class InstrumentManager:
         self.track_versions(files)
         assoc = self.assoc_files(files)
         if assoc:
-            self.run(self.stage1, *assoc)
+            self.run_stage1(*assoc)
             if self.stage2:
-                self.run(self.stage2, *assoc)
+                self.run_stage2(*assoc)
             return
         unassoc = self.unassoc_files(files)
         if unassoc:
-            self.run(self.stage1, *unassoc)
+            self.run_stage1(*unassoc)
             if self.stage2:
-                self.run(self.stage2, *unassoc)
+                self.run_stage2(*unassoc)
             return
 
     def output_files(self):
@@ -657,10 +680,10 @@ class StisManager(InstrumentManager):
         wav = [os.path.basename(f) for f in files if f.endswith("_wav.fits")]
         if raw:
             self.track_versions(files, "_raw")
-            self.run(self.stage1, *raw)
+            self.run_stage1(*raw)
         else:
             self.track_versions(files, "_wav")
-            self.run(self.stage1, *wav)
+            self.run_stage1(*wav)
 
     def raw_files(self, files):
         """Returns only '_raw.fits', '_wav.fits', or '_tag.fits' members of `files`."""
@@ -718,15 +741,19 @@ def process(ipppssoot, input_uri, output_uri):
     -------
     None
     """
+    process_log = log.CaldpLogger(enable_console=False, log_file="process.txt")
+
     if output_uri is None:
         output_uri, output_path = messages.path_finder(input_uri, output_uri, ipppssoot)
     output_path = get_output_path(output_uri, ipppssoot)
+
     msg = messages.Messages(output_uri, output_path, ipppssoot)
-    msg.start_message()  # submit-ipst
-    process_log = log.CaldpLogger(enable_console=False, log_file="process.txt")
+    msg.init()
     msg.process_message()  # processing-ipst
+
     manager = get_instrument_manager(ipppssoot, input_uri, output_uri)
     manager.main()
+
     del process_log
 
 
@@ -817,5 +844,6 @@ def main(argv):
 if __name__ == "__main__":
     if len(sys.argv) < 4:
         print("usage:  process.py <input_uri>  <output_uri>  <ipppssoot's...>")
-        sys.exit(1)
-    main(sys.argv)
+        sys.exit(exit_codes.CMDLINE_ERROR)
+    with sysexit.exit_receiver():
+        main(sys.argv)
