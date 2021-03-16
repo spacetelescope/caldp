@@ -16,11 +16,13 @@ ENV MKL_THREADING_LAYER="GNU"
 
 USER root
 
-# RUN yum update  -y
 ENV REQUESTS_CA_BUNDLE=/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
 ENV CURL_CA_BUNDLE=/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
 
+# Removing kernel-headers seems to remove glibc and all packages which use them
+RUN yum remove -y kernel-devel
 RUN yum install -y curl rsync time
+RUN yum update  -y
 
 # ------------------------------------------------------------------------
 # SSL/TLS cert setup for STScI AWS firewalling
