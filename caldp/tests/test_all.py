@@ -441,14 +441,14 @@ def check_tarball_out(ipppssoot, input_uri, output_uri):
                 actual_tarfiles[name] = size
         return actual_tarfiles
 
-        # file_list.append(tar)
-        # logs = messages.Logs(output_path, output_uri, ipppssoot)
-        # log_path = os.path.abspath(logs.get_log_output())
-        # for f in os.listdir(log_path):
-        #     file_list.append(os.path.join(log_path, f))
-        # file_ops.clean_up(file_list, ipppssoot, dirs=["previews", "logs"])
-        # messages.clean_up(ipppssoot, IO="messages")
-        # assert len(os.listdir(local_outpath)) == 0
+        file_list.append(tar)
+        logs = messages.Logs(output_path, output_uri, ipppssoot)
+        log_path = os.path.abspath(logs.get_log_output())
+        for f in os.listdir(log_path):
+            file_list.append(os.path.join(log_path, f))
+        file_ops.clean_up(file_list, ipppssoot, dirs=["previews", "logs"])
+        messages.clean_up(ipppssoot, IO="messages")
+        assert len(os.listdir(local_outpath)) == 0
 
 
 def list_files(startpath, ipppssoot):

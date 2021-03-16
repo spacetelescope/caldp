@@ -111,18 +111,18 @@ class ProgressPercentage(object):
             sys.stdout.flush()
 
 
-# def clean_up(file_list, ipppssoot, dirs=None):
-#     print("Cleaning up...")
-#     for f in file_list:
-#         try:
-#             os.remove(f)
-#         except FileNotFoundError:
-#             pass
-#     if dirs is not None:
-#         for d in dirs:
-#             subdir = os.path.abspath(f"outputs/{ipppssoot}/{d}")
-#             os.rmdir(subdir)
-#     print("Done.")
+def clean_up(file_list, ipppssoot, dirs=None):
+    print("Cleaning up...")
+    for f in file_list:
+        try:
+            os.remove(f)
+        except FileNotFoundError:
+            pass
+    if dirs is not None:
+        for d in dirs:
+            subdir = os.path.abspath(f"outputs/{ipppssoot}/{d}")
+            os.rmdir(subdir)
+    print("Done.")
 
 
 def tar_outputs(ipppssoot, output_uri):
@@ -134,6 +134,6 @@ def tar_outputs(ipppssoot, output_uri):
     tar = make_tar(file_list, ipppssoot)
     upload_tar(tar, output_path)
     os.chdir(working_dir)
-    # clean_up(file_list, ipppssoot, dirs=["previews"])
+    clean_up(file_list, ipppssoot, dirs=["previews"])
     if output_uri.startswith("file"):  # test cov only
         return tar, file_list  # , local_outpath
