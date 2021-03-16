@@ -446,7 +446,11 @@ def check_tarball_out(ipppssoot, input_uri, output_uri):
         log_path = os.path.abspath(logs.get_log_output())
         for f in os.listdir(log_path):
             file_list.append(os.path.join(log_path, f))
-        file_ops.clean_up(file_list, ipppssoot, dirs=["previews", "logs"])
+        for f in os.listdir("previews"):
+            file_list.append(os.path.join("previews", f))
+        for f in os.listdir("env"):
+            file_list.append(os.path.join("env", f))
+        file_ops.clean_up(file_list, ipppssoot, dirs=["previews", "logs", "env"])
         messages.clean_up(ipppssoot, IO="messages")
         assert len(os.listdir(output_path)) == 0
 
