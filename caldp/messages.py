@@ -239,6 +239,7 @@ def clean_up(ipppssoot, IO):
     os.rmdir(folder)
     print("Done.")
 
+
 # primarily for test cov where output_uri is "none"
 def path_finder(input_uri, output_uri_prefix, ipppssoot):
     if output_uri_prefix is None:
