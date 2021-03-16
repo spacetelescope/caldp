@@ -121,7 +121,10 @@ def clean_up(file_list, ipppssoot, dirs=None):
     if dirs is not None:
         for d in dirs:
             subdir = os.path.abspath(f"outputs/{ipppssoot}/{d}")
-            os.rmdir(subdir)
+            try:
+                os.rmdir(subdir)
+            except OSError:
+                os.listdir(subdir)
     print("Done.")
 
 
