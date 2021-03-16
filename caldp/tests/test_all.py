@@ -449,7 +449,7 @@ def check_tarball_out(ipppssoot, input_uri, output_uri):
             file_list.append(os.path.join(log_path, f))
         file_ops.clean_up(file_list, ipppssoot, dirs=["previews", "logs"])
         messages.clean_up(ipppssoot, IO="messages")
-        assert len(os.listdir(local_outpath)) == 0
+        assert len(os.listdir(log_path)) == 0
 
 
 def list_files(startpath, ipppssoot):
