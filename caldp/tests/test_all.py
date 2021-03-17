@@ -433,7 +433,7 @@ def check_tarball_out(ipppssoot, input_uri, output_uri):
     Workaround to improve test coverage when s3 bucket access is unavailable.
     """
     if output_uri.startswith("file"):
-        """ this call to tar_outputs will actually test file_ops.clean_up
+        """this call to tar_outputs will actually test file_ops.clean_up
         so there's technically no need to do it further below
         the problem with doing it here is we need a lot of logic
         to find "all" of the files to cleanup, and that logic
