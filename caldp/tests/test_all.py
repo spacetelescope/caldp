@@ -434,7 +434,7 @@ def check_tarball_out(ipppssoot, input_uri, output_uri):
         """ this call to tar_outputs will actually test file_ops.clean_up
         so there's technically no need to do it further below
         the problem with doing it here is we need a lot of logic
-        to find "all" of the files to cleanup, and that logic 
+        to find "all" of the files to cleanup, and that logic
         in and of itself is what really needs to be tested...
         meaning it should be caldp, not in the test
         """
