@@ -395,6 +395,7 @@ def coretst(temp_dir, ipppssoot, input_uri, output_uri):
             check_pathfinder(ipppssoot)
             message_status_check(input_uri, output_uri, ipppssoot)
             os.remove(tarball)
+        check_messages_cleanup(ipppssoot)
     finally:
         os.chdir(temp_dir)
 
@@ -430,6 +431,13 @@ def check_tarball_out(ipppssoot, input_uri, output_uri):
     Workaround to improve test coverage when s3 bucket access is unavailable.
     """
     if output_uri.startswith("file"):
+        """ this call to tar_outputs will actually test file_ops.clean_up
+        so there's technically no need to do it further below
+        the problem with doing it here is we need a lot of logic
+        to find "all" of the files to cleanup, and that logic 
+        in and of itself is what really needs to be tested...
+        meaning it should be caldp, not in the test
+        """
         tar, file_list = file_ops.tar_outputs(ipppssoot, output_uri)
         assert len(file_list) > 0
         tarpath = os.path.join("outputs", tar)
@@ -449,6 +457,25 @@ def check_tarball_out(ipppssoot, input_uri, output_uri):
         # file_ops.clean_up(file_list, ipppssoot, dirs=["previews", "logs"])
         # messages.clean_up(ipppssoot, IO="messages")
         # assert len(os.listdir(local_outpath)) == 0
+
+
+def check_messages_cleanup(ipppssoot):
+    # logs/ipppssoot just ensures test coverage in messages.clean_up
+    dirs = ["messages", f"logs/{ipppssoot}"]
+    # if they don't exist yet, make them just to be sure
+    # and put a dummy file in there to test
+    for d in dirs:
+        if not os.path.isdir(d):
+            os.makedirs(d)
+        with open(f"{d}/tmp.txt", "w") as f:
+            pass
+        assert os.path.isdir(d)
+    # clean them up...
+    for d in dirs:
+        messages.clean_up(ipppssoot, d.split("/")[0])
+    # and check that they're gone
+    for d in dirs:
+        assert not os.path.isdir(d)
 
 
 def list_files(startpath, ipppssoot):
