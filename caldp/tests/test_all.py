@@ -3,11 +3,13 @@ assigning references, and basic calibrations.
 """
 import os
 import subprocess
+import tempfile
 import pytest
 from caldp import process
 from caldp import create_previews
 from caldp import messages
 from caldp import file_ops
+
 
 # ----------------------------------------------------------------------------------------
 
@@ -467,8 +469,8 @@ def check_messages_cleanup(ipppssoot):
     for d in dirs:
         if not os.path.isdir(d):
             os.makedirs(d)
-        with open(f"{d}/tmp.txt", "w") as f:
-            pass
+        f = tempfile.NamedTemporaryFile(delete=False)
+        f.close()
         assert os.path.isdir(d)
     # clean them up...
     for d in dirs:
