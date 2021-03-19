@@ -394,7 +394,7 @@ def coretst(temp_dir, ipppssoot, input_uri, output_uri):
         check_logs(input_uri, output_uri, ipppssoot)
         check_messages(ipppssoot, output_uri, status="processed.trigger")
         # tests whether file_ops gracefully handles an exception type
-        file_ops.clean_up([],ipppssoot,dirs=["dummy_dir"])
+        file_ops.clean_up([], ipppssoot, dirs=["dummy_dir"])
         if input_uri.startswith("file"):  # create tarfile if s3 access unavailable
             actual_tarfiles = check_tarball_out(ipppssoot, input_uri, output_uri)
             check_tarfiles(TARFILES, actual_tarfiles, ipppssoot, output_uri)
@@ -483,7 +483,7 @@ def check_messages_cleanup(ipppssoot):
     for d in dirs:
         messages.clean_up(ipppssoot, d.split("/")[0])
     # and check that they're gone
-    for i,d in enumerate(dirs):
+    for i, d in enumerate(dirs):
         assert not os.path.isdir(d)
         assert not os.path.isfile(tempfiles[i])
 
