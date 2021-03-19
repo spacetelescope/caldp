@@ -118,7 +118,6 @@ def clean_up(file_list, ipppssoot, dirs=None):
             os.remove(f)
         except FileNotFoundError:
             print(f"{f} not found")
-            pass
     if dirs is not None:
         for d in dirs:
             subdir = os.path.abspath(f"outputs/{ipppssoot}/{d}")

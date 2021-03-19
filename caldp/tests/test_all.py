@@ -4,7 +4,9 @@ assigning references, and basic calibrations.
 import os
 import subprocess
 import tempfile
+
 import pytest
+
 from caldp import process
 from caldp import create_previews
 from caldp import messages
@@ -391,6 +393,8 @@ def coretst(temp_dir, ipppssoot, input_uri, output_uri):
         check_s3_outputs(S3_OUTPUTS, actual_outputs, ipppssoot, output_uri)
         check_logs(input_uri, output_uri, ipppssoot)
         check_messages(ipppssoot, output_uri, status="processed.trigger")
+        # tests whether file_ops gracefully handles an exception type
+        file_ops.clean_up([],ipppssoot,dirs=["dummy_dir"])
         if input_uri.startswith("file"):  # create tarfile if s3 access unavailable
             actual_tarfiles = check_tarball_out(ipppssoot, input_uri, output_uri)
             check_tarfiles(TARFILES, actual_tarfiles, ipppssoot, output_uri)
@@ -466,18 +470,22 @@ def check_messages_cleanup(ipppssoot):
     dirs = ["messages", f"logs/{ipppssoot}"]
     # if they don't exist yet, make them just to be sure
     # and put a dummy file in there to test
+    tempfiles = []
     for d in dirs:
         if not os.path.isdir(d):
             os.makedirs(d)
-        f = tempfile.NamedTemporaryFile(delete=False)
+        f = tempfile.NamedTemporaryFile(dir=d, delete=False)
         f.close()
+        tempfiles.append(f.name)
         assert os.path.isdir(d)
+        assert os.path.isfile(f.name)
     # clean them up...
     for d in dirs:
         messages.clean_up(ipppssoot, d.split("/")[0])
     # and check that they're gone
-    for d in dirs:
+    for i,d in enumerate(dirs):
         assert not os.path.isdir(d)
+        assert not os.path.isfile(tempfiles[i])
 
 
 def list_files(startpath, ipppssoot):
