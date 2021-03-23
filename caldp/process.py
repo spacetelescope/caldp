@@ -335,6 +335,8 @@ class InstrumentManager:
 
         self.output_files()
 
+        # clarification; file cleaning-up happens in create_previews
+
         self.divider("Completed processing for", self.instrument_name, self.ipppssoot)
 
     # -----------------------------------------------------------------------------

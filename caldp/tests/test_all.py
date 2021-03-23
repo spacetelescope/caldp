@@ -3,11 +3,15 @@ assigning references, and basic calibrations.
 """
 import os
 import subprocess
+import tempfile
+
 import pytest
+
 from caldp import process
 from caldp import create_previews
 from caldp import messages
 from caldp import file_ops
+
 
 # ----------------------------------------------------------------------------------------
 
@@ -389,12 +393,15 @@ def coretst(temp_dir, ipppssoot, input_uri, output_uri):
         check_s3_outputs(S3_OUTPUTS, actual_outputs, ipppssoot, output_uri)
         check_logs(input_uri, output_uri, ipppssoot)
         check_messages(ipppssoot, output_uri, status="processed.trigger")
+        # tests whether file_ops gracefully handles an exception type
+        file_ops.clean_up([], ipppssoot, dirs=["dummy_dir"])
         if input_uri.startswith("file"):  # create tarfile if s3 access unavailable
             actual_tarfiles = check_tarball_out(ipppssoot, input_uri, output_uri)
             check_tarfiles(TARFILES, actual_tarfiles, ipppssoot, output_uri)
             check_pathfinder(ipppssoot)
             message_status_check(input_uri, output_uri, ipppssoot)
             os.remove(tarball)
+        check_messages_cleanup(ipppssoot)
     finally:
         os.chdir(temp_dir)
 
@@ -430,6 +437,13 @@ def check_tarball_out(ipppssoot, input_uri, output_uri):
     Workaround to improve test coverage when s3 bucket access is unavailable.
     """
     if output_uri.startswith("file"):
+        """this call to tar_outputs will actually test file_ops.clean_up
+        so there's technically no need to do it further below
+        the problem with doing it here is we need a lot of logic
+        to find "all" of the files to cleanup, and that logic
+        in and of itself is what really needs to be tested...
+        meaning it should be caldp, not in the test
+        """
         tar, file_list = file_ops.tar_outputs(ipppssoot, output_uri)
         assert len(file_list) > 0
         tarpath = os.path.join("outputs", tar)
@@ -449,6 +463,29 @@ def check_tarball_out(ipppssoot, input_uri, output_uri):
         # file_ops.clean_up(file_list, ipppssoot, dirs=["previews", "logs"])
         # messages.clean_up(ipppssoot, IO="messages")
         # assert len(os.listdir(local_outpath)) == 0
+
+
+def check_messages_cleanup(ipppssoot):
+    # logs/ipppssoot just ensures test coverage in messages.clean_up
+    dirs = ["messages", f"logs/{ipppssoot}"]
+    # if they don't exist yet, make them just to be sure
+    # and put a dummy file in there to test
+    tempfiles = []
+    for d in dirs:
+        if not os.path.isdir(d):
+            os.makedirs(d)
+        f = tempfile.NamedTemporaryFile(dir=d, delete=False)
+        f.close()
+        tempfiles.append(f.name)
+        assert os.path.isdir(d)
+        assert os.path.isfile(f.name)
+    # clean them up...
+    for d in dirs:
+        messages.clean_up(ipppssoot, d.split("/")[0])
+    # and check that they're gone
+    for i, d in enumerate(dirs):
+        assert not os.path.isdir(d)
+        assert not os.path.isfile(tempfiles[i])
 
 
 def list_files(startpath, ipppssoot):
