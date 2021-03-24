@@ -587,12 +587,14 @@ def check_tarfiles(TARFILES, actual_tarfiles, ipppssoot, output_uri):
     expected = {}
     for (name, size) in parse_results(tarfiles[ipppssoot]):
         expected[name] = size
-        
+
     # check_tarball_out doesn't handle s3 output_uris so actual_tarfiles is NoneType in come cases
     if not output_uri.startswith("s3:"):
         for name, size in expected.items():
             assert name in list(actual_tarfiles.keys())
-            assert abs(actual_tarfiles[name] - size) < CALDP_TEST_FILE_SIZE_THRESHOLD * size, "bad size for " + repr(name)
+            assert abs(actual_tarfiles[name] - size) < CALDP_TEST_FILE_SIZE_THRESHOLD * size, "bad size for " + repr(
+                name
+            )
 
 
 def check_s3_outputs(TARFILES, actual_outputs, ipppssoot, output_uri):
@@ -635,7 +637,7 @@ def check_messages(ipppssoot, output_uri, status):
         suffix = f".{suffix}"
     else:
         suffix = ""
-    
+
     if CALDP_S3_TEST_OUTPUTS and output_uri.lower().startswith("s3"):
         s3_messages = list_objects(f"{output_uri}/messages")
         expected_message = f"{status}-{ipppssoot}{suffix}"
