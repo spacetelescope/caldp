@@ -272,15 +272,15 @@ def main(input_uri, output_uri_prefix, ipppssoot):
     output_uri, output_path = path_finder(input_uri, output_uri_prefix, ipppssoot)
     logs = Logs(output_path, output_uri, ipppssoot)
     logs.copy_logs()
+    msg = Messages(output_uri, output_path, ipppssoot)
+    msg.preview_message()
+    msg.final_message()
     if output_uri.startswith("s3"):
         logs.upload_logs()
         clean_up(ipppssoot, IO="outputs")
         clean_up(ipppssoot, IO="messages")
         if not input_uri.startswith("file"):
             clean_up(ipppssoot, IO="inputs")
-    msg = Messages(output_uri, output_path, ipppssoot)
-    msg.preview_message()
-    msg.final_message()
 
 
 def cmd(argv):
