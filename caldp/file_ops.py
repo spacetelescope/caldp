@@ -117,14 +117,14 @@ def clean_up(file_list, ipppssoot, dirs=None):
         try:
             os.remove(f)
         except FileNotFoundError:
-            print(f"{f} not found")
+            print(f"file {f} not found")
     if dirs is not None:
         for d in dirs:
             subdir = os.path.abspath(f"outputs/{ipppssoot}/{d}")
             try:
                 shutil.rmtree(subdir)
             except OSError:
-                print(f"{subdir} not found")
+                print(f"dir {subdir} not found")
     print("Done.")
 
 
