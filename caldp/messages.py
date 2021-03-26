@@ -99,13 +99,13 @@ class Messages:
         for f in previous_files:
             self.remove_message(f)
 
-    def start_message(self):
+    def init(self):
         os.makedirs(self.msg_dir, exist_ok=True)
         self.clear_messages()
         if self.stat == 0:
             self.name = f"submit-{self.ipppssoot}"
             self.file = f"{self.msg_dir}/{self.name}"
-            self.write_message()
+            # self.write_message()  # submit-xxx is written by CALCLOUD
             self.stat += 1  # increment status
         return self
 
@@ -223,21 +223,22 @@ def log_metrics(log_file, metrics):
     return res
 
 
-# def clean_up(ipppssoot, IO):
-#     print(f"Cleaning up {IO}...")
-#     folder = os.path.join(os.getcwd(), IO)
-#     if IO == "messages":
-#         file_list = list(glob.glob(f"{folder}/*"))
-#         for f in file_list:
-#             os.remove(f)
-#     else:
-#         ipst = os.path.join(folder, ipppssoot)
-#         file_list = list(glob.glob(f"{ipst}/*"))
-#         for f in file_list:
-#             os.remove(f)
-#         os.rmdir(ipst)
-#     os.rmdir(folder)
-#     print("Done.")
+def clean_up(ipppssoot, IO):
+    print(f"Cleaning up {IO}...")
+    folder = os.path.join(os.getcwd(), IO)
+    if IO == "messages":
+        file_list = list(glob.glob(f"{folder}/*"))
+        for f in file_list:
+            os.remove(f)
+    else:
+        ipst = os.path.join(folder, ipppssoot)
+        file_list = list(glob.glob(f"{ipst}/*"))
+        for f in file_list:
+            os.remove(f)
+        os.rmdir(ipst)
+    os.rmdir(folder)
+    print("Done.")
+
 
 # primarily for test cov where output_uri is "none"
 def path_finder(input_uri, output_uri_prefix, ipppssoot):
@@ -271,15 +272,15 @@ def main(input_uri, output_uri_prefix, ipppssoot):
     output_uri, output_path = path_finder(input_uri, output_uri_prefix, ipppssoot)
     logs = Logs(output_path, output_uri, ipppssoot)
     logs.copy_logs()
-    if output_uri.startswith("s3"):
-        logs.upload_logs()
-        # clean_up(ipppssoot, IO="outputs")
-        # clean_up(ipppssoot, IO="messages")
-        # if not input_uri.startswith("file"):
-        #     clean_up(ipppssoot, IO="inputs")
     msg = Messages(output_uri, output_path, ipppssoot)
     msg.preview_message()
     msg.final_message()
+    if output_uri.startswith("s3"):
+        logs.upload_logs()
+        clean_up(ipppssoot, IO="outputs")
+        clean_up(ipppssoot, IO="messages")
+        if not input_uri.startswith("file"):
+            clean_up(ipppssoot, IO="inputs")
 
 
 def cmd(argv):

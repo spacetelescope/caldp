@@ -3,18 +3,22 @@ assigning references, and basic calibrations.
 """
 import os
 import subprocess
+import tempfile
+
 import pytest
+
 from caldp import process
 from caldp import create_previews
 from caldp import messages
 from caldp import file_ops
+
 
 # ----------------------------------------------------------------------------------------
 
 # Set default CRDS Context
 CRDS_CONTEXT = os.environ.get("CRDS_CONTEXT")
 if CRDS_CONTEXT == "":
-    os.environ["CRDS_CONTEXT"] = "hst_0860.pmap"
+    os.environ["CRDS_CONTEXT"] = "hst_0869.pmap"
 
 # For applicable tests,  the product files associated with each ipppssoot below
 # must be present in the CWD after processing and be within 10% of the listed sizes.
@@ -34,7 +38,7 @@ RESULTS = [
 1159 inputs/j8cb01u2q_raw_thumb.jpg
 18748 inputs/j8cb01u3q_flt.jpg
 1083 inputs/j8cb01u3q_flt_thumb.jpg
-16493 inputs/j8cb010b0.tra
+62666 inputs/j8cb010b0.tra
 51840 inputs/j8cb01u3q_flt_hlet.fits
 51840 inputs/j8cb01u2q_flt_hlet.fits
 15963840 inputs/j8cb010b1_drz.fits
@@ -71,7 +75,7 @@ RESULTS = [
 10535040 outputs/j8cb010b0/j8cb010b1_crj.fits
 5166 outputs/j8cb010b0/j8cb010b1.tra
 11520 outputs/j8cb010b0/j8cb010b0_asn.fits
-20740 outputs/j8cb010b0/j8cb010b0.tra
+62666 outputs/j8cb010b0/j8cb010b0.tra
 """,
     ),
     (
@@ -161,7 +165,7 @@ RESULTS = [
 2058 ib8t01htq_raw_thumb.jpg
 46513 ib8t01hwq_ima.jpg
 1859 ib8t01hwq_ima_thumb.jpg
-16110 ib8t01010.tra
+86860 ib8t01010.tra
 8640 ib8t01hwq_flt_hlet.fits
 8640 ib8t01htq_flt_hlet.fits
 12654720 ib8t01010_drz.fits
@@ -200,17 +204,17 @@ RESULTS = [
 12654720 outputs/ib8t01010/ib8t01010_drz.fits
 4733 outputs/ib8t01010/ib8t01htq.tra
 11520 outputs/ib8t01010/ib8t01010_asn.fits
-16110 outputs/ib8t01010/ib8t01010.tra
+86860 outputs/ib8t01010/ib8t01010.tra
         """,
     ),  # wfc3 and acs singletons
     (
         "ibc604b9q",
         """
-927 ibc604b9q.tra
+828 ibc604b9q.tra
 32518080 ibc604b9q_raw.fits
 221702 ibc604b9q_raw.jpg
 842 ibc604b9q_raw_thumb.jpg
-5889 outputs/ibc604b9q/ibc604b9q.tra
+828 outputs/ibc604b9q/ibc604b9q.tra
 32518080 outputs/ibc604b9q/ibc604b9q_raw.fits
 842 outputs/ibc604b9q/ibc604b9q_raw_thumb.jpg
 221702 outputs/ibc604b9q/ibc604b9q_raw.jpg
@@ -223,16 +227,50 @@ RESULTS = [
 7289 j8f54obeq_raw_thumb.jpg
 178971 j8f54obeq_flt.jpg
 7354 j8f54obeq_flt_thumb.jpg
-3095 j8f54obeq.tra
+2732 j8f54obeq.tra
 10532160 j8f54obeq_flt.fits
 2257920 j8f54obeq_raw.fits
-9658 outputs/j8f54obeq/j8f54obeq.tra
+2732 outputs/j8f54obeq/j8f54obeq.tra
 2257920 outputs/j8f54obeq/j8f54obeq_raw.fits
 10532160 outputs/j8f54obeq/j8f54obeq_flt.fits
 7289 outputs/j8f54obeq/j8f54obeq_raw_thumb.jpg
 184035 outputs/j8f54obeq/j8f54obeq_raw.jpg
 7354 outputs/j8f54obeq/j8f54obeq_flt_thumb.jpg
 178971 outputs/j8f54obeq/j8f54obeq_flt.jpg
+        """,
+    ),  # testing env file
+    (
+        "iacs01t4q",
+        """
+12600000 iacs01t4q_drz.fits
+83733 iacs01t4q_drz.jpg
+ 3604 iacs01t4q_drz_thumb.jpg
+16646400 iacs01t4q_flt.fits
+ 8640 iacs01t4q_flt_hlet.fits
+99891 iacs01t4q_flt.jpg
+ 3862 iacs01t4q_flt_thumb.jpg
+115686720 iacs01t4q_ima.fits
+  124877 iacs01t4q_ima.jpg
+ 4306 iacs01t4q_ima_thumb.jpg
+23400000 iacs01t4q_raw.fits
+  247834 iacs01t4q_raw.jpg
+ 2649 iacs01t4q_raw_thumb.jpg
+50921 iacs01t4q.tra
+35 outputs/iacs01t4q/env/iacs01t4q_cal_env.txt
+12600000 outputs/iacs01t4q/iacs01t4q_drz.fits
+16646400 outputs/iacs01t4q/iacs01t4q_flt.fits
+8640 outputs/iacs01t4q/iacs01t4q_flt_hlet.fits
+115686720 outputs/iacs01t4q/iacs01t4q_ima.fits
+23400000 outputs/iacs01t4q/iacs01t4q_raw.fits
+50921 outputs/iacs01t4q/iacs01t4q.tra
+83733 outputs/iacs01t4q/previews/iacs01t4q_drz.jpg
+3604 outputs/iacs01t4q/previews/iacs01t4q_drz_thumb.jpg
+99891 outputs/iacs01t4q/previews/iacs01t4q_flt.jpg
+3862 outputs/iacs01t4q/previews/iacs01t4q_flt_thumb.jpg
+124877 outputs/iacs01t4q/previews/iacs01t4q_ima.jpg
+4306 outputs/iacs01t4q/previews/iacs01t4q_ima_thumb.jpg
+247834 outputs/iacs01t4q/previews/iacs01t4q_raw.jpg
+2649 outputs/iacs01t4q/previews/iacs01t4q_raw_thumb.jpg
         """,
     ),
 ]
@@ -241,7 +279,10 @@ RESULTS = [
 # 100800 ibc604b9q_spt.fits
 # 100800 outputs/ibc604b9q/ibc604b9q_spt.fits
 
-TARFILES = [("j8cb010b0", "32586581 j8cb010b0.tar.gz")]
+TARFILES = [
+    ("j8cb010b0", "32586581 j8cb010b0.tar.gz"),
+    ("iacs01t4q", "106921504 iacs01t4q.tar.gz"),
+]
 
 S3_OUTPUTS = [
     (
@@ -288,7 +329,8 @@ S3_OUTPUTS = [
 
 
 SHORT_TEST_IPPPSSOOTS = [result[0] for result in RESULTS][:1]
-LONG_TEST_IPPPSSOOTS = [result[0] for result in RESULTS]  # [1:]
+LONG_TEST_IPPPSSOOTS = [result[0] for result in RESULTS][:-1]  # [1:]
+ENV_TEST_IPPPSSOOTS = [result[0] for result in RESULTS][-1:]
 
 # LONG_TEST_IPPPSSOOTS += SHORT_TEST_IPPPSSOOTS  # Include all for creating test cases.
 
@@ -307,6 +349,13 @@ CALDP_TEST_FILE_SIZE_THRESHOLD = float(os.environ.get("CALDP_TEST_FILE_SIZE_THRE
 @pytest.mark.parametrize("input_uri", ["file:inputs", "astroquery:", CALDP_S3_TEST_INPUTS])
 @pytest.mark.parametrize("ipppssoot", SHORT_TEST_IPPPSSOOTS)
 def test_io_modes(tmpdir, ipppssoot, input_uri, output_uri):
+    coretst(tmpdir, ipppssoot, input_uri, output_uri)
+
+
+@pytest.mark.parametrize("output_uri", ["file:outputs"])
+@pytest.mark.parametrize("input_uri", ["file:inputs"])
+@pytest.mark.parametrize("ipppssoot", ENV_TEST_IPPPSSOOTS)
+def test_env_file(tmpdir, ipppssoot, input_uri, output_uri):
     coretst(tmpdir, ipppssoot, input_uri, output_uri)
 
 
@@ -348,12 +397,15 @@ def coretst(temp_dir, ipppssoot, input_uri, output_uri):
         check_s3_outputs(S3_OUTPUTS, actual_outputs, ipppssoot, output_uri)
         check_logs(input_uri, output_uri, ipppssoot)
         check_messages(ipppssoot, output_uri, status="processed.trigger")
+        # tests whether file_ops gracefully handles an exception type
+        file_ops.clean_up([], ipppssoot, dirs=["dummy_dir"])
         if input_uri.startswith("file"):  # create tarfile if s3 access unavailable
             actual_tarfiles = check_tarball_out(ipppssoot, input_uri, output_uri)
             check_tarfiles(TARFILES, actual_tarfiles, ipppssoot, output_uri)
             check_pathfinder(ipppssoot)
             message_status_check(input_uri, output_uri, ipppssoot)
             os.remove(tarball)
+        check_messages_cleanup(ipppssoot)
     finally:
         os.chdir(temp_dir)
 
@@ -372,7 +424,7 @@ def setup_io(ipppssoot, input_uri, output_uri):
         os.makedirs("outputs", exist_ok=True)
         os.makedirs("inputs", exist_ok=True)
         os.chdir("inputs")
-        process.download_inputs(ipppssoot, input_uri, output_uri)
+        process.download_inputs(ipppssoot, input_uri, output_uri, make_env=True)
     os.chdir(working_dir)
 
 
@@ -389,6 +441,13 @@ def check_tarball_out(ipppssoot, input_uri, output_uri):
     Workaround to improve test coverage when s3 bucket access is unavailable.
     """
     if output_uri.startswith("file"):
+        """this call to tar_outputs will actually test file_ops.clean_up
+        so there's technically no need to do it further below
+        the problem with doing it here is we need a lot of logic
+        to find "all" of the files to cleanup, and that logic
+        in and of itself is what really needs to be tested...
+        meaning it should be caldp, not in the test
+        """
         tar, file_list = file_ops.tar_outputs(ipppssoot, output_uri)
         assert len(file_list) > 0
         tarpath = os.path.join("outputs", tar)
@@ -408,6 +467,29 @@ def check_tarball_out(ipppssoot, input_uri, output_uri):
         # file_ops.clean_up(file_list, ipppssoot, dirs=["previews", "logs"])
         # messages.clean_up(ipppssoot, IO="messages")
         # assert len(os.listdir(local_outpath)) == 0
+
+
+def check_messages_cleanup(ipppssoot):
+    # logs/ipppssoot just ensures test coverage in messages.clean_up
+    dirs = ["messages", f"logs/{ipppssoot}"]
+    # if they don't exist yet, make them just to be sure
+    # and put a dummy file in there to test
+    tempfiles = []
+    for d in dirs:
+        if not os.path.isdir(d):
+            os.makedirs(d)
+        f = tempfile.NamedTemporaryFile(dir=d, delete=False)
+        f.close()
+        tempfiles.append(f.name)
+        assert os.path.isdir(d)
+        assert os.path.isfile(f.name)
+    # clean them up...
+    for d in dirs:
+        messages.clean_up(ipppssoot, d.split("/")[0])
+    # and check that they're gone
+    for i, d in enumerate(dirs):
+        assert not os.path.isdir(d)
+        assert not os.path.isfile(tempfiles[i])
 
 
 def list_files(startpath, ipppssoot):
@@ -509,9 +591,14 @@ def check_tarfiles(TARFILES, actual_tarfiles, ipppssoot, output_uri):
     expected = {}
     for (name, size) in parse_results(tarfiles[ipppssoot]):
         expected[name] = size
-    for name, size in expected.items():
-        assert name in list(actual_tarfiles.keys())
-        assert abs(actual_tarfiles[name] - size) < CALDP_TEST_FILE_SIZE_THRESHOLD * size, "bad size for " + repr(name)
+
+    # check_tarball_out doesn't handle s3 output_uris so actual_tarfiles is NoneType in come cases
+    if not output_uri.startswith("s3:"):
+        for name, size in expected.items():
+            assert name in list(actual_tarfiles.keys())
+            assert abs(actual_tarfiles[name] - size) < CALDP_TEST_FILE_SIZE_THRESHOLD * size, "bad size for " + repr(
+                name
+            )
 
 
 def check_s3_outputs(TARFILES, actual_outputs, ipppssoot, output_uri):
@@ -549,18 +636,21 @@ def check_logs(input_uri, output_uri, ipppssoot):
 
 
 def check_messages(ipppssoot, output_uri, status):
+    if "." in status:
+        status, suffix = status.split(".")
+        suffix = f".{suffix}"
+    else:
+        suffix = ""
+
     if CALDP_S3_TEST_OUTPUTS and output_uri.lower().startswith("s3"):
         s3_messages = list_objects(f"{output_uri}/messages")
-        expected_message = f"{status}-{ipppssoot}"
+        expected_message = f"{status}-{ipppssoot}{suffix}"
         assert expected_message in list(s3_messages.keys())
     else:
         working_dir = os.getcwd()
-        proc_msg = os.path.join(working_dir, "messages", f"{status}-{ipppssoot}")
+        proc_msg = os.path.join(working_dir, "messages", f"{status}-{ipppssoot}{suffix}")
         err_msg = os.path.join(working_dir, "messages", f"error-{ipppssoot}")
-        if os.path.exists(proc_msg):
-            assert True
-        elif os.path.exists(err_msg):
-            assert True
+        assert os.path.exists(proc_msg) or os.path.exists(err_msg)
 
 
 def message_status_check(input_uri, output_uri, ipppssoot):
@@ -569,10 +659,10 @@ def message_status_check(input_uri, output_uri, ipppssoot):
     assert msg.msg_dir == os.path.join(os.getcwd(), "messages")
     assert msg.stat == 0
 
-    msg.start_message()
+    msg.init()
     assert os.path.exists(msg.msg_dir)
-    assert msg.name == f"submit-{ipppssoot}"
-    assert msg.file == f"{msg.msg_dir}/{msg.name}"
+    # assert msg.name == f"submit-{ipppssoot}"
+    # assert msg.file == f"{msg.msg_dir}/{msg.name}"
     assert msg.stat == 1
 
     msg.process_message()

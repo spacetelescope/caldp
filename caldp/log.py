@@ -269,11 +269,16 @@ def infos():
     return THE_LOGGER.infos
 
 
+CONSOLE_OUTPUT_STREAM = sys.stderr
+
+
 def set_test_mode():
     """Route log messages to standard output for testing with doctest."""
+    global CONSOLE_OUTPUT_STREAM
     remove_console_handler()
     add_console_handler(stream=sys.stdout)
     set_log_time(False)
+    CONSOLE_OUTPUT_STREAM = sys.stdout
 
 
 def set_log_time(enable_time=False):

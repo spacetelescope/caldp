@@ -1,4 +1,4 @@
-#! /bin/bash -eux
+#! /bin/bash -eu
 
 #
 # Does Docker setup and runs commands in the CALDP container on a
@@ -49,7 +49,9 @@ fi
 # visible inside the container.
 #
 CRDS_SRC=${CRDS_PATH:-/grp/crds/hst}
-if [[ "$CRDS_READONLY_CACHE" == "0" && "$CRDS_SRC" != "/grp/crds/hst" ]]; then
+READONLY=${CRDS_READONLY_CACHE:-0}
+
+if [[ "$READONLY" == "0" && "$CRDS_SRC" != "/grp/crds/hst" ]]; then
     MOUNTS="${MOUNTS} --mount type=bind,source=${CRDS_SRC},target=/grp/crds/cache"
 else
     MOUNTS="${MOUNTS} --mount type=bind,source=${CRDS_SRC},target=/grp/crds/cache,readonly"

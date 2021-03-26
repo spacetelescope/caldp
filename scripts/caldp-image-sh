@@ -1,0 +1,11 @@
+#! /bin/sh -eu
+
+# Debug script that runs a bash shell inside the CALDP container with CRDS
+# configured for offsite use.  Configure Docker for an interactive terminal
+# session which can cause problems for other use cases.
+
+export CALDP_DOCKER_RUN_PARS="--rm -it"
+
+source caldp-config-offsite
+
+caldp-docker-run-container /bin/bash

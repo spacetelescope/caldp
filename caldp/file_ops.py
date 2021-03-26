@@ -7,6 +7,8 @@ import boto3
 import threading
 from caldp import process
 from caldp import log
+from caldp import exit_codes
+from caldp import sysexit
 
 
 def get_input_path(input_uri, ipppssoot, make=False):
@@ -21,7 +23,7 @@ def get_input_path(input_uri, ipppssoot, make=False):
     return input_path
 
 
-def append_trailer(input_path, output_path, ipppssoot):
+def append_trailer(input_path, output_path, ipppssoot):  # pragma: no cover
     """Fetch process log and append to trailer file
     Note: copies trailer file from inputs directory
     and copies to outputs directory prior to appending log
@@ -82,14 +84,15 @@ def make_tar(file_list, ipppssoot):
 
 
 def upload_tar(tar, output_path):
-    client = boto3.client("s3")
-    parts = output_path[5:].split("/")
-    bucket, prefix = parts[0], "/".join(parts[1:])
-    objectname = prefix + "/" + os.path.basename(tar)
-    log.info(f"Uploading: s3://{bucket}/{objectname}")
-    if output_path.startswith("s3"):
-        with open(tar, "rb") as f:
-            client.upload_fileobj(f, bucket, objectname, Callback=ProgressPercentage(tar))
+    with sysexit.exit_on_exception(exit_codes.S3_UPLOAD_ERROR, "S3 tar upload of", tar, "to", output_path, "FAILED."):
+        client = boto3.client("s3")
+        parts = output_path[5:].split("/")
+        bucket, prefix = parts[0], "/".join(parts[1:])
+        objectname = prefix + "/" + os.path.basename(tar)
+        log.info(f"Uploading: s3://{bucket}/{objectname}")
+        if output_path.startswith("s3"):
+            with open(tar, "rb") as f:
+                client.upload_fileobj(f, bucket, objectname, Callback=ProgressPercentage(tar))
 
 
 class ProgressPercentage(object):
@@ -108,18 +111,21 @@ class ProgressPercentage(object):
             sys.stdout.flush()
 
 
-# def clean_up(file_list, ipppssoot, dirs=None):
-#     print("Cleaning up...")
-#     for f in file_list:
-#         try:
-#             os.remove(f)
-#         except FileNotFoundError:
-#             pass
-#     if dirs is not None:
-#         for d in dirs:
-#             subdir = os.path.abspath(f"outputs/{ipppssoot}/{d}")
-#             os.rmdir(subdir)
-#     print("Done.")
+def clean_up(file_list, ipppssoot, dirs=None):
+    print("Cleaning up...")
+    for f in file_list:
+        try:
+            os.remove(f)
+        except FileNotFoundError:
+            print(f"file {f} not found")
+    if dirs is not None:
+        for d in dirs:
+            subdir = os.path.abspath(f"outputs/{ipppssoot}/{d}")
+            try:
+                shutil.rmtree(subdir)
+            except OSError:
+                print(f"dir {subdir} not found")
+    print("Done.")
 
 
 def tar_outputs(ipppssoot, output_uri):
@@ -131,6 +137,6 @@ def tar_outputs(ipppssoot, output_uri):
     tar = make_tar(file_list, ipppssoot)
     upload_tar(tar, output_path)
     os.chdir(working_dir)
-    # clean_up(file_list, ipppssoot, dirs=["previews"])
+    clean_up(file_list, ipppssoot, dirs=["previews", "env", "logs"])
     if output_uri.startswith("file"):  # test cov only
         return tar, file_list  # , local_outpath
