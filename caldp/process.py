@@ -546,21 +546,20 @@ class InstrumentManager:
         None
         """
         self.track_versions(files)
+        astrodriz_params = ["-n", "1"]
         assoc = self.assoc_files(files)
         if assoc:
             self.run_stage1(*assoc)
             if self.stage2:
-                assoc.insert(0, "-n")  # force single core for astrodrizzle
-                assoc.insert(1, "1")
-                self.run_stage2(*assoc)
+                args = astrodriz_params + assoc
+                self.run_stage2(*args)
             return
         unassoc = self.unassoc_files(files)
         if unassoc:
             self.run_stage1(*unassoc)
             if self.stage2:
-                assoc.insert(0, "-n")  # force single core for astrodrizzle
-                assoc.insert(1, "1")
-                self.run_stage2(*unassoc)
+                args = astrodriz_params + unassoc
+                self.run_stage2(*args)
             return
 
     def output_files(self):
