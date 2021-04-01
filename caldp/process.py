@@ -293,6 +293,7 @@ class InstrumentManager:
         return self.run(exit_codes.STAGE1_ERROR, self.stage1, *args)
 
     def run_stage2(self, *args):
+        args.insert(0, "-n 1") #force single core for astrodrizzle
         return self.run(exit_codes.STAGE2_ERROR, self.stage2, *args)
 
     # .............................................................
