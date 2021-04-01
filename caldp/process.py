@@ -293,7 +293,6 @@ class InstrumentManager:
         return self.run(exit_codes.STAGE1_ERROR, self.stage1, *args)
 
     def run_stage2(self, *args):
-        args.insert(0, "-n 1")  # force single core for astrodrizzle
         return self.run(exit_codes.STAGE2_ERROR, self.stage2, *args)
 
     # .............................................................
@@ -551,12 +550,14 @@ class InstrumentManager:
         if assoc:
             self.run_stage1(*assoc)
             if self.stage2:
+                assoc.insert(0, "-n 1")  # force single core for astrodrizzle
                 self.run_stage2(*assoc)
             return
         unassoc = self.unassoc_files(files)
         if unassoc:
             self.run_stage1(*unassoc)
             if self.stage2:
+                assoc.insert(0, "-n 1")  # force single core for astrodrizzle
                 self.run_stage2(*unassoc)
             return
 
