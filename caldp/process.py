@@ -550,14 +550,16 @@ class InstrumentManager:
         if assoc:
             self.run_stage1(*assoc)
             if self.stage2:
-                assoc.insert(0, "-n 1")  # force single core for astrodrizzle
+                assoc.insert(0, "-n")  # force single core for astrodrizzle
+                assoc.insert(1, "1")
                 self.run_stage2(*assoc)
             return
         unassoc = self.unassoc_files(files)
         if unassoc:
             self.run_stage1(*unassoc)
             if self.stage2:
-                assoc.insert(0, "-n 1")  # force single core for astrodrizzle
+                assoc.insert(0, "-n")  # force single core for astrodrizzle
+                assoc.insert(1, "1")
                 self.run_stage2(*unassoc)
             return
 
