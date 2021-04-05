@@ -70,7 +70,14 @@ if [ $output_path != "none" -a $output_location == 's3' ]; then
         echo "XXXXXX  S3 read check failed at ${output_path}."
         exit 1
     fi
+    # get crds context from S3
+    echo ........................................ OPERATOR CONTROLLED CRDS  ...................................
+    flist=$(aws s3 ls $bucket/crds_env_vars/ | grep ".pmap")
+    export CRDS_CONTEXT=`echo $flist | awk '{print $4}'`
+    echo "CRDS_CONTEXT is set to ${CRDS_CONTEXT} from ${bucket}/crds_env_vars/"
 fi
+
+
 
 echo ........................................ processing log ..............................................
 pwd
