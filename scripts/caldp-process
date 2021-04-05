@@ -77,8 +77,6 @@ if [ $output_path != "none" -a $output_location == 's3' ]; then
     echo "CRDS_CONTEXT is set to ${CRDS_CONTEXT} from ${bucket}/crds_env_vars/"
 fi
 
-
-
 echo ........................................ processing log ..............................................
 pwd
 set -o pipefail && $TIME --verbose -o process_metrics.txt \
