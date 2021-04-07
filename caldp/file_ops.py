@@ -136,7 +136,7 @@ def tar_outputs(ipppssoot, output_uri):
     file_list = find_files(ipppssoot)
     tar = make_tar(file_list, ipppssoot)
     upload_tar(tar, output_path)
+    clean_up(file_list, ipppssoot, dirs=["previews", "env"])
     os.chdir(working_dir)
-    clean_up(file_list, ipppssoot, dirs=["previews", "env", "logs"])
     if output_uri.startswith("file"):  # test cov only
         return tar, file_list  # , local_outpath
