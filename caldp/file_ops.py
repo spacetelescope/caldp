@@ -112,7 +112,7 @@ class ProgressPercentage(object):
 
 
 def clean_up(file_list, ipppssoot, dirs=None):
-    print("Cleaning up...")
+    print("\nCleaning up...")
     for f in file_list:
         try:
             os.remove(f)
@@ -120,7 +120,7 @@ def clean_up(file_list, ipppssoot, dirs=None):
             print(f"file {f} not found")
     if dirs is not None:
         for d in dirs:
-            subdir = os.path.abspath(f"outputs/{ipppssoot}/{d}")
+            subdir = os.path.abspath(f"{ipppssoot}/{d}")
             try:
                 shutil.rmtree(subdir)
             except OSError:

@@ -58,7 +58,7 @@ class Logs:
             with open(k, "rb") as f:
                 client.upload_fileobj(f, bucket, obj)
                 log.info(f"\t{v}.")
-                os.remove(k)
+                # os.remove(k)
         log.info("Log files uploaded.")
 
 
