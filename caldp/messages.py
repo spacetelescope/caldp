@@ -234,7 +234,7 @@ def clean_up(ipppssoot, IO):
             if os.path.isfile(f):
                 os.remove(f)
             elif os.path.isdir(f):
-                if len(f) > 0:
+                if len(os.listdir(f)) > 0:
                     shutil.rmtree(f)
                 else:
                     os.rmdir(f)
