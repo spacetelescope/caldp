@@ -36,10 +36,7 @@ class Logs:
 
     def copy_logs(self):
         log_output = self.get_log_output(local=True)
-        if self.output_uri.startswith("file"):
-            log_dict = self.findlogs(log_output)
-        elif self.output_uri.startswith("s3"):
-            log_dict = self.findlogs(log_output)
+        log_dict = self.findlogs(log_output)
         log.info("Saving log files...")
         for k, v in log_dict.items():
             try:
@@ -234,7 +231,13 @@ def clean_up(ipppssoot, IO):
         ipst = os.path.join(folder, ipppssoot)
         file_list = list(glob.glob(f"{ipst}/*"))
         for f in file_list:
-            os.remove(f)
+            if os.path.isfile(f):
+                os.remove(f)
+            elif os.path.isdir(f):
+                if len(os.listdir(f)) > 0:
+                    shutil.rmtree(f)
+                else:
+                    os.rmdir(f)
         os.rmdir(ipst)
     os.rmdir(folder)
     print("Done.")

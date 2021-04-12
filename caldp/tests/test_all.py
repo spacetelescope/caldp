@@ -274,6 +274,10 @@ RESULTS = [
         """,
     ),
 ]
+# 54720 j8f54obeq_spt.fits
+# 54720 outputs/j8f54obeq/j8f54obeq_spt.fits
+# 100800 ibc604b9q_spt.fits
+# 100800 outputs/ibc604b9q/ibc604b9q_spt.fits
 
 TARFILES = [
     ("j8cb010b0", "32586581 j8cb010b0.tar.gz"),
@@ -328,7 +332,7 @@ SHORT_TEST_IPPPSSOOTS = [result[0] for result in RESULTS][:1]
 LONG_TEST_IPPPSSOOTS = [result[0] for result in RESULTS][:-1]  # [1:]
 ENV_TEST_IPPPSSOOTS = [result[0] for result in RESULTS][-1:]
 
-LONG_TEST_IPPPSSOOTS += SHORT_TEST_IPPPSSOOTS  # Include all for creating test cases.
+# LONG_TEST_IPPPSSOOTS += SHORT_TEST_IPPPSSOOTS  # Include all for creating test cases.
 
 
 # Leave S3 config undefined to skip S3 tests
@@ -400,8 +404,11 @@ def coretst(temp_dir, ipppssoot, input_uri, output_uri):
             check_tarfiles(TARFILES, actual_tarfiles, ipppssoot, output_uri)
             check_pathfinder(ipppssoot)
             message_status_check(input_uri, output_uri, ipppssoot)
+
             os.remove(tarball)
         check_messages_cleanup(ipppssoot)
+        if input_uri.startswith("astroquery"):
+            check_IO_clean_up(ipppssoot)
     finally:
         os.chdir(temp_dir)
 
@@ -455,15 +462,6 @@ def check_tarball_out(ipppssoot, input_uri, output_uri):
                 actual_tarfiles[name] = size
         return actual_tarfiles
 
-        # file_list.append(tar)
-        # logs = messages.Logs(output_path, output_uri, ipppssoot)
-        # log_path = os.path.abspath(logs.get_log_output())
-        # for f in os.listdir(log_path):
-        #     file_list.append(os.path.join(log_path, f))
-        # file_ops.clean_up(file_list, ipppssoot, dirs=["previews", "logs"])
-        # messages.clean_up(ipppssoot, IO="messages")
-        # assert len(os.listdir(local_outpath)) == 0
-
 
 def check_messages_cleanup(ipppssoot):
     # logs/ipppssoot just ensures test coverage in messages.clean_up
@@ -486,6 +484,15 @@ def check_messages_cleanup(ipppssoot):
     for i, d in enumerate(dirs):
         assert not os.path.isdir(d)
         assert not os.path.isfile(tempfiles[i])
+
+
+def check_IO_clean_up(ipppssoot):
+    messages.clean_up(ipppssoot, IO="outputs")
+    path_outputs = os.path.join(os.getcwd(), "outputs")
+    assert not os.path.isdir(path_outputs)
+    messages.clean_up(ipppssoot, IO="inputs")
+    path_inputs = os.path.join(os.getcwd(), "inputs")
+    assert not os.path.isdir(path_inputs)
 
 
 def list_files(startpath, ipppssoot):
@@ -629,6 +636,11 @@ def check_logs(input_uri, output_uri, ipppssoot):
         logs = messages.Logs(output_path, output_uri, ipppssoot)
         log_path = logs.get_log_output()
         assert os.path.exists(log_path)
+        try:
+            logs.upload_logs()
+        except Exception as e:
+            print("s3 error check: ", e)
+            assert True
 
 
 def check_messages(ipppssoot, output_uri, status):
