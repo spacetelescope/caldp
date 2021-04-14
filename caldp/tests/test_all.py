@@ -404,7 +404,6 @@ def coretst(temp_dir, ipppssoot, input_uri, output_uri):
             check_tarfiles(TARFILES, actual_tarfiles, ipppssoot, output_uri)
             check_pathfinder(ipppssoot)
             message_status_check(input_uri, output_uri, ipppssoot)
-
             os.remove(tarball)
         check_messages_cleanup(ipppssoot)
         if input_uri.startswith("astroquery"):
@@ -487,12 +486,15 @@ def check_messages_cleanup(ipppssoot):
 
 
 def check_IO_clean_up(ipppssoot):
+    """Test cleanup using Astroquery inputs and local outputs.
+    NOTE: cleanup of inputs would normally only occur if using s3
+    """
     messages.clean_up(ipppssoot, IO="outputs")
-    path_outputs = os.path.join(os.getcwd(), "outputs")
-    assert not os.path.isdir(path_outputs)
+    assert not os.path.isdir(os.path.join(os.getcwd(), "outputs"))
+    assert not os.path.isdir(os.path.join(os.getcwd(), "outputs", ipppssoot))
     messages.clean_up(ipppssoot, IO="inputs")
-    path_inputs = os.path.join(os.getcwd(), "inputs")
-    assert not os.path.isdir(path_inputs)
+    assert not os.path.isdir(os.path.join(os.getcwd(), "inputs"))
+    assert not os.path.isdir(os.path.join(os.getcwd(), "inputs", ipppssoot))
 
 
 def list_files(startpath, ipppssoot):
