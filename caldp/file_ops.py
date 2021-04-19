@@ -23,7 +23,7 @@ def get_input_path(input_uri, ipppssoot, make=False):
     return input_path
 
 
-def append_trailer(input_path, output_path, ipppssoot):  # pragma: no cover
+def append_trailer(output_path, ipppssoot):  # pragma: no cover
     """Fetch process log and append to trailer file
     Note: copies trailer file from inputs directory
     and copies to outputs directory prior to appending log
@@ -58,13 +58,32 @@ def get_output_dir(output_uri):
     return output_dir
 
 
-def find_files(ipppssoot):
+def get_input_dir(input_uri):
+    if input_uri.startswith("file"):
+        input_dir = input_uri.split(":")[-1]
+    else:
+        input_dir = os.path.join(os.getcwd(), "inputs")
+    return input_dir
+
+
+def find_output_files(ipppssoot):
     search_fits = f"{ipppssoot}/*.fits"
     search_tra = f"{ipppssoot}/*.tra"
+    output_files = list(glob.glob(search_fits))
+    output_files.extend(list(glob.glob(search_tra)))
+    return output_files
+
+
+def find_previews(ipppssoot, output_files):
     search_prev = f"{ipppssoot}/previews/*"
-    file_list = list(glob.glob(search_fits))
-    file_list.extend(list(glob.glob(search_tra)))
-    file_list.extend(list(glob.glob(search_prev)))
+    output_files.extend(list(glob.glob(search_prev)))
+    return output_files
+
+
+def find_input_files(ipppssoot):
+    """If job fails (no outputs), tar the input files instead for debugging purposes."""
+    search_inputs = f"{ipppssoot}/*"
+    file_list = list(glob.glob(search_inputs))
     return file_list
 
 
@@ -75,6 +94,7 @@ def make_tar(file_list, ipppssoot):
         os.remove(tar)  # clean up from prev attempts
     with tarfile.open(tar, "x:gz") as t:
         for f in file_list:
+            print(os.path.basename(f))
             t.add(f)
     log.info("Tar successful: ", tar)
     tar_dest = os.path.join(ipppssoot, tar)
@@ -128,12 +148,20 @@ def clean_up(file_list, ipppssoot, dirs=None):
     print("Done.")
 
 
-def tar_outputs(ipppssoot, output_uri):
+def tar_outputs(ipppssoot, input_uri, output_uri):
     working_dir = os.getcwd()
     output_path = process.get_output_path(output_uri, ipppssoot)
     output_dir = get_output_dir(output_uri)
     os.chdir(output_dir)  # create tarfile with ipst/*fits (ipst is parent dir)
-    file_list = find_files(ipppssoot)
+    output_files = find_output_files(ipppssoot)
+    if len(output_files) == 0:
+        log.info("No output files found. Tarring inputs for debugging.")
+        os.chdir(working_dir)
+        input_dir = get_input_dir(input_uri)
+        os.chdir(input_dir)
+        file_list = find_input_files(ipppssoot)
+    else:
+        file_list = find_previews(ipppssoot, output_files)
     tar = make_tar(file_list, ipppssoot)
     upload_tar(tar, output_path)
     clean_up(file_list, ipppssoot, dirs=["previews", "env"])

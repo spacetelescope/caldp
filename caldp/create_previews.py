@@ -205,8 +205,8 @@ def main(ipppssoot, input_uri_prefix, output_uri_prefix):
         preview_output = process.get_output_path("file:outputs", ipppssoot) + "/previews"
         os.makedirs(preview_output, exist_ok=True)
         copy_previews(previews, preview_output)
-        log.info("Uploading previews...")
-        file_ops.tar_outputs(ipppssoot, output_uri_prefix)
+        log.info("Preparing files for s3 upload...")
+        file_ops.tar_outputs(ipppssoot, input_uri_prefix, output_uri_prefix)
     elif output_uri_prefix.startswith("file"):
         preview_output = process.get_output_path(output_uri_prefix, ipppssoot) + "/previews"
         os.makedirs(preview_output, exist_ok=True)

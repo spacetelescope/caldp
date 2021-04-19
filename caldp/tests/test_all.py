@@ -274,10 +274,6 @@ RESULTS = [
         """,
     ),
 ]
-# 54720 j8f54obeq_spt.fits
-# 54720 outputs/j8f54obeq/j8f54obeq_spt.fits
-# 100800 ibc604b9q_spt.fits
-# 100800 outputs/ibc604b9q/ibc604b9q_spt.fits
 
 TARFILES = [
     ("j8cb010b0", "32586581 j8cb010b0.tar.gz"),
@@ -327,6 +323,18 @@ S3_OUTPUTS = [
     ),
 ]
 
+FAIL_OUTPUTS = [
+    (
+        "j8f54obeq",
+        """
+        6445230 j8f54obeq.tar.gz
+        1136 preview.txt
+        113 preview_metrics.txt
+        4557 process.txt
+        112 process_metrics.txt
+        """,
+    ),
+]
 
 SHORT_TEST_IPPPSSOOTS = [result[0] for result in RESULTS][:1]
 LONG_TEST_IPPPSSOOTS = [result[0] for result in RESULTS][:-1]  # [1:]
@@ -334,10 +342,9 @@ ENV_TEST_IPPPSSOOTS = [result[0] for result in RESULTS][-1:]
 
 # LONG_TEST_IPPPSSOOTS += SHORT_TEST_IPPPSSOOTS  # Include all for creating test cases.
 
-
 # Leave S3 config undefined to skip S3 tests
-CALDP_S3_TEST_OUTPUTS = os.environ.get("CALDP_S3_TEST_OUTPUTS")  # s3://calcloud-hst-test-outputs/test-batch
-CALDP_S3_TEST_INPUTS = os.environ.get("CALDP_S3_TEST_INPUTS")
+CALDP_S3_TEST_OUTPUTS = os.environ.get("CALDP_S3_TEST_OUTPUTS")  # s3://caldp-output-test/pytest/outputs
+CALDP_S3_TEST_INPUTS = os.environ.get("CALDP_S3_TEST_INPUTS")  # s3://caldp-output-test/inputs
 
 # Output sizes must be within +- this fraction of truth value
 CALDP_TEST_FILE_SIZE_THRESHOLD = float(os.environ.get("CALDP_TEST_FILE_SIZE_THRESHOLD", 0.4))
@@ -399,13 +406,15 @@ def coretst(temp_dir, ipppssoot, input_uri, output_uri):
         check_messages(ipppssoot, output_uri, status="processed.trigger")
         # tests whether file_ops gracefully handles an exception type
         file_ops.clean_up([], ipppssoot, dirs=["dummy_dir"])
+
         if input_uri.startswith("file"):  # create tarfile if s3 access unavailable
             actual_tarfiles = check_tarball_out(ipppssoot, input_uri, output_uri)
             check_tarfiles(TARFILES, actual_tarfiles, ipppssoot, output_uri)
             check_pathfinder(ipppssoot)
             message_status_check(input_uri, output_uri, ipppssoot)
-
             os.remove(tarball)
+        # check output tarball for failed jobs
+        check_failed_job_tarball(ipppssoot, input_uri, output_uri)
         check_messages_cleanup(ipppssoot)
         if input_uri.startswith("astroquery"):
             check_IO_clean_up(ipppssoot)
@@ -451,7 +460,7 @@ def check_tarball_out(ipppssoot, input_uri, output_uri):
         in and of itself is what really needs to be tested...
         meaning it should be caldp, not in the test
         """
-        tar, file_list = file_ops.tar_outputs(ipppssoot, output_uri)
+        tar, file_list = file_ops.tar_outputs(ipppssoot, input_uri, output_uri)
         assert len(file_list) > 0
         tarpath = os.path.join("outputs", tar)
         assert os.path.exists(tarpath)
@@ -461,6 +470,41 @@ def check_tarball_out(ipppssoot, input_uri, output_uri):
             if name.endswith(".tar.gz"):
                 actual_tarfiles[name] = size
         return actual_tarfiles
+
+
+def check_failed_job_tarball(ipppssoot, input_uri, output_uri):
+    """In the case of a processing error, tar the input files and upload to s3 for debugging.
+    test case: iacs01t4q, astroquery:, file:outputs
+    Note: if caldp fails during processing, the .fits and .tra files are never copied over to /outputs folder but the (partially) processed input files are available in /inputs.
+    """
+    if ipppssoot == "j8f54obeq" and input_uri.startswith("astroquery"):
+        working_dir = os.getcwd()
+        fail_outputs = dict(FAIL_OUTPUTS)
+        expected = {}
+        for (name, size) in parse_results(fail_outputs[ipppssoot]):
+            expected[name] = size
+        # manually search and delete output files so it's forced to use the inputs
+        output_dir = file_ops.get_output_dir(output_uri)
+        os.chdir(output_dir)
+        output_files = file_ops.find_output_files(ipppssoot)
+        # assert len(output_files) == 6
+        if len(output_files) > 0:
+            print("Removing outputs for failed job test:")
+            for f in output_files:
+                print(f)
+                os.remove(f)
+            empty_outputs = file_ops.find_output_files(ipppssoot)
+            print("Files remaining in outputs dir: ", len(empty_outputs))
+            assert len(empty_outputs) == 0
+        os.chdir(working_dir)
+        tar, file_list = file_ops.tar_outputs(ipppssoot, input_uri, output_uri)
+        assert len(file_list) == 7
+        assert os.path.exists(os.path.join("inputs", tar))
+        actual = list_inputs(ipppssoot, input_uri)
+        log_path = os.path.join("outputs", ipppssoot, "logs")
+        assert os.path.exists(log_path)
+        actual.update(list_logs(log_path))
+        check_outputs(output_uri, expected, actual)
 
 
 def check_messages_cleanup(ipppssoot):
@@ -487,12 +531,15 @@ def check_messages_cleanup(ipppssoot):
 
 
 def check_IO_clean_up(ipppssoot):
+    """Test cleanup using Astroquery inputs and local outputs.
+    NOTE: cleanup of inputs would normally only occur if using s3
+    """
     messages.clean_up(ipppssoot, IO="outputs")
-    path_outputs = os.path.join(os.getcwd(), "outputs")
-    assert not os.path.isdir(path_outputs)
+    assert not os.path.isdir(os.path.join(os.getcwd(), "outputs"))
+    assert not os.path.isdir(os.path.join(os.getcwd(), "outputs", ipppssoot))
     messages.clean_up(ipppssoot, IO="inputs")
-    path_inputs = os.path.join(os.getcwd(), "inputs")
-    assert not os.path.isdir(path_inputs)
+    assert not os.path.isdir(os.path.join(os.getcwd(), "inputs"))
+    assert not os.path.isdir(os.path.join(os.getcwd(), "inputs", ipppssoot))
 
 
 def list_files(startpath, ipppssoot):
@@ -502,6 +549,14 @@ def list_files(startpath, ipppssoot):
             if f.startswith(ipppssoot[0:5]):
                 file_dict[f] = os.path.getsize(root + os.sep + f)
     return file_dict
+
+
+def list_logs(logpath):
+    log_dict = {}
+    for root, _, files in os.walk(logpath):
+        for f in sorted(files, key=lambda f: os.path.getsize(root + os.sep + f)):
+            log_dict[f] = os.path.getsize(root + os.sep + f)
+    return log_dict
 
 
 def list_objects(path):
