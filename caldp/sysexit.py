@@ -249,7 +249,7 @@ def exit_receiver():
     os._exit(code)
 
 
-def get_linux_memory_limit():  # no cov
+def get_linux_memory_limit():  # pragma: no cover
     """This generally shows the full address space by default.
 
     >> limit = get_linux_memory_limit()
@@ -335,5 +335,5 @@ def test():  # pragma: no cover
     return test_result
 
 
-if __name__ == "__main__":  # pragma no cover
+if __name__ == "__main__":  # pragma: no cover
     print(test())
