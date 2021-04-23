@@ -40,6 +40,10 @@ RUN mv /etc/ssl/certs/ca-bundle.crt /etc/ssl/certs/ca-bundle.crt.org && \
     mkdir -p /etc/pki/ca-trust/extracted/openssl
 
 USER root
+# this is a temporary solution for an update to the crds_s3_get plugin
+# because python in the sdp environment is pinned to 3.6, crds is pinned to 10.1.0
+COPY ./scripts/crds_s3_get /home/developer/crds_s3_get
+RUN chmod +x /home/developer/crds_s3_get
 # RUN npm config set cafile /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
 COPY scripts/fix-certs .
 
