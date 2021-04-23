@@ -15,7 +15,7 @@ an exception by performing the corresponding log output and sys.exit() call.  A
 few error codes are simulated more directly, particularly memory errors.
 
 The exit_receiver() manager is used to bracket the top level of your code,
-nominally main(), and land the SystemExit() exception raised by
+nominally main(), and land the CaldpExit() exception raised by
 exit_on_exception() after the stack has been unwound and cleanup functions
 performed.  exit_receiver() then exits Python with the error code originally
 passed into exit_on_exception().
@@ -38,6 +38,10 @@ from caldp import exit_codes
 # ==============================================================================
 
 
+class CaldpExit(SystemExit):
+    """Handle like SystemExit,  but we definitely threw it."""
+
+
 @contextlib.contextmanager
 def exit_on_exception(exit_code, *args):
     """exit_on_exception is a context manager which issues an error message
@@ -55,12 +59,12 @@ def exit_on_exception(exit_code, *args):
     ... except SystemExit:
     ...    log.divider()
     ...    print("Trapping SystemExit normally caught by log.exit_reciever() at top level.")
-    INFO - ----------------------------- Fatal Exception -----------------------------
+    ERROR - ----------------------------- Fatal Exception -----------------------------
     ERROR - As expected it failed.
     ERROR - Traceback (most recent call last):
     ERROR -   File ".../sysexit.py", line ..., in exit_on_exception
     ERROR -     yield
-    ERROR -   File "<doctest ...sysexit.exit_on_exception[1]>", line ..., in <module>
+    ERROR -   File "<doctest ...exit_on_exception[1]>", line ..., in <module>
     ERROR -     raise Exception("It failed!")
     ERROR - Exception: It failed!
     EXIT - CMDLINE_ERROR[2]: The program command line invocation was incorrect.
@@ -78,7 +82,7 @@ def exit_on_exception(exit_code, *args):
     ...        print("should not see this")
     ... except SystemExit:
     ...    pass
-    INFO - ----------------------------- Fatal Exception -----------------------------
+    ERROR - ----------------------------- Fatal Exception -----------------------------
     ERROR - As expected a failure was simulated
     ERROR - Traceback (most recent call last):
     ERROR -   File ".../sysexit.py", line ..., in exit_on_exception
@@ -92,7 +96,7 @@ def exit_on_exception(exit_code, *args):
     ...        print("Oh unhappy day.")
     ... except SystemExit:
     ...    pass
-    INFO - ----------------------------- Fatal Exception -----------------------------
+    ERROR - ----------------------------- Fatal Exception -----------------------------
     ERROR - Memory errors don't have to match
     ERROR - Traceback (most recent call last):
     ERROR -   File ".../sysexit.py", line ..., in exit_on_exception
@@ -122,17 +126,153 @@ def exit_on_exception(exit_code, *args):
             raise RuntimeError(f"Simulating error = {simulated_code}")
         yield
     # don't mask memory errors or nested exit_on_exception handlers
-    except SystemExit:
-        _report_exception(exit_code, *args)
+    except MemoryError:
+        _report_exception(exit_codes.CALDP_MEMORY_ERROR, args)
+        raise CaldpExit(exit_codes.CALDP_MEMORY_ERROR)
+    except CaldpExit:
         raise
-    # Map MemoryError to SytemExit(CALDP_MEMORY_ERROR).
-    except MemoryError as exc:
-        _report_exception(exit_codes.CALDP_MEMORY_ERROR, *args)
-        raise SystemExit(exit_codes.CALDP_MEMORY_ERROR) from exc
-    # All other exceptions are remapped to the SystemExit(exit_code) declared by exit_on_exception().
-    except Exception as exc:
-        _report_exception(exit_code, *args)
-        raise SystemExit(exit_code) from exc
+    except Exception:
+        _report_exception(exit_code, args)
+        raise CaldpExit(exit_code)
+
+
+def _report_exception(exit_code, args=None):
+    """Issue trigger output for exit_on_exception, including `exit_code` and
+    error message defined by `args`, as well as traceback.
+    """
+    log.divider("Fatal Exception", func=log.error)
+    if args:
+        log.error(*args)
+    for line in traceback.format_exc().splitlines():
+        if line != "NoneType: None":
+            log.error(line)
+    print(exit_codes.explain(exit_code))
+
+
+@contextlib.contextmanager
+def exit_receiver():
+    """Use this contextmanager to bracket your top level code and land the sys.exit()
+    exceptions thrown by _raise_exit_exception() and exit_on_exception().
+
+    This program structure enables sys.exit() to fully unwind the stack doing
+    cleanup, then calls the low level os._exit() function which does no cleanup
+    as the "last thing".
+
+    If SystemExit is not raised by the code nested in the "with" block then
+    exit_receiver() essentially does nothing.
+
+    The program is exited with the numerical code passed to sys.exit().
+
+    >>> saved, os._exit = os._exit, lambda x: print(f"os._exit({x})")
+
+    >>> with exit_receiver():  #doctest: +ELLIPSIS
+    ...     print("Oh happy day.")
+    Oh happy day.
+    os._exit(0)
+
+    Generic unhandled exceptions are mapped to GENERIC_ERROR (1):
+
+    >>> def foo():
+    ...    print("foo!")
+    ...    bar()
+    >>> def bar():
+    ...    print("bar!")
+    ...    raise RuntimeError()
+
+    >>> with exit_receiver(): #doctest: +ELLIPSIS
+    ...     foo()
+    foo!
+    bar!
+    ERROR - ----------------------------- Fatal Exception -----------------------------
+    ERROR - Untrapped non-memory exception.
+    ERROR - Traceback (most recent call last):
+    ERROR -   File ".../caldp/sysexit.py", line ..., in exit_receiver
+    ERROR -     yield  # go off and execute the block
+    ERROR -   File "<doctest caldp.sysexit.exit_receiver[...]>", line ..., in <module>
+    ERROR -     foo()
+    ERROR -   File "<doctest caldp.sysexit.exit_receiver[...]>", line ..., in foo
+    ERROR -     bar()
+    ERROR -   File "<doctest caldp.sysexit.exit_receiver[...]>", line ..., in bar
+    ERROR -     raise RuntimeError()
+    ERROR - RuntimeError
+    EXIT - GENERIC_ERROR[1]: An error with no specific CALDP handling occurred somewhere.
+    os._exit(1)
+
+    MemoryError is remapped to CALDP_MEMORY_ERROR (32) inside exit_on_exception or not:
+
+    >>> with exit_receiver(): #doctest: +ELLIPSIS
+    ...     raise MemoryError("CALDP used up all memory directly.")
+    ERROR - ----------------------------- Fatal Exception -----------------------------
+    ERROR - Untrapped memory exception.
+    ERROR - Traceback (most recent call last):
+    ERROR -   File ".../caldp/sysexit.py", line ..., in exit_receiver
+    ERROR -     yield  # go off and execute the block
+    ERROR -   File "<doctest caldp.sysexit.exit_receiver[...]>", line ..., in <module>
+    ERROR -     raise MemoryError("CALDP used up all memory directly.")
+    ERROR - MemoryError: CALDP used up all memory directly.
+    EXIT - CALDP_MEMORY_ERROR[32]: CALDP generated a Python MemoryError during processing or preview creation.
+    os._exit(32)
+
+    Inside exit_on_exception, exit status is remapped to the exit_code parameter
+    of exit_on_exception():
+
+    >>> with exit_receiver(): #doctest: +ELLIPSIS
+    ...    with exit_on_exception(exit_codes.STAGE1_ERROR, "Stage1 processing failed for <ippssoot>"):
+    ...        raise RuntimeError("Some obscure error")
+    ERROR - ----------------------------- Fatal Exception -----------------------------
+    ERROR - Stage1 processing failed for <ippssoot>
+    ERROR - Traceback (most recent call last):
+    ERROR -   File ".../sysexit.py", line ..., in exit_on_exception
+    ERROR -     yield
+    ERROR -   File "<doctest ...sysexit.exit_receiver[...]>", line ..., in <module>
+    ERROR -     raise RuntimeError("Some obscure error")
+    ERROR - RuntimeError: Some obscure error
+    EXIT - STAGE1_ERROR[23]: An error occurred in this instrument's stage1 processing step. e.g. calxxx
+    os._exit(23)
+
+    >>> os._exit = saved
+
+    """
+    try:
+        # log.info("Container memory limit is: ", get_linux_memory_limit())
+        yield  # go off and execute the block
+        code = exit_codes.SUCCESS
+    except CaldpExit as exc:
+        code = exc.code
+        # Already reported deeper
+    except MemoryError:
+        code = exit_codes.CALDP_MEMORY_ERROR
+        _report_exception(code, ("Untrapped memory exception.",))
+    except BaseException:  # Catch absolutely everything.
+        code = exit_codes.GENERIC_ERROR
+        _report_exception(code, ("Untrapped non-memory exception.",))
+    os._exit(code)
+
+
+def get_linux_memory_limit():  # pragma: no cover
+    """This generally shows the full address space by default.
+
+    >> limit = get_linux_memory_limit()
+    >> assert isinstance(limit, int)
+    """
+    if os.path.isfile("/sys/fs/cgroup/memory/memory.limit_in_bytes"):
+        with open("/sys/fs/cgroup/memory/memory.limit_in_bytes") as limit:
+            mem = int(limit.read())
+        return mem
+    else:
+        raise RuntimeError("get_linux_memory_limit() failed.")  # pragma: no cover
+
+
+def set_process_memory_limit(mem_in_bytes):
+    """This can be used to limit the available address space / memory to
+    something less than is allocated to the container.   Potentially that
+    will cause Python to generate a MemoryError rather than forcing a
+    container memory limit kill.
+    """
+    resource.setrlimit(resource.RLIMIT_AS, (mem_in_bytes, mem_in_bytes))  # pragma: no cover
+
+
+# ==============================================================================
 
 
 def retry(func, max_retries=3, min_sleep=1, max_sleep=60, backoff=2, exceptions=(Exception, SystemExit)):
@@ -167,110 +307,6 @@ def retry(func, max_retries=3, min_sleep=1, max_sleep=60, backoff=2, exceptions=
     return decor
 
 
-def _report_exception(exit_code, *args):
-    """Issue trigger output for exit_on_exception, including `exit_code` and
-    error message defined by `args`, as well as traceback.
-    """
-    log.divider("Fatal Exception")
-    if args:
-        log.error(*args)
-    for line in traceback.format_exc().splitlines():
-        if line != "NoneType: None":
-            log.error(line)
-    print(exit_codes.explain(exit_code))
-
-
-@contextlib.contextmanager
-def exit_receiver():
-    """Use this contextmanager to bracket your top level code and land the sys.exit()
-    exceptions thrown by _raise_exit_exception() and exit_on_exception().
-
-    This program structure enables sys.exit() to fully unwind the stack doing
-    cleanup, then calls the low level os._exit() function which does no cleanup
-    as the "last thing".
-
-    If SystemExit is not raised by the code nested in the "with" block then
-    exit_receiver() essentially does nothing.
-
-    The program is exited with the numerical code passed to sys.exit().
-
-    >>> saved, os._exit = os._exit, lambda x: print(f"os._exit({x})")
-
-    >>> with exit_receiver():  #doctest: +ELLIPSIS
-    ...     print("Oh happy day.")
-    INFO - Container memory limit is:  ...
-    os._exit(0)
-
-    Generic unhandled exceptions are mapped to GENERIC_ERROR (1):
-
-    >>> with exit_receiver(): #doctest: +ELLIPSIS
-    ...     raise RuntimeError("Unhandled exception.")
-    INFO - Container memory limit is:  ...
-    os._exit(1)
-
-    MemoryError is remapped to CALDP_MEMORY_ERROR (32) inside exit_on_exception or not:
-
-    >>> with exit_receiver(): #doctest: +ELLIPSIS
-    ...     raise MemoryError("CALDP used up all memory directly.")
-    INFO - Container memory limit is: ...
-    os._exit(32)
-
-    Inside exit_on_exception, exit status is remapped to the exit_code parameter
-    of exit_on_exception():
-
-    >>> with exit_receiver(): #doctest: +ELLIPSIS
-    ...    with exit_on_exception(exit_codes.STAGE1_ERROR, "Stage1 processing failed for <ippssoot>"):
-    ...        raise RuntimeError("Some obscure error")
-    INFO - Container memory limit is:  ...
-    INFO - ----------------------------- Fatal Exception -----------------------------
-    ERROR - Stage1 processing failed for <ippssoot>
-    ERROR - Traceback (most recent call last):
-    ERROR -   File ".../sysexit.py", line ..., in exit_on_exception
-    ERROR -     yield
-    ERROR -   File "<doctest ...sysexit.exit_receiver[...]>", line ..., in <module>
-    ERROR -     raise RuntimeError("Some obscure error")
-    ERROR - RuntimeError: Some obscure error
-    EXIT - STAGE1_ERROR[23]: An error occurred in this instrument's stage1 processing step. e.g. calxxx
-    os._exit(23)
-
-    >>> os._exit = saved
-
-    """
-    try:
-        log.info("Container memory limit is: ", get_linux_memory_limit())
-        yield  # go off and execute the block
-        os._exit(exit_codes.SUCCESS)
-    except SystemExit as exc:
-        os._exit(exc.code)
-    except MemoryError:
-        os._exit(exit_codes.CALDP_MEMORY_ERROR)
-    except Exception:
-        os._exit(exit_codes.GENERIC_ERROR)
-
-
-def get_linux_memory_limit():
-    """This generally shows the full address space by default.
-
-    >>> limit = get_linux_memory_limit()
-    >>> assert isinstance(limit, int)
-    """
-    if os.path.isfile("/sys/fs/cgroup/memory/memory.limit_in_bytes"):
-        with open("/sys/fs/cgroup/memory/memory.limit_in_bytes") as limit:
-            mem = int(limit.read())
-        return mem
-    else:
-        raise RuntimeError("get_linux_memory_limit() failed.")  # pragma: no cover
-
-
-def set_process_memory_limit(mem_in_bytes):
-    """This can be used to limit the available address space / memory to
-    something less than is allocated to the container.   Potentially that
-    will cause Python to generate a MemoryError rather than forcing a
-    container memory limit kill.
-    """
-    resource.setrlimit(resource.RLIMIT_AS, (mem_in_bytes, mem_in_bytes))  # pragma: no cover
-
-
 def exponential_backoff(iteration, min_sleep=1, max_sleep=64, backoff=2):
     """given the current number of attempts, return a sleep time using an exponential backoff algorithm
     iteration: the current amount of retries used
@@ -284,3 +320,20 @@ def exponential_backoff(iteration, min_sleep=1, max_sleep=64, backoff=2):
 
     # random uniform number(0.5,1) * backoff^iteration, but clip to min_backoff, max_backoff
     return max(min(random.uniform(0.5, 1) * backoff ** iteration, max_sleep), min_sleep)
+
+
+# ==============================================================================
+
+
+def test():  # pragma: no cover
+    from doctest import testmod
+    import caldp.sysexit
+
+    temp, os._exit = os._exit, lambda x: print(f"os._exit({x})")
+    test_result = testmod(caldp.sysexit)
+    os._exit = temp
+    return test_result
+
+
+if __name__ == "__main__":  # pragma: no cover
+    print(test())
