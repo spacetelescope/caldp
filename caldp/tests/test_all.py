@@ -11,6 +11,7 @@ from caldp import process
 from caldp import create_previews
 from caldp import messages
 from caldp import file_ops
+from caldp import sysexit
 
 
 # ----------------------------------------------------------------------------------------
@@ -418,6 +419,7 @@ def coretst(temp_dir, ipppssoot, input_uri, output_uri):
         check_messages_cleanup(ipppssoot)
         if input_uri.startswith("astroquery"):
             check_IO_clean_up(ipppssoot)
+        check_sysexit_retry()
     finally:
         os.chdir(temp_dir)
 
@@ -743,3 +745,18 @@ def message_status_check(input_uri, output_uri, ipppssoot):
         assert msg.name == f"error-{ipppssoot}"
     elif msg.stat == 3:
         assert msg.name == f"processed-{ipppssoot}.trigger"
+
+
+def check_sysexit_retry():
+    def no_exc_func(arg1=True):
+        pass
+
+    def exc_func(arg1=True):
+        raise NotImplementedError
+
+    retry_no_exc = sysexit.retry(no_exc_func)
+    retry_exc = sysexit.retry(exc_func)
+
+    retry_no_exc()
+    with pytest.raises(NotImplementedError):
+        retry_exc()
