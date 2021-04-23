@@ -756,5 +756,7 @@ def check_sysexit_retry():
 
     retry_no_exc = sysexit.retry(no_exc_func)
     retry_exc = sysexit.retry(exc_func)
+
+    retry_no_exc()
     with pytest.raises(NotImplementedError):
         retry_exc()
