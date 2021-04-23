@@ -505,7 +505,8 @@ class InstrumentManager:
             self.divider("Computing bestrefs and downloading references.", files)
             bestrefs_files = self.raw_files(files)
             # Only sync reference files if the cache is read/write.
-            bestrefs.assign_bestrefs(
+            retry_bestrefs = sysexit.retry(bestrefs.assign_bestrefs)
+            retry_bestrefs(
                 bestrefs_files,
                 context=os.environ.get("CRDS_CONTEXT", default=None),
                 sync_references=os.environ.get("CRDS_READONLY_CACHE", "0") != "1",

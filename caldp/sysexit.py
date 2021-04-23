@@ -29,6 +29,8 @@ import os
 import contextlib
 import traceback
 import resource
+import time
+import random
 
 from caldp import log
 from caldp import exit_codes
@@ -133,6 +135,38 @@ def exit_on_exception(exit_code, *args):
         raise SystemExit(exit_code) from exc
 
 
+def retry(func, max_retries=3, min_sleep=1, max_sleep=60, backoff=2, exceptions=(Exception, SystemExit)):
+    """a decorator for retrying a function call on exception
+    max_retries: number of times to retry
+    min_sleep: starting value for backing off, in seconds
+    max_sleep: sleep value not to exceed, in seconds
+    backoff: the exponential factor
+    exceptions: tuple of exceptions to catch and retry
+
+    """
+
+    def decor(*args, **kwargs):
+        tried = 0
+        while tried < max_retries:
+            try:
+                return func(*args, **kwargs)
+            except exceptions as e:
+                # otherwise e is lost to the namespace cleanup,
+                # and we may need to raise it later
+                exc = e
+                tried += 1
+                sleep = exponential_backoff(tried)
+                log.warning(
+                    f"{func.__name__} raised exception, using retry {tried} of {max_retries}, sleeping for {sleep} seconds "
+                )
+                time.sleep(sleep)
+
+        # if we're here, no attempt to call func() succeeded
+        raise exc
+
+    return decor
+
+
 def _report_exception(exit_code, *args):
     """Issue trigger output for exit_on_exception, including `exit_code` and
     error message defined by `args`, as well as traceback.
@@ -235,3 +269,18 @@ def set_process_memory_limit(mem_in_bytes):
     container memory limit kill.
     """
     resource.setrlimit(resource.RLIMIT_AS, (mem_in_bytes, mem_in_bytes))  # pragma: no cover
+
+
+def exponential_backoff(iteration, min_sleep=1, max_sleep=64, backoff=2):
+    """given the current number of attempts, return a sleep time using an exponential backoff algorithm
+    iteration: the current amount of retries used
+    min_sleep: minimum value to wait before retry, in seconds
+    max_sleep: maximum value to wait before retry, in seconds
+
+    note: if you allow too many retries that cause the backoff to exceed max_sleep,
+    you will lose the benefit of jitter
+    see i.e. https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/
+    """
+
+    # random uniform number(0.5,1) * backoff^iteration, but clip to min_backoff, max_backoff
+    return max(min(random.uniform(0.5, 1) * backoff ** iteration, max_sleep), min_sleep)
