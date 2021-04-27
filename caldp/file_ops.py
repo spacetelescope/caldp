@@ -50,7 +50,7 @@ def append_trailer(output_path, ipppssoot):  # pragma: no cover
 
 
 def get_output_dir(output_uri):
-    """Returns full path to output folder """
+    """Returns full path to output folder"""
     if output_uri.startswith("file"):
         output_dir = output_uri.split(":")[-1]
     elif output_uri.startswith("s3"):
