@@ -12,6 +12,8 @@ export CRDS_DOWNLOAD_PLUGIN='/home/developer/crds_s3_get ${SOURCE_URL} ${OUTPUT_
 export CRDS_USE_PICKLED_CONTEXTS=1
 export CRDS_S3_ENABLED=1
 export CRDS_S3_RETURN_URI=0
+export CRDS_CLIENT_RETRY_COUNT=4
+export CRDS_CLIENT_RETRY_DELAY_SECONDS=10
 
 # Point IRAF-style CAL env vars into corresponding areas of CRDS cache.
 
