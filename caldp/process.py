@@ -287,7 +287,7 @@ class InstrumentManager:
             if err in self.ignore_err_nums:
                 log.info("Ignoring error status =", err)
             elif err:
-                raise RuntimeError(f"Subprocess returned with non-zero status = {err}")
+                raise sysexit.SubprocessFailure(err)
 
     def run_stage1(self, *args):
         return self.run(exit_codes.STAGE1_ERROR, self.stage1, *args)

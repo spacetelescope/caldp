@@ -58,7 +58,12 @@ echo ........................................ Environment ......................
 echo "User is" `whoami`
 echo "Current dir is" `pwd`
 printenv | sort
+
+echo ........................................ Directory Perms  ..............................................
 ls -ld .
+
+echo ........................................ Ulimits ..............................................
+ulimit -a
 
 output_location=`echo $output_path | cut -d':' -f1`
 

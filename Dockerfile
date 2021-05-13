@@ -49,11 +49,6 @@ COPY scripts/fix-certs .
 
 RUN ./fix-certs
 
-RUN pip install --upgrade pip
-RUN pip install awscli boto3
-# RUN pip install jupyterlab
-RUN pip install spec-plots==1.34.6
-
 # Install s/w dev tools for fitscut build
 RUN yum install -y \
    emacs-nox \
@@ -79,6 +74,13 @@ RUN ./caldp-install-fitscut   /usr/local && \
    echo "/usr/local/lib" >> /etc/ld.so.conf && \
    ldconfig
 
+USER developer
+RUN pip install --upgrade pip
+RUN pip install awscli boto3
+# RUN pip install jupyterlab
+RUN pip install spec-plots==1.34.6
+
+USER root
 # Install caldp pip package from local source
 WORKDIR /home/developer
 RUN mkdir /home/developer/caldp
@@ -88,6 +90,12 @@ RUN chown -R developer.developer /home/developer
 # CRDS cache mount point or container storage.
 RUN mkdir -p /grp/crds/cache && chown -R developer.developer /grp/crds/cache
 
+# Part #2 of turning on core dumps
+# # These are also Terraformed as Docker --ulimit,  container runtime also needs to permit.
+# RUN echo "*               soft    core            -1" >> /etc/security/limits.conf &&\
+#     echo "*               hard    core            -1" >> /etc/security/limits.conf
+
+# ------------------------------------------------
 USER developer
+
 RUN cd caldp  &&  pip install .[dev,test]
-RUN cd /opt/conda/lib/python3.6/site-packages/photutils && patch -p 0 -F 3 __init__.py /home/developer/caldp/ascii_fix.patch
