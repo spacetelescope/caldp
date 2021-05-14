@@ -74,13 +74,6 @@ RUN ./caldp-install-fitscut   /usr/local && \
    echo "/usr/local/lib" >> /etc/ld.so.conf && \
    ldconfig
 
-USER developer
-RUN pip install --upgrade pip
-RUN pip install awscli boto3
-# RUN pip install jupyterlab
-RUN pip install spec-plots==1.34.6
-
-USER root
 # Install caldp pip package from local source
 WORKDIR /home/developer
 RUN mkdir /home/developer/caldp
