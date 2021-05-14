@@ -130,6 +130,7 @@ def exit_on_exception(exit_code, *args):
 
     >>> del os.environ["CALDP_SIMULATE_ERROR"]
 
+    >>> saved, os._exit = os._exit, lambda x: print(f"os._exit({x})")
     >>> with exit_receiver():  #doctest: +ELLIPSIS
     ...     with exit_on_exception(exit_codes.STAGE1_ERROR, "Failure running processing stage1."):
     ...         raise SubprocessFailure(-8)
@@ -144,6 +145,7 @@ def exit_on_exception(exit_code, *args):
     EXIT - Killed by UNIX signal SIGFPE[8]: 'Floating-point exception (ANSI).'
     EXIT - STAGE1_ERROR[23]: An error occurred in this instrument's stage1 processing step. e.g. calxxx
     os._exit(23)
+    >>> os._exit = saved
     """
     simulated_code = int(os.environ.get("CALDP_SIMULATE_ERROR", "0"))
     try:
