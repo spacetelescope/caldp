@@ -14,15 +14,8 @@ LABEL maintainer="dmd_octarine@stsci.edu" \
 # Environment variables
 ENV MKL_THREADING_LAYER="GNU"
 
-USER root
-
 ENV REQUESTS_CA_BUNDLE=/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
 ENV CURL_CA_BUNDLE=/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
-
-# Removing kernel-headers seems to remove glibc and all packages which use them
-RUN yum remove -y kernel-devel
-RUN yum install -y curl rsync time
-RUN yum update  -y
 
 # ------------------------------------------------------------------------
 # SSL/TLS cert setup for STScI AWS firewalling
@@ -39,18 +32,15 @@ RUN mv /etc/ssl/certs/ca-bundle.crt /etc/ssl/certs/ca-bundle.crt.org && \
    #  ln -s /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem /usr/lib/ssl/cert.pem && \
     mkdir -p /etc/pki/ca-trust/extracted/openssl
 
-USER root
-# this is a temporary solution for an update to the crds_s3_get plugin
-# because python in the sdp environment is pinned to 3.6, crds is pinned to 10.1.0
-COPY ./scripts/crds_s3_get /home/developer/crds_s3_get
-RUN chmod +x /home/developer/crds_s3_get
 # RUN npm config set cafile /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
 COPY scripts/fix-certs .
-
 RUN ./fix-certs
 
+# Removing kernel-headers seems to remove glibc and all packages which use them
 # Install s/w dev tools for fitscut build
-RUN yum install -y \
+RUN yum remove -y kernel-devel   &&\
+ yum update  -y && \
+ yum install -y \
    emacs-nox \
    make \
    gcc \
@@ -65,7 +55,10 @@ RUN yum install -y \
    libjpeg-devel \
    libcurl-devel \
    tar \
-   patch
+   patch \
+   curl \
+   rsync \
+   time
 
 # Install fitscut
 COPY scripts/caldp-install-fitscut  .
@@ -80,6 +73,11 @@ RUN mkdir /home/developer/caldp
 COPY . /home/developer/caldp/
 RUN chown -R developer.developer /home/developer
 
+# this is a temporary solution for an update to the crds_s3_get plugin
+# because python in the sdp environment is pinned to 3.6, crds is pinned to 10.1.0
+COPY ./scripts/crds_s3_get /home/developer/crds_s3_get
+RUN chmod +x /home/developer/crds_s3_get
+
 # CRDS cache mount point or container storage.
 RUN mkdir -p /grp/crds/cache && chown -R developer.developer /grp/crds/cache
 
@@ -88,7 +86,7 @@ RUN mkdir -p /grp/crds/cache && chown -R developer.developer /grp/crds/cache
 # RUN echo "*               soft    core            -1" >> /etc/security/limits.conf &&\
 #     echo "*               hard    core            -1" >> /etc/security/limits.conf
 
+
 # ------------------------------------------------
 USER developer
-
 RUN cd caldp  &&  pip install .[dev,test]
