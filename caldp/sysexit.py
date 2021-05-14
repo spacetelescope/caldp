@@ -137,7 +137,7 @@ def exit_on_exception(exit_code, *args):
     ERROR - ----------------------------- Fatal Exception -----------------------------
     ERROR - Failure running processing stage1.
     ERROR - Traceback (most recent call last):
-    ERROR -   File "/home/ec2-user/jmiller/caldp/caldp/sysexit.py", line ..., in exit_on_exception
+    ERROR -   File ".../caldp/sysexit.py", line ..., in exit_on_exception
     ERROR -     yield
     ERROR -   File "<doctest caldp.sysexit.exit_on_exception[...]>", line ..., in <module>
     ERROR -     raise SubprocessFailure(-8)
