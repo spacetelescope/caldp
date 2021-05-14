@@ -8,6 +8,8 @@ The intent of these codes is to identify specific error cases defined by CALDP.
 Any errors not explicitly handled by CALDP are intended to be mapped to
 generic values of 0 or 1 to prevent conflicts with these codes.
 """
+import re
+
 
 _MEMORY_ERROR_NAMES = ["SUBPROCESS_MEMORY_ERROR", "CALDP_MEMORY_ERROR", "CONTAINER_MEMORY_ERROR"]
 
@@ -57,6 +59,8 @@ for (name, code) in _EXIT_CODES.items():
     _CODE_TO_NAME[code] = name
     _CODE_TO_NAME[str(code)] = name
     assert name in _NAME_EXPLANATIONS
+
+# -----------------------------------------------------------------------------------------------
 
 
 def explain(exit_code):
@@ -113,6 +117,78 @@ def is_memory_error(exit_code):
     True
     """
     return (exit_code in [globals()[name] for name in _MEMORY_ERROR_NAMES]) or (exit_code in _MEMORY_ERROR_NAMES)
+
+
+# -----------------------------------------------------------------------------------------------
+
+# This is steadily improving and as-of Python-3.8 the signal.strsignal() function will exist.
+
+# This is copied from CentOS Linux's /usr/include/bits/signum.h:
+
+_LINUX_SIGNALS_TEXT = """
+#define SIGHUP          1       /* Hangup (POSIX).  */
+#define SIGINT          2       /* Interrupt (ANSI).  */
+#define SIGQUIT         3       /* Quit (POSIX).  */
+#define SIGILL          4       /* Illegal instruction (ANSI).  */
+#define SIGTRAP         5       /* Trace trap (POSIX).  */
+#define SIGABRT         6       /* Abort (ANSI).  */
+#define SIGIOT          6       /* IOT trap (4.2 BSD).  */
+#define SIGBUS          7       /* BUS error (4.2 BSD).  */
+#define SIGFPE          8       /* Floating-point exception (ANSI).  */
+#define SIGKILL         9       /* Kill, unblockable (POSIX).  */
+#define SIGUSR1         10      /* User-defined signal 1 (POSIX).  */
+#define SIGSEGV         11      /* Segmentation violation (ANSI).  */
+#define SIGUSR2         12      /* User-defined signal 2 (POSIX).  */
+#define SIGPIPE         13      /* Broken pipe (POSIX).  */
+#define SIGALRM         14      /* Alarm clock (POSIX).  */
+#define SIGTERM         15      /* Termination (ANSI).  */
+#define SIGSTKFLT       16      /* Stack fault.  */
+#define SIGCHLD         17      /* Child status has changed (POSIX).  */
+#define SIGCONT         18      /* Continue (POSIX).  */
+#define SIGSTOP         19      /* Stop, unblockable (POSIX).  */
+#define SIGTSTP         20      /* Keyboard stop (POSIX).  */
+#define SIGTTIN         21      /* Background read from tty (POSIX).  */
+#define SIGTTOU         22      /* Background write to tty (POSIX).  */
+#define SIGURG          23      /* Urgent condition on socket (4.2 BSD).  */
+#define SIGXCPU         24      /* CPU limit exceeded (4.2 BSD).  */
+#define SIGXFSZ         25      /* File size limit exceeded (4.2 BSD).  */
+#define SIGVTALRM       26      /* Virtual alarm clock (4.2 BSD).  */
+#define SIGPROF         27      /* Profiling alarm clock (4.2 BSD).  */
+#define SIGWINCH        28      /* Window size change (4.3 BSD, Sun).  */
+#define SIGIO           29      /* I/O now possible (4.2 BSD).  */
+#define SIGPWR          30      /* Power failure restart (System V).  */
+#define SIGSYS          31      /* Bad system call.  */
+"""
+
+SIGNUM_EXPLANATION = {}
+
+for line in _LINUX_SIGNALS_TEXT.strip().splitlines():
+    match = re.match(r"^\S+\s+(\S+)\s+(\S+)\s+(.*)$", line)
+    sigid = match.group(1)
+    signum = int(match.group(2))
+    sigtext = match.group(3)[2:-2].strip()
+    SIGNUM_EXPLANATION[signum] = f"Killed by UNIX signal {sigid}[{signum}]: '{sigtext}'"
+
+
+def explain_signal(signum):
+    """Return a string explaining and representing the Linux signal number `signum`
+    which identifies a low level reason why some subprocess died.
+
+    Note that this function can only be used to format negative suprocess
+    returncode values which represent signal numbers.  Not all processes are
+    killed by signals so this function cannot explain everything, e.g. Python
+    failures such as MemoryError don't result in signals.
+
+    >>> explain_signal(8)
+    "EXIT - Killed by UNIX signal SIGFPE[8]: 'Floating-point exception (ANSI).'"
+
+    >>> explain_signal(11)
+    "EXIT - Killed by UNIX signal SIGSEGV[11]: 'Segmentation violation (ANSI).'"
+    """
+    return "EXIT - " + SIGNUM_EXPLANATION[signum]
+
+
+# -----------------------------------------------------------------------------------------------
 
 
 def test():  # pragma: no cover

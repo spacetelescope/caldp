@@ -42,6 +42,24 @@ class CaldpExit(SystemExit):
     """Handle like SystemExit,  but we definitely threw it."""
 
 
+class SubprocessFailure(Exception):
+    """A called subprocess failed and may require signal reporting.
+
+    In Python, a negative subprocess returncode indicates that the absolete
+    value of the returncode is a signal number which killed the subprocess.
+
+    For completeness, in Linux, the program exit_code is a byte value.  If the
+    sign bit is set, a signal and/or core dump occurred.  The byte reported as
+    exit_code may be unsigned.  The lower bits of the returncode define either
+    the program's exit status or a signum identifying the signal which killed
+    the process.
+
+    """
+
+    def __init__(self, returncode):
+        self.returncode = returncode
+
+
 @contextlib.contextmanager
 def exit_on_exception(exit_code, *args):
     """exit_on_exception is a context manager which issues an error message
@@ -58,7 +76,7 @@ def exit_on_exception(exit_code, *args):
     ...        print("do it.")
     ... except SystemExit:
     ...    log.divider()
-    ...    print("Trapping SystemExit normally caught by log.exit_reciever() at top level.")
+    ...    print("Trapping SystemExit normally caught by exit_reciever() at top level.")
     ERROR - ----------------------------- Fatal Exception -----------------------------
     ERROR - As expected it failed.
     ERROR - Traceback (most recent call last):
@@ -69,7 +87,7 @@ def exit_on_exception(exit_code, *args):
     ERROR - Exception: It failed!
     EXIT - CMDLINE_ERROR[2]: The program command line invocation was incorrect.
     INFO - ---------------------------------------------------------------------------
-    Trapping SystemExit normally caught by log.exit_reciever() at top level.
+    Trapping SystemExit normally caught by exit_reciever() at top level.
 
     Never printed 'do it.'  SystemExit is caught for testing.
 
@@ -111,6 +129,23 @@ def exit_on_exception(exit_code, *args):
     should print normally
 
     >>> del os.environ["CALDP_SIMULATE_ERROR"]
+
+    >>> saved, os._exit = os._exit, lambda x: print(f"os._exit({x})")
+    >>> with exit_receiver():  #doctest: +ELLIPSIS
+    ...     with exit_on_exception(exit_codes.STAGE1_ERROR, "Failure running processing stage1."):
+    ...         raise SubprocessFailure(-8)
+    ERROR - ----------------------------- Fatal Exception -----------------------------
+    ERROR - Failure running processing stage1.
+    ERROR - Traceback (most recent call last):
+    ERROR -   File ".../caldp/sysexit.py", line ..., in exit_on_exception
+    ERROR -     yield
+    ERROR -   File "<doctest caldp.sysexit.exit_on_exception[...]>", line ..., in <module>
+    ERROR -     raise SubprocessFailure(-8)
+    ERROR - caldp.sysexit.SubprocessFailure: -8
+    EXIT - Killed by UNIX signal SIGFPE[8]: 'Floating-point exception (ANSI).'
+    EXIT - STAGE1_ERROR[23]: An error occurred in this instrument's stage1 processing step. e.g. calxxx
+    os._exit(23)
+    >>> os._exit = saved
     """
     simulated_code = int(os.environ.get("CALDP_SIMULATE_ERROR", "0"))
     try:
@@ -131,12 +166,18 @@ def exit_on_exception(exit_code, *args):
         raise CaldpExit(exit_codes.CALDP_MEMORY_ERROR)
     except CaldpExit:
         raise
+    # below as always exit_code defines what will be CALDP's program exit status.
+    # in contrast,  exc.returncode is the subprocess exit status of a failed subprocess which may
+    # define an OS signal that killed the process.
+    except SubprocessFailure as exc:
+        _report_exception(exit_code, args, exc.returncode)
+        raise CaldpExit(exit_code)
     except Exception:
         _report_exception(exit_code, args)
         raise CaldpExit(exit_code)
 
 
-def _report_exception(exit_code, args=None):
+def _report_exception(exit_code, args=None, returncode=None):
     """Issue trigger output for exit_on_exception, including `exit_code` and
     error message defined by `args`, as well as traceback.
     """
@@ -146,6 +187,8 @@ def _report_exception(exit_code, args=None):
     for line in traceback.format_exc().splitlines():
         if line != "NoneType: None":
             log.error(line)
+    if returncode and returncode < 0:
+        print(exit_codes.explain_signal(-returncode))
     print(exit_codes.explain(exit_code))
 
 
