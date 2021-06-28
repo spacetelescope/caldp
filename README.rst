@@ -128,7 +128,7 @@ installation and just want to add to it.
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: sh
 
-     git clone https://github.com/spacetelescope/caldp.git
+    git clone https://github.com/spacetelescope/caldp.git
     cd caldp
 
 1. Install base conda environment
@@ -138,8 +138,8 @@ installation and just want to add to it.
     scripts/caldp-install-conda  [CONDA_DIR]
     source ~/.bashrc
 
-2. Install fundamental CAL code using pipeline package lists
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2. Install CAL code (e.g. calacs.e) using pipeline package lists
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: sh
 
     scripts/caldp-install-cal  [HSTCAL]  [PY_VER]  [CONDA_ENV]  [CONDA_DIR]
@@ -273,7 +273,7 @@ to modify or improve them.
     # Edit scripts/caldp-image-config to set the Docker image config variables for
     # your currrent build.  These will include the repo and image tag your want to
     # build and/or push.
-    vim scripts/caldp-image-config   # and customize as needed.
+    vim scripts/caldp-image-config   # and customize as needed,  particularly ECR config.
 
     # Install CALDP natively to get convenience scripts and your configuration from (1).
     pip install .
@@ -288,9 +288,17 @@ Docker Hub or ECR setup, you can log in from your shell and then:
 
 .. code-block:: sh
 
+    caldp-ecr-login  <hst_repro_role>   # Log into the ECR repo prior to pushing
     caldp-image-push
 
 This will push your image to the repo and tag your configured above.
+
+SSL Cert Replacement
+++++++++++++++++++++
+
+As part of the Docker build the conda SSL certs are replaced with certs
+supplied by STScI (`tls-ca-bundle.pem`) using the `fix-certs` script.  These
+certs are required to build and run in the AWS CALCLOUD environment.
 
 Docker Run
 ==========
@@ -500,6 +508,77 @@ with the paths of files to archive when it is output to dataset-synced.
                     previews/
                         preview images for one ipppssoot...
 
+Error Handling
+==============
+
+Exit Codes
+++++++++++
+
+CALDP runs a sequence of steps and programs to fully process each dataset.
+Every program has its own methods of error handling and reporting failures.
+One limitation of AWS Batch is that **the only CALDP status communicated
+directly back to Batch is the numerical program exit code.** There is a
+universal convention that a program which exits with a non-zero return status
+has failed; conversely a status of zero indicates success.  There is no
+convention about what non-zero exit code values should be, they vary program by
+program.  It should be noted that Python and Batch have different methods of
+displaying the same one byte exit code, unsigned byte for Python, integer for
+Batch.
+
+CALDP error code meanings can only be found in the program logs or in
+*caldp/exit_codes.py*.  In contrast, AWS Batch reports text descriptions in
+addition to numerical exit codes, but only for failures at the Batch level,
+such as Docker failures.
+
+CALCLOUD Error Handling
++++++++++++++++++++++++
+
+A CALCLOUD Batch event handler is triggered upon CALDP job failure.  The event
+handler interprets the combination of CALDP exit code, Batch exit code, and
+Batch exit reason to determine the error type and react appropriately.
+Reactions include automatically rescuing jobs with memory errors, retrying
+Docker failures, recording error-ipppssoot messages, etc.
+
+Normalizing Error Codes
++++++++++++++++++++++++
+
+Because there is uncertainty about how each subprogram chooses to define exit
+codes,  and to give the batch event handler more information for decision
+making,  CALDP often brackets blocks of code like this:
+
+.. code-block:: python
+
+  with sysexit.exit_on_exception(caldp_exit_code, "descriptive message"):
+      ... python statements ...
+
+such that an exception raised by the nested statements is caught and thrown to
+the *exit_receiver()* handler,  typically at the highest program level:
+
+.. code-block:: python
+
+  with sysexit.exit_reciever():
+      main()
+
+The *exit_receiver()* intercepts the chain of unwinding handlers, squelches the
+traceback between *exit_on_exception()* and *exit_receiver()*, then calls
+*sys._exit(caldp_exit_code)* to exit immediately. In this manner, caldp reports
+the error code *caldp_exit_code* rather than any code assigned by a subprogram.
+
+Currently three different failure modes involving memory errors are mapped onto
+the same CALCLOUD job rescue handling: Python MemoryError, Unreported but
+logged subprogram Python MemoryError, Container memory error.  This illustrates
+how characterization and handling are sometimes just... ugly.
+
+Codes are assigned to specific functional blocks in the hope that as new
+failure modes are observed, handling can be added to CALCLOUD without changing
+CALDP.  However, when necessary, exception bracketing should be revised, new
+error codes should be added, and the modified *exit_codes.py* module should be
+copied to CALCLOUD which may also need handling updates.
+
+**NOTE:**  AWS Batch also issues numerical exit codes so while there are no known
+cases of overlap,  there is a potential for amiguity between Batch and CALDP,
+but not for CALDP subprograms.
+
 Configuring CALDP (advanced)
 ----------------------------
 As explained previously, each of the 3 CALDP use cases has a different CRDS configuration.
@@ -523,11 +602,42 @@ configuration script is passed as a 4th generally defaulted parameter to caldp-p
 Testing
 -------
 
-Travis
-======
+Source Code Testing
+===================
 
-The CALDP repo is set up for Travis via github checkins.   Whenever you do a PR to spacetelescope/caldp,
-Travis will automatically run CI tests for CALDP.
+CALDP has a tox configuration which can be run to check for source code related
+issues including code quality (flake8), whitespace formatting (Black), and
+CALDP security scanning (bandit).   Once you have fully installed your system,
+you can run all tox checks by:
+
+.. code-block:: python
+
+  $ tox
+
+or individually:
+
+.. code-block:: python
+
+  $ tox -e flake8
+  $ tox -e bandit
+  $ tox -e black
+
+Initial runs of tox are slow until most the environment is built and cached;
+afterwards CALDP package updates are relatively quick.   The tox cache will be
+treated as part of the Docker build context and uploaded to Docker whenever
+it changes prior to the next build;
+
+GitHub Actions
+==============
+
+The CALDP repo is set up for GitHub Actions with the following workflows:
+
+- build:  native install and CALDP overall pytest with code coverage,  no S3 testing
+- docker: Docker build and test with one astroquery dataset,  null outputs
+- check:  flake8, black, and bandit checks
+
+Whenever you do a PR or merge to spacetelescope/caldp, GitHub will
+automatically run CI tests for CALDP.
 
 Native Testing
 ==============
@@ -563,6 +673,3 @@ S3 inputs and outputs:
 
 If either or both of the above variables is defined, pytest will also execute tests which utilize the S3
 input or output modes.  You must also have AWS credentials for this.  Currently S3 is not tested on Travis.
-
-
-
