@@ -4,6 +4,4 @@
 
 source caldp-image-config
 
-rm -rf .tox   # this makes a huge Docker build context and is reconstructed automatically
-
 docker build -f Dockerfile -t ${CALDP_DOCKER_IMAGE} --build-arg CAL_BASE_IMAGE=$CAL_BASE_IMAGE  .
