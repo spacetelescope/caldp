@@ -646,9 +646,10 @@ workflow.
 - tag-latest: automatically tags the latest commit to develop as latest
 - tag-stable: automatically tags the latest commit to main as stable
 - merge-main-to-develop: merges main back down to develop after any push to main 
-- check-merge-main2develop: checks for merge failures with develop, for any PR to main. For information only; 
-indicates that manual merge conflict resolution may be required to merge this PR back into develop. Not 
-intended to block PR resolution, and no attempt to resolve the conflict should be made prior to merging `main`.
+- check-merge-main2develop: checks for merge failures with develop, for any PR to main.  
+For information only; indicates that manual merge conflict resolution may be required to merge  
+this PR back into develop. Not intended to block PR resolution, and no attempt to resolve the  
+conflict should be made prior to merging `main`.
 
 
 Native Testing
