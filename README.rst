@@ -48,6 +48,33 @@ Note: This disclaimer was originally written by
 caldp based on its use in the README file for the
 `MetPy project <https://github.com/Unidata/MetPy>`_.
 
+Gitflow
+-------
+
+This repository is organized under the `Gitflow <https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow>`_
+model. Feature branches can be PR'ed into ``develop`` from forks. To the extent that 
+is reasonable, developers should follow these tenets of the Gitflow model:
+
+- feature branches should be started off of ``develop``, and PR'ed back into ``develop``
+- release candidates should branch off of ``develop``, be PR'ed into ``main``, and
+  merged back into ``develop`` during final release.
+- hotfixes should branch off of ``main``, be PR'ed back to ``main``, and be merged back 
+  to ``develop`` after release.
+
+While developers are free to work on features in their forks, it is preferred for releases
+and hotfixes to be prepared via branches on the primary repository.
+
+Our github action workflow ``merge-main-to-develop`` runs after any push to ``main``, 
+(which automatically includes merged PR's). In practice this is a slight deviation 
+from Gitflow, which would merge the release or hotfix branch into ``develop``. However, 
+due to the nature of github action permissions, the github action triggered by a PR from 
+a fork does not have sufficient scope to perform that secondary merge directly from the 
+PR commit. This security limitation would require a personal access token of an admin to 
+be added to the account to allow github actions to merge. By merging from ``main`` right 
+after push, the github action has sufficient privilege to push to ``develop``. The 
+implication being that the security of code added via PR from a fork falls on the 
+administrators of this project, and is not inadvertently circumvented via github action 
+elevated privileges.
 
 Overview of CALDP
 -----------------
@@ -94,7 +121,7 @@ you already have at $HOME/miniconda3 unlless you supply additional parameters.
 The following commands will install:
 
 1. Miniconda
-2. The `stable` version of HSTCAL
+2. The ``stable`` version of HSTCAL
 3. Fitscut
 4. Whichever version of CALDP you clone and/or checkout
 
@@ -269,7 +296,6 @@ to modify or improve them.
     cd caldp
 
 2. Configure and build:
-
     # Edit scripts/caldp-image-config to set the Docker image config variables for
     # your currrent build.  These will include the repo and image tag your want to
     # build and/or push.
@@ -283,7 +309,7 @@ to modify or improve them.
 
 At this stage you can proceed to running your image if you wish.
 
-3. (optional) When you're ready to share your image with others and have done the corresponding
+1. (optional) When you're ready to share your image with others and have done the corresponding
 Docker Hub or ECR setup, you can log in from your shell and then:
 
 .. code-block:: sh
@@ -297,7 +323,7 @@ SSL Cert Replacement
 ++++++++++++++++++++
 
 As part of the Docker build the conda SSL certs are replaced with certs
-supplied by STScI (`tls-ca-bundle.pem`) using the `fix-certs` script.  These
+supplied by STScI (``tls-ca-bundle.pem``) using the ``fix-certs`` script.  These
 certs are required to build and run in the AWS CALCLOUD environment.
 
 Docker Run
@@ -414,7 +440,7 @@ can run any command using *caldp-docker-run-container* which is itself normally 
 *caldp-docker-run-pipeline*.
 
 Before running,  the environment variable *CALDP_DOCKER_RUN_PARS* needs to be defined to add Docker command line
-switches which precede the CALDP image on the `docker run` command line.  It should be defined as follows to e.g.
+switches which precede the CALDP image on the ``docker run`` command line.  It should be defined as follows to e.g.
 enable the interactive debug:
 
 .. code-block:: sh
@@ -429,8 +455,8 @@ Once *CALDP_DOCKER_RUN_PARS* is defined,  you can start an interactive session i
 
 The same method can be used to add additional docker configuration parameters for any reason.
 
-*CALDP_DOCKER_RUN_PARS* defaults to `--rm` to do automatic container cleanup during normal non-debug operation.  It
-could also be used to e.g. make a port mapping for JupyterLab by adding:  `-p 8888:8888`.
+*CALDP_DOCKER_RUN_PARS* defaults to ``--rm`` to do automatic container cleanup during normal non-debug operation.  It
+could also be used to e.g. make a port mapping for JupyterLab by adding:  ``-p 8888:8888``.
 
 About CALDP_HOME
 ++++++++++++++++
@@ -638,6 +664,19 @@ The CALDP repo is set up for GitHub Actions with the following workflows:
 
 Whenever you do a PR or merge to spacetelescope/caldp, GitHub will
 automatically run CI tests for CALDP.
+
+Additionally, there are several workflows that aid in managing the 
+`Gitflow <https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow>`_
+workflow.
+
+- tag-latest: automatically tags the latest commit to ``develop`` as ``latest``
+- tag-stable: automatically tags the latest commit to ``main`` as ``stable``
+- merge-main-to-develop: merges ``main`` back down to ``develop`` after any push to ``main``
+- check-merge-main2develop: checks for merge failures with ``develop``, for any PR to ``main``. 
+  For information only; indicates that manual merge conflict resolution may be required 
+  to merge this PR back into ``develop``. Not intended to block PR resolution, and no attempt 
+  to resolve the conflict is needed prior to merging ``main``.
+
 
 Native Testing
 ==============
