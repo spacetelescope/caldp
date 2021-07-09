@@ -58,7 +58,8 @@ is reasonable, developers should follow these tenets of the Gitflow model:
 - feature branches should be started off of ``develop``, and PR'ed back into ``develop``
 - release candidates should branch off of ``develop``, be PR'ed into ``main``, and
   merged back into ``develop`` during final release.
-- hotfixes should branch off of ``main``, and be merged back to ``develop`` after release.
+- hotfixes should branch off of ``main``, be PR'ed back to ``main``, and be merged back 
+  to ``develop`` after release.
 
 While developers are free to work on features in their forks, it is preferred for releases
 and hotfixes to be prepared via branches on the primary repository.
