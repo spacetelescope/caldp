@@ -53,7 +53,7 @@ Gitflow
 
 This repository is organized under the `Gitflow <https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow>`_
 model. Feature branches can be PR'ed into develop from forks. To the extent that 
-is reasonable, developers should follow these tenants of the Gitflow model:
+is reasonable, developers should follow these tenets of the Gitflow model:
 
 - feature branches should be started off of ``develop``, and PR'ed back into ``develop``
 - release candidates should branch off of ``develop``, be PR'ed into ``main``, and
