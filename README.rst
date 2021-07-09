@@ -94,7 +94,7 @@ you already have at $HOME/miniconda3 unlless you supply additional parameters.
 The following commands will install:
 
 1. Miniconda
-2. The `stable` version of HSTCAL
+2. The ``stable`` version of HSTCAL
 3. Fitscut
 4. Whichever version of CALDP you clone and/or checkout
 
@@ -269,7 +269,6 @@ to modify or improve them.
     cd caldp
 
 2. Configure and build:
-
     # Edit scripts/caldp-image-config to set the Docker image config variables for
     # your currrent build.  These will include the repo and image tag your want to
     # build and/or push.
@@ -283,7 +282,7 @@ to modify or improve them.
 
 At this stage you can proceed to running your image if you wish.
 
-3. (optional) When you're ready to share your image with others and have done the corresponding
+1. (optional) When you're ready to share your image with others and have done the corresponding
 Docker Hub or ECR setup, you can log in from your shell and then:
 
 .. code-block:: sh
@@ -297,7 +296,7 @@ SSL Cert Replacement
 ++++++++++++++++++++
 
 As part of the Docker build the conda SSL certs are replaced with certs
-supplied by STScI (`tls-ca-bundle.pem`) using the `fix-certs` script.  These
+supplied by STScI (``tls-ca-bundle.pem``) using the ``fix-certs`` script.  These
 certs are required to build and run in the AWS CALCLOUD environment.
 
 Docker Run
@@ -414,7 +413,7 @@ can run any command using *caldp-docker-run-container* which is itself normally 
 *caldp-docker-run-pipeline*.
 
 Before running,  the environment variable *CALDP_DOCKER_RUN_PARS* needs to be defined to add Docker command line
-switches which precede the CALDP image on the `docker run` command line.  It should be defined as follows to e.g.
+switches which precede the CALDP image on the ``docker run`` command line.  It should be defined as follows to e.g.
 enable the interactive debug:
 
 .. code-block:: sh
@@ -429,8 +428,8 @@ Once *CALDP_DOCKER_RUN_PARS* is defined,  you can start an interactive session i
 
 The same method can be used to add additional docker configuration parameters for any reason.
 
-*CALDP_DOCKER_RUN_PARS* defaults to `--rm` to do automatic container cleanup during normal non-debug operation.  It
-could also be used to e.g. make a port mapping for JupyterLab by adding:  `-p 8888:8888`.
+*CALDP_DOCKER_RUN_PARS* defaults to ``--rm`` to do automatic container cleanup during normal non-debug operation.  It
+could also be used to e.g. make a port mapping for JupyterLab by adding:  ``-p 8888:8888``.
 
 About CALDP_HOME
 ++++++++++++++++
@@ -643,13 +642,13 @@ Additionally, there are several workflows that aid in managing the
 `Gitflow <https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow>`_
 workflow.
 
-- tag-latest: automatically tags the latest commit to develop as latest
-- tag-stable: automatically tags the latest commit to main as stable
-- merge-main-to-develop: merges main back down to develop after any push to main 
-- check-merge-main2develop: checks for merge failures with develop, for any PR to main.  
-For information only; indicates that manual merge conflict resolution may be required to merge  
-this PR back into develop. Not intended to block PR resolution, and no attempt to resolve the  
-conflict should be made prior to merging `main`.
+- tag-latest: automatically tags the latest commit to ``develop`` as ``latest``
+- tag-stable: automatically tags the latest commit to ``main`` as ``stable``
+- merge-main-to-develop: merges ``main`` back down to ``develop`` after any push to ``main``
+- check-merge-main2develop: checks for merge failures with ``develop``, for any PR to ``main``. 
+  For information only; indicates that manual merge conflict resolution may be required 
+  to merge this PR back into ``develop``. Not intended to block PR resolution, and no attempt 
+  to resolve the conflict is needed prior to merging ``main``.
 
 
 Native Testing
