@@ -66,14 +66,15 @@ and hotfixes to be prepared via branches on the primary repository.
 
 Our github action workflow ``merge-main-to-develop`` runs after any push to ``main``, 
 (which automatically includes merged PR's). In practice this is a slight deviation 
-from Gitflow, which would merge the release branch into ``develop``. However, due to the
-nature of github action permissions, the github action triggered by a PR from a fork
-does not have sufficient scope to perform that secondary merge directly from the PR commit.
-This security limitation would require a personal access token of an admin to be added to 
-the account to allow github actions to merge. By merging from ``main`` right after push, 
-the github action has sufficient privilege to push to ``develop``. The implication being 
-that the security of code added via PR from a fork falls on the administrators of
-this project, and is not inadvertently circumvented via github action elevated privileges.
+from Gitflow, which would merge the release or hotfix branch into ``develop``. However, 
+due to the nature of github action permissions, the github action triggered by a PR from 
+a fork does not have sufficient scope to perform that secondary merge directly from the 
+PR commit. This security limitation would require a personal access token of an admin to 
+be added to the account to allow github actions to merge. By merging from ``main`` right 
+after push, the github action has sufficient privilege to push to ``develop``. The 
+implication being that the security of code added via PR from a fork falls on the 
+administrators of this project, and is not inadvertently circumvented via github action 
+elevated privileges.
 
 Overview of CALDP
 -----------------
