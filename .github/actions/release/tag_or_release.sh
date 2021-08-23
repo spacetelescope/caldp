@@ -8,9 +8,7 @@ if [[ "$tag_or_release" == "tag" ]]; then
     git push origin ${name}
 
 elif [[ "$tag_or_release" == "release" ]]; then
-
     echo ${token} | gh auth login --with-token
-
     gh release create ${name} -F changelog.md --target ${source_branch} --title ${name}
 
 else
