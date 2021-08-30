@@ -33,7 +33,7 @@ jobs:
         run: |
           source "$HOME/miniconda3/etc/profile.d/conda.sh"
           conda activate caldp_${{ matrix.HSTCAL }}
-          export CRDS_CONTEXT=hst_0939.pmap
+          export CRDS_CONTEXT=hst_0943.pmap
           pytest caldp --cov=caldp --cov-fail-under 70 --capture=tee-sys
 
       - name: compute test coverage
