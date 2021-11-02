@@ -1,14 +1,6 @@
 #! /bin/bash -e
 
-if [[ $# != 1 ]]; then
-    echo "usage:  $0 <ADMIN_ROLENAME>"
-fi
-
-ADMIN_ROLENAME=$1
-
 ACCOUNT_ID=$(aws sts get-caller-identity | grep Account | cut -d'"' -f4)
-
-ADMIN_ARN="arn:aws:iam::${ACCOUNT_ID}:role/$ADMIN_ROLENAME"
 
 awsudo ${ADMIN_ARN} aws ecr get-login-password --region=us-east-1 | docker login --username AWS --password-stdin ${ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com
 
