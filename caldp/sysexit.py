@@ -122,6 +122,19 @@ def exit_on_exception(exit_code, *args):
     ERROR - MemoryError: Simulated CALDP MemoryError.
     EXIT - CALDP_MEMORY_ERROR[32]: CALDP generated a Python MemoryError during processing or preview creation.
 
+    >>> os.environ["CALDP_SIMULATE_ERROR"] = str(exit_codes.OS_MEMORY_ERROR)
+    >>> try: #doctest: +ELLIPSIS
+    ...    with exit_on_exception(2, "Memory errors don't have to match"):
+    ...        print("Oh unhappy day.")
+    ... except SystemExit:
+    ...    pass
+    ERROR - ----------------------------- Fatal Exception -----------------------------
+    ERROR - Memory errors don't have to match
+    ERROR - Traceback (most recent call last):
+    ERROR -   File ".../sysexit.py", line ..., in exit_on_exception
+    ERROR -     raise OSError("Cannot allocate memory...")
+    ERROR - OSError: Cannot allocate memory..
+    EXIT - OS_MEMORY_ERROR[34]: Python raised OSError(Cannot allocate memory...),  possibly fork failure.
 
     >>> os.environ["CALDP_SIMULATE_ERROR"] = "999"
     >>> with exit_on_exception(3, "Only matching error codes are simulated."):
@@ -145,6 +158,9 @@ def exit_on_exception(exit_code, *args):
     EXIT - Killed by UNIX signal SIGFPE[8]: 'Floating-point exception (ANSI).'
     EXIT - STAGE1_ERROR[23]: An error occurred in this instrument's stage1 processing step. e.g. calxxx
     os._exit(23)
+    >>> with exit_receiver():  #doctest: +ELLIPSIS
+    ...     with exit_on_exception(exit_codes.STAGE1_ERROR, "Failure running processing stage1."):
+    ...         raise OSError("Something other than memory")
     >>> os._exit = saved
     """
     simulated_code = int(os.environ.get("CALDP_SIMULATE_ERROR", "0"))
@@ -267,6 +283,12 @@ def exit_receiver():
 
     Inside exit_on_exception, exit status is remapped to the exit_code parameter
     of exit_on_exception():
+
+    >>> with exit_receiver(): #doctest: +ELLIPSIS
+    ...     raise OSError("Cannot allocate memory...")
+
+    >>> with exit_receiver(): #doctest: +ELLIPSIS
+    ...     raise OSError("Some non-memory os error.")
 
     >>> with exit_receiver(): #doctest: +ELLIPSIS
     ...    with exit_on_exception(exit_codes.STAGE1_ERROR, "Stage1 processing failed for <ippssoot>"):
