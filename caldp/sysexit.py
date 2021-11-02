@@ -151,6 +151,8 @@ def exit_on_exception(exit_code, *args):
     try:
         if simulated_code == exit_codes.CALDP_MEMORY_ERROR:
             raise MemoryError("Simulated CALDP MemoryError.")
+        elif simulated_code == exit_codes.OS_MEMORY_ERROR:
+            raise OSError("Cannot allocate memory...")
         elif simulated_code == exit_codes.SUBPROCESS_MEMORY_ERROR:
             print("MemoryError", file=sys.stderr)  # Output to process log determines final program exit status
             raise RuntimeError("Simulated subprocess memory error with subsequent generic program exception.")
@@ -164,6 +166,13 @@ def exit_on_exception(exit_code, *args):
     except MemoryError:
         _report_exception(exit_codes.CALDP_MEMORY_ERROR, args)
         raise CaldpExit(exit_codes.CALDP_MEMORY_ERROR)
+    except OSError as exc:
+        if "Cannot allocate memory" in str(exc) + repr(exc):
+            _report_exception(exit_codes.OS_MEMORY_ERROR, args)
+            raise CaldpExit(exit_codes.OS_MEMORY_ERROR)
+        else:
+            _report_exception(exit_code, args)
+            raise CaldpExit(exit_code)
     except CaldpExit:
         raise
     # below as always exit_code defines what will be CALDP's program exit status.
@@ -286,6 +295,14 @@ def exit_receiver():
     except MemoryError:
         code = exit_codes.CALDP_MEMORY_ERROR
         _report_exception(code, ("Untrapped memory exception.",))
+    except OSError as exc:
+        if "Cannot allocate memory" in str(exc) + repr(exc):
+            code = exit_codes.OS_MEMORY_ERROR
+            args = ("Untrapped OSError cannot callocate memory",)
+        else:
+            code = exit_codes.GENERIC_ERROR
+            args = ("Untrapped OSError, generic.",)
+        _report_exception(code, args)
     except BaseException:  # Catch absolutely everything.
         code = exit_codes.GENERIC_ERROR
         _report_exception(code, ("Untrapped non-memory exception.",))
