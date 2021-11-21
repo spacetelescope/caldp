@@ -3,7 +3,7 @@
 # Installs the base HST calibration programs included with astroconda-releases/caldp
 
 HSTCAL=${1:-stable}
-PY_VER=${2:-3.6.10}
+PY_VER=${2:-3.8.11}
 CONDA_ENV=${3:-"caldp_${HSTCAL}"}
 CONDA_DIR=${4:-"$HOME/miniconda3"}
 OS=${5:-`uname -s`}
