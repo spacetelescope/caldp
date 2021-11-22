@@ -1,1 +1,4 @@
-This file is used for the release description when the `tag-or-release` action is run
+- handle OSError memory failure types
+- default crds context update to 0968
+- default base docker image update to CALDP_20211119_CAL_final
+- python version update from 3.6 to 3.8.11 (matching the base caldp environment released by stsci)
