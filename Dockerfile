@@ -22,20 +22,6 @@ ENV CURL_CA_BUNDLE=/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
 
 USER root
 
-RUN mkdir -p /etc/ssl/certs && \
-    mkdir -p /etc/pki/ca-trust/extracted/pem
-COPY tls-ca-bundle.pem /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
-RUN mv /etc/ssl/certs/ca-bundle.crt /etc/ssl/certs/ca-bundle.crt.org && \
-    ln -s /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem  /etc/ssl/certs/ca-bundle.crt && \
-   #  mv /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt.org && \
-    ln -s /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem /etc/ssl/certs/ca-certificates.crt && \
-   #  ln -s /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem /usr/lib/ssl/cert.pem && \
-    mkdir -p /etc/pki/ca-trust/extracted/openssl
-
-# RUN npm config set cafile /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
-COPY scripts/fix-certs .
-RUN ./fix-certs
-
 # Removing kernel-headers seems to remove glibc and all packages which use them
 # Install s/w dev tools for fitscut build
 RUN yum remove -y kernel-devel   &&\
@@ -59,6 +45,20 @@ RUN yum remove -y kernel-devel   &&\
    curl \
    rsync \
    time
+
+RUN mkdir -p /etc/ssl/certs && \
+    mkdir -p /etc/pki/ca-trust/extracted/pem
+COPY tls-ca-bundle.pem /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
+RUN mv /etc/ssl/certs/ca-bundle.crt /etc/ssl/certs/ca-bundle.crt.org && \
+    ln -s /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem  /etc/ssl/certs/ca-bundle.crt && \
+   #  mv /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt.org && \
+    ln -s /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem /etc/ssl/certs/ca-certificates.crt && \
+   #  ln -s /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem /usr/lib/ssl/cert.pem && \
+    mkdir -p /etc/pki/ca-trust/extracted/openssl
+
+# RUN npm config set cafile /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
+COPY scripts/fix-certs .
+RUN ./fix-certs
 
 # Install fitscut
 COPY scripts/caldp-install-fitscut  .

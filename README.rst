@@ -139,7 +139,7 @@ to change the CONDA_DIR you must specify all four parameters explicitly.
     :widths: 15, 15, 50
 
     HSTCAL, stable,"Version of base calibration packages,  nominally *stable* or *latest*."
-    PY_VER, 3.6.10,"Python version for CALDP conda environment."
+    PY_VER, 3.8.11,"Python version for CALDP conda environment."
     CONDA_ENV, caldp_stable, "Conda environment which will be created"
     CONDA_DIR, "${HOME}/miniconda3", "Location of Miniconda Installation."
 

@@ -122,6 +122,19 @@ def exit_on_exception(exit_code, *args):
     ERROR - MemoryError: Simulated CALDP MemoryError.
     EXIT - CALDP_MEMORY_ERROR[32]: CALDP generated a Python MemoryError during processing or preview creation.
 
+    >>> os.environ["CALDP_SIMULATE_ERROR"] = str(exit_codes.OS_MEMORY_ERROR)
+    >>> try: #doctest: +ELLIPSIS
+    ...    with exit_on_exception(2, "Memory errors don't have to match"):
+    ...        print("Oh unhappy day.")
+    ... except SystemExit:
+    ...    pass
+    ERROR - ----------------------------- Fatal Exception -----------------------------
+    ERROR - Memory errors don't have to match
+    ERROR - Traceback (most recent call last):
+    ERROR -   File ".../sysexit.py", line ..., in exit_on_exception
+    ERROR -     raise OSError("Cannot allocate memory...")
+    ERROR - OSError: Cannot allocate memory...
+    EXIT - OS_MEMORY_ERROR[34]: Python raised OSError(Cannot allocate memory...),  possibly fork failure.
 
     >>> os.environ["CALDP_SIMULATE_ERROR"] = "999"
     >>> with exit_on_exception(3, "Only matching error codes are simulated."):
@@ -145,12 +158,29 @@ def exit_on_exception(exit_code, *args):
     EXIT - Killed by UNIX signal SIGFPE[8]: 'Floating-point exception (ANSI).'
     EXIT - STAGE1_ERROR[23]: An error occurred in this instrument's stage1 processing step. e.g. calxxx
     os._exit(23)
+
+    >>> with exit_receiver():  #doctest: +ELLIPSIS
+    ...     with exit_on_exception(exit_codes.STAGE1_ERROR, "Failure running processing stage1."):
+    ...         raise OSError("Something other than memory")
+    ERROR - ----------------------------- Fatal Exception -----------------------------
+    ERROR - Failure running processing stage1.
+    ERROR - Traceback (most recent call last):
+    ERROR -   File ".../sysexit.py", line ..., in exit_on_exception
+    ERROR -     yield
+    ERROR -   File "<doctest ...sysexit.exit_on_exception[...]>", line ..., in <module>
+    ERROR -     raise OSError("Something other than memory")
+    ERROR - OSError: Something other than memory
+    EXIT - STAGE1_ERROR[23]: An error occurred in this instrument's stage1 processing step. e.g. calxxx
+    os._exit(23)
+
     >>> os._exit = saved
     """
     simulated_code = int(os.environ.get("CALDP_SIMULATE_ERROR", "0"))
     try:
         if simulated_code == exit_codes.CALDP_MEMORY_ERROR:
             raise MemoryError("Simulated CALDP MemoryError.")
+        elif simulated_code == exit_codes.OS_MEMORY_ERROR:
+            raise OSError("Cannot allocate memory...")
         elif simulated_code == exit_codes.SUBPROCESS_MEMORY_ERROR:
             print("MemoryError", file=sys.stderr)  # Output to process log determines final program exit status
             raise RuntimeError("Simulated subprocess memory error with subsequent generic program exception.")
@@ -164,6 +194,13 @@ def exit_on_exception(exit_code, *args):
     except MemoryError:
         _report_exception(exit_codes.CALDP_MEMORY_ERROR, args)
         raise CaldpExit(exit_codes.CALDP_MEMORY_ERROR)
+    except OSError as exc:
+        if "Cannot allocate memory" in str(exc) + repr(exc):
+            _report_exception(exit_codes.OS_MEMORY_ERROR, args)
+            raise CaldpExit(exit_codes.OS_MEMORY_ERROR)
+        else:
+            _report_exception(exit_code, args)
+            raise CaldpExit(exit_code)
     except CaldpExit:
         raise
     # below as always exit_code defines what will be CALDP's program exit status.
@@ -260,6 +297,32 @@ def exit_receiver():
     of exit_on_exception():
 
     >>> with exit_receiver(): #doctest: +ELLIPSIS
+    ...     raise OSError("Cannot allocate memory...")
+    ERROR - ----------------------------- Fatal Exception -----------------------------
+    ERROR - Untrapped OSError cannot callocate memory
+    ERROR - Traceback (most recent call last):
+    ERROR -   File ".../sysexit.py", line ..., in exit_receiver
+    ERROR -     yield  # go off and execute the block
+    ERROR -   File "<doctest ...sysexit.exit_receiver[...]>", line ..., in <module>
+    ERROR -     raise OSError("Cannot allocate memory...")
+    ERROR - OSError: Cannot allocate memory...
+    EXIT - OS_MEMORY_ERROR[34]: Python raised OSError(Cannot allocate memory...),  possibly fork failure.
+    os._exit(34)
+
+    >>> with exit_receiver(): #doctest: +ELLIPSIS
+    ...     raise OSError("Some non-memory os error.")
+    ERROR - ----------------------------- Fatal Exception -----------------------------
+    ERROR - Untrapped OSError, generic.
+    ERROR - Traceback (most recent call last):
+    ERROR -   File ".../sysexit.py", line ..., in exit_receiver
+    ERROR -     yield  # go off and execute the block
+    ERROR -   File "<doctest ...sysexit.exit_receiver[...]>", line ..., in <module>
+    ERROR -     raise OSError("Some non-memory os error.")
+    ERROR - OSError: Some non-memory os error.
+    EXIT - GENERIC_ERROR[1]: An error with no specific CALDP handling occurred somewhere.
+    os._exit(1)
+
+    >>> with exit_receiver(): #doctest: +ELLIPSIS
     ...    with exit_on_exception(exit_codes.STAGE1_ERROR, "Stage1 processing failed for <ippssoot>"):
     ...        raise RuntimeError("Some obscure error")
     ERROR - ----------------------------- Fatal Exception -----------------------------
@@ -286,6 +349,14 @@ def exit_receiver():
     except MemoryError:
         code = exit_codes.CALDP_MEMORY_ERROR
         _report_exception(code, ("Untrapped memory exception.",))
+    except OSError as exc:
+        if "Cannot allocate memory" in str(exc) + repr(exc):
+            code = exit_codes.OS_MEMORY_ERROR
+            args = ("Untrapped OSError cannot callocate memory",)
+        else:
+            code = exit_codes.GENERIC_ERROR
+            args = ("Untrapped OSError, generic.",)
+        _report_exception(code, args)
     except BaseException:  # Catch absolutely everything.
         code = exit_codes.GENERIC_ERROR
         _report_exception(code, ("Untrapped non-memory exception.",))

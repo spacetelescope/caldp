@@ -12,10 +12,10 @@ jobs:
         HSTCAL: [stable]
 
     steps:
-      - name: set up python 3.6.10
+      - name: set up python 3.8.11
         uses: actions/setup-python@v2
         with:
-          python-version: 3.6.10
+          python-version: 3.8.11
 
       - name: install dependencies
         run: pip install coverage
@@ -33,7 +33,7 @@ jobs:
         run: |
           source "$HOME/miniconda3/etc/profile.d/conda.sh"
           conda activate caldp_${{ matrix.HSTCAL }}
-          export CRDS_CONTEXT=hst_0943.pmap
+          export CRDS_CONTEXT=hst_0968.pmap
           pytest caldp --cov=caldp --cov-fail-under 70 --capture=tee-sys
 
       - name: compute test coverage

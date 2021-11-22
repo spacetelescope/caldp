@@ -8,10 +8,10 @@ jobs:
     runs-on: ubuntu-18.04
 
     steps:
-      - name: set up python 3.6.10
+      - name: set up python 3.8.11
         uses: actions/setup-python@v2
         with:
-          python-version: 3.6.10
+          python-version: 3.8.11
 
       - name: install dependencies
         run: pip install bandit
@@ -27,10 +27,10 @@ jobs:
     runs-on: ubuntu-18.04
 
     steps:
-      - name: set up python 3.6.10
+      - name: set up python 3.8.11
         uses: actions/setup-python@v2
         with:
-          python-version: 3.6.10
+          python-version: 3.8.11
 
       - name: install dependencies
         run: pip install black
@@ -46,10 +46,10 @@ jobs:
     runs-on: ubuntu-18.04
 
     steps:
-      - name: set up python 3.6.10
+      - name: set up python 3.8.11
         uses: actions/setup-python@v2
         with:
-          python-version: 3.6.10
+          python-version: 3.8.11
 
       - name: install dependencies
         run: pip install flake8
