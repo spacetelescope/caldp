@@ -1,4 +1,1 @@
-- handle OSError memory failure types
-- default crds context update to 0968
-- default base docker image update to CALDP_20211119_CAL_final
-- python version update from 3.6 to 3.8.11 (matching the base caldp environment released by stsci)
+- default base docker image update to CALDP_20211129_CAL_final
