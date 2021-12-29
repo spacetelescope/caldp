@@ -851,5 +851,6 @@ if __name__ == "__main__":
     if len(sys.argv) < 4:
         print("usage:  process.py <input_uri>  <output_uri>  <ipppssoot's...>")
         sys.exit(exit_codes.CMDLINE_ERROR)
-    with sysexit.exit_receiver():
+    with sysexit.exit_on_exception():
         main(sys.argv)
+    sys.exit(exit_codes.SUCCESS)

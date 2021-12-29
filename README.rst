@@ -52,28 +52,28 @@ Gitflow
 -------
 
 This repository is organized under the `Gitflow <https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow>`_
-model. Feature branches can be PR'ed into ``develop`` from forks. To the extent that 
+model. Feature branches can be PR'ed into ``develop`` from forks. To the extent that
 is reasonable, developers should follow these tenets of the Gitflow model:
 
 - feature branches should be started off of ``develop``, and PR'ed back into ``develop``
 - release candidates should branch off of ``develop``, be PR'ed into ``main``, and
   merged back into ``develop`` during final release.
-- hotfixes should branch off of ``main``, be PR'ed back to ``main``, and be merged back 
+- hotfixes should branch off of ``main``, be PR'ed back to ``main``, and be merged back
   to ``develop`` after release.
 
 While developers are free to work on features in their forks, it is preferred for releases
 and hotfixes to be prepared via branches on the primary repository.
 
-Our github action workflow ``merge-main-to-develop`` runs after any push to ``main``, 
-(which automatically includes merged PR's). In practice this is a slight deviation 
-from Gitflow, which would merge the release or hotfix branch into ``develop``. However, 
-due to the nature of github action permissions, the github action triggered by a PR from 
-a fork does not have sufficient scope to perform that secondary merge directly from the 
-PR commit. This security limitation would require a personal access token of an admin to 
-be added to the account to allow github actions to merge. By merging from ``main`` right 
-after push, the github action has sufficient privilege to push to ``develop``. The 
-implication being that the security of code added via PR from a fork falls on the 
-administrators of this project, and is not inadvertently circumvented via github action 
+Our github action workflow ``merge-main-to-develop`` runs after any push to ``main``,
+(which automatically includes merged PR's). In practice this is a slight deviation
+from Gitflow, which would merge the release or hotfix branch into ``develop``. However,
+due to the nature of github action permissions, the github action triggered by a PR from
+a fork does not have sufficient scope to perform that secondary merge directly from the
+PR commit. This security limitation would require a personal access token of an admin to
+be added to the account to allow github actions to merge. By merging from ``main`` right
+after push, the github action has sufficient privilege to push to ``develop``. The
+implication being that the security of code added via PR from a fork falls on the
+administrators of this project, and is not inadvertently circumvented via github action
 elevated privileges.
 
 Overview of CALDP
@@ -537,69 +537,25 @@ with the paths of files to archive when it is output to dataset-synced.
 Error Handling
 ==============
 
-Exit Codes
-++++++++++
-
-CALDP runs a sequence of steps and programs to fully process each dataset.
-Every program has its own methods of error handling and reporting failures.
 One limitation of AWS Batch is that **the only CALDP status communicated
-directly back to Batch is the numerical program exit code.** There is a
-universal convention that a program which exits with a non-zero return status
-has failed; conversely a status of zero indicates success.  There is no
-convention about what non-zero exit code values should be, they vary program by
-program.  It should be noted that Python and Batch have different methods of
-displaying the same one byte exit code, unsigned byte for Python, integer for
-Batch.
+directly back to Batch is the numerical program exit code.**
 
-CALDP error code meanings can only be found in the program logs or in
-*caldp/exit_codes.py*.  In contrast, AWS Batch reports text descriptions in
-addition to numerical exit codes, but only for failures at the Batch level,
-such as Docker failures.
+There is a universal convention that a program which exits with a non-zero exit
+code has failed; conversely zero indicates success.  There is no convention
+about what non-zero exit code values should be, they vary program by program.
+In the case of CALDP, the result of the Batch job is further complicated by
+running multiple programs and subprocesses, and every program has its own
+methods of error handling and reporting failures.
 
-CALCLOUD Error Handling
-+++++++++++++++++++++++
+To restore order, CALDP now attempts to map all failures onto the exit codes
+defined *caldp/exit_codes.py* and return only those as the results of failures.
+In particular, several kinds of memory errors are detected and mapped onto
+unique codes so that those jobs can be rescued.   More generally the exit
+statuses of calibration subprograms are all mapped onto CALDP exit codes which
+identify the block of CALDP code where the error was trapped.
 
-A CALCLOUD Batch event handler is triggered upon CALDP job failure.  The event
-handler interprets the combination of CALDP exit code, Batch exit code, and
-Batch exit reason to determine the error type and react appropriately.
-Reactions include automatically rescuing jobs with memory errors, retrying
-Docker failures, recording error-ipppssoot messages, etc.
-
-Normalizing Error Codes
-+++++++++++++++++++++++
-
-Because there is uncertainty about how each subprogram chooses to define exit
-codes,  and to give the batch event handler more information for decision
-making,  CALDP often brackets blocks of code like this:
-
-.. code-block:: python
-
-  with sysexit.exit_on_exception(caldp_exit_code, "descriptive message"):
-      ... python statements ...
-
-such that an exception raised by the nested statements is caught and thrown to
-the *exit_receiver()* handler,  typically at the highest program level:
-
-.. code-block:: python
-
-  with sysexit.exit_reciever():
-      main()
-
-The *exit_receiver()* intercepts the chain of unwinding handlers, squelches the
-traceback between *exit_on_exception()* and *exit_receiver()*, then calls
-*sys._exit(caldp_exit_code)* to exit immediately. In this manner, caldp reports
-the error code *caldp_exit_code* rather than any code assigned by a subprogram.
-
-Currently three different failure modes involving memory errors are mapped onto
-the same CALCLOUD job rescue handling: Python MemoryError, Unreported but
-logged subprogram Python MemoryError, Container memory error.  This illustrates
-how characterization and handling are sometimes just... ugly.
-
-Codes are assigned to specific functional blocks in the hope that as new
-failure modes are observed, handling can be added to CALCLOUD without changing
-CALDP.  However, when necessary, exception bracketing should be revised, new
-error codes should be added, and the modified *exit_codes.py* module should be
-copied to CALCLOUD which may also need handling updates.
+It should be noted that Python and Batch have different methods of displaying
+the same one byte exit code, unsigned byte for Python, integer for Batch.
 
 **NOTE:**  AWS Batch also issues numerical exit codes so while there are no known
 cases of overlap,  there is a potential for amiguity between Batch and CALDP,
@@ -665,16 +621,16 @@ The CALDP repo is set up for GitHub Actions with the following workflows:
 Whenever you do a PR or merge to spacetelescope/caldp, GitHub will
 automatically run CI tests for CALDP.
 
-Additionally, there are several workflows that aid in managing the 
+Additionally, there are several workflows that aid in managing the
 `Gitflow <https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow>`_
 workflow.
 
 - tag-latest: automatically tags the latest commit to ``develop`` as ``latest``
 - tag-stable: automatically tags the latest commit to ``main`` as ``stable``
 - merge-main-to-develop: merges ``main`` back down to ``develop`` after any push to ``main``
-- check-merge-main2develop: checks for merge failures with ``develop``, for any PR to ``main``. 
-  For information only; indicates that manual merge conflict resolution may be required 
-  to merge this PR back into ``develop``. Not intended to block PR resolution, and no attempt 
+- check-merge-main2develop: checks for merge failures with ``develop``, for any PR to ``main``.
+  For information only; indicates that manual merge conflict resolution may be required
+  to merge this PR back into ``develop``. Not intended to block PR resolution, and no attempt
   to resolve the conflict is needed prior to merging ``main``.
 
 

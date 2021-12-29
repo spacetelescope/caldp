@@ -1,7 +1,8 @@
-# This module creates preview images from reprocessing output data.
+"""This module creates preview images from reprocessing output data."""
 
 import argparse
 import os
+import sys
 import subprocess
 import logging
 import glob
@@ -14,6 +15,7 @@ from caldp import process
 from caldp import file_ops
 from caldp import messages
 from caldp import sysexit
+from caldp import exit_codes
 
 # -------------------------------------------------------------------------------------------------------
 
@@ -238,5 +240,6 @@ def cmdline():
 
 
 if __name__ == "__main__":
-    with sysexit.exit_receiver():
+    with sysexit.exit_on_exception():
         cmdline()
+    sys.exit(exit_codes.SUCCESS)

@@ -1,28 +1,53 @@
-"""This module defines context managers which are used to trap exceptions
-and exit Python cleanly with specific exit_codes which are then seen as
-the numerical exit status of the process and ultimately Batch job.
+"""This module defines context managers related to exception hanlding and retries.
 
-The exit_on_exception() context manager is used to bracket a block of code
-by mapping all exceptions onto some log output and a call to sys.exit():
+The exit_on_exception() context manager is used to trap exceptions and exit
+Python cleanly with a numerical exit code which is ultimately reported by the
+Batch job:
 
-    with exit_on_exception(exit_codes.SOME_CODE, "Parts of the ERROR", "message output", "on exception."):
-        ... the code you're trapping to SOME_CODE when things go wrong ...
+  with exit_on_exception(exit_codes.CODE, "details of this trap"):
+      ... python statements to guard ...
 
-The exit_on_exception() manager also enables simulating errors by defining the
-CALDP_SIMULATE_ERROR=N environment variable.  When the manager is called with a
-code matching CALDP_SIMULATE_ERROR, instead of running the code block it fakes
-an exception by performing the corresponding log output and sys.exit() call.  A
-few error codes are simulated more directly, particularly memory errors.
+exit_on_exception() will nominally map any failure occurring in that context
+onto exit_codes.CODE and perform these functions:
 
-The exit_receiver() manager is used to bracket the top level of your code,
-nominally main(), and land the CaldpExit() exception raised by
-exit_on_exception() after the stack has been unwound and cleanup functions
-performed.  exit_receiver() then exits Python with the error code originally
-passed into exit_on_exception().
+  1. Descriptive text about the code block ("details of this trap") is logged.
+
+  2. An abbreviated traceback is output.
+
+  3. sys.exit() is called with a well defined CALDP exit code and the program terminates.
+
+All of the CALDP exit codes are defined in caldp.exit_codes with the intent
+that no other codes be reported.  Subprocess exit codes and Python exit codes
+are mapped onto codes from caldp.exit_codes disambiguating the status reported
+to AWS Batch.  While more detaied information is logged, these numerical codes
+are accessible to the Batch job error handler.
+
+Three kinds of exceptions are handled specially:
+
+  1. Various forms of memory errors are identified and mapped onto exit codes
+     which supersede exit_codes.CODE.   These typically drive job rescues.
+
+  2. A CALDP SubprocessFailure may result in advisory output which attempts to
+     identify the UNIX signal which terminated the subprocess.
+
+  3. The string MemoryError appearing in the program log is detected by the
+     caldp-process script and augments this error handling with an additional
+     class of memory errors which can be rescued.  Presumably this originates
+     in a CALDP subprocess which traps the exception but nevertheless fails
+     anyway.   In this case caldp-process replaces the exit code reported by
+     caldp programs with one which identifies the memory error.
+
+If no exception or memory error occurs in the specified context,  exit_on_exception()
+does nothing.
+
+---
+
+For doing doctests,  a little global setup is needed:
 
 >>> from caldp import log
 >>> log.set_test_mode()
 >>> log.reset()
+
 """
 import sys
 import os
@@ -38,14 +63,10 @@ from caldp import exit_codes
 # ==============================================================================
 
 
-class CaldpExit(SystemExit):
-    """Handle like SystemExit,  but we definitely threw it."""
-
-
 class SubprocessFailure(Exception):
     """A called subprocess failed and may require signal reporting.
 
-    In Python, a negative subprocess returncode indicates that the absolete
+    In Python, a negative subprocess returncode indicates that the absolute
     value of the returncode is a signal number which killed the subprocess.
 
     For completeness, in Linux, the program exit_code is a byte value.  If the
@@ -53,7 +74,6 @@ class SubprocessFailure(Exception):
     exit_code may be unsigned.  The lower bits of the returncode define either
     the program's exit status or a signum identifying the signal which killed
     the process.
-
     """
 
     def __init__(self, returncode):
@@ -61,22 +81,30 @@ class SubprocessFailure(Exception):
 
 
 @contextlib.contextmanager
-def exit_on_exception(exit_code, *args):
+def test_sys_exit():
+    """Support testing sys.exit() calls by trapping them and displaying exit code
+    instead of actually exiting.
+    """
+    try:
+        yield
+    except SystemExit as exc:
+        print(f"sys.exit({exc.code})")
+
+
+@contextlib.contextmanager
+def exit_on_exception(exit_code=exit_codes.GENERIC_ERROR, *args):
     """exit_on_exception is a context manager which issues an error message
-    based on *args and then does sys.exit(exit_code) if an exception is
-    raised within the corresponding "with block".
+    based on *args and then calls sys.exit(exit_code) whenever an exception
+    is raised within the corresponding "with block".
 
     >>> with exit_on_exception(1, "As expected", "it did not fail."):
     ...    print("do it.")
     do it.
 
-    >>> try: #doctest: +ELLIPSIS
+    >>> with test_sys_exit():  #doctest: +ELLIPSIS
     ...    with exit_on_exception(2, "As expected", "it failed."):
     ...        raise Exception("It failed!")
     ...        print("do it.")
-    ... except SystemExit:
-    ...    log.divider()
-    ...    print("Trapping SystemExit normally caught by exit_reciever() at top level.")
     ERROR - ----------------------------- Fatal Exception -----------------------------
     ERROR - As expected it failed.
     ERROR - Traceback (most recent call last):
@@ -86,65 +114,11 @@ def exit_on_exception(exit_code, *args):
     ERROR -     raise Exception("It failed!")
     ERROR - Exception: It failed!
     EXIT - CMDLINE_ERROR[2]: The program command line invocation was incorrect.
-    INFO - ---------------------------------------------------------------------------
-    Trapping SystemExit normally caught by exit_reciever() at top level.
+    sys.exit(2)
 
-    Never printed 'do it.'  SystemExit is caught for testing.
+    Never printed 'do it.'  SystemExit is caught for testing and the exit code is displayed.
 
-    If CALDP_SIMULATE_ERROR is set to one of exit_codes, it will cause the
-    with exit_on_exception() block to act as if a failure has occurred:
-
-    >>> os.environ["CALDP_SIMULATE_ERROR"] = "2"
-    >>> try: #doctest: +ELLIPSIS
-    ...    with exit_on_exception(2, "As expected a failure was simulated"):
-    ...        print("should not see this")
-    ... except SystemExit:
-    ...    pass
-    ERROR - ----------------------------- Fatal Exception -----------------------------
-    ERROR - As expected a failure was simulated
-    ERROR - Traceback (most recent call last):
-    ERROR -   File ".../sysexit.py", line ..., in exit_on_exception
-    ERROR -     raise RuntimeError(f"Simulating error = {simulated_code}")
-    ERROR - RuntimeError: Simulating error = 2
-    EXIT - CMDLINE_ERROR[2]: The program command line invocation was incorrect.
-
-    >>> os.environ["CALDP_SIMULATE_ERROR"] = str(exit_codes.CALDP_MEMORY_ERROR)
-    >>> try: #doctest: +ELLIPSIS
-    ...    with exit_on_exception(2, "Memory errors don't have to match"):
-    ...        print("Oh unhappy day.")
-    ... except SystemExit:
-    ...    pass
-    ERROR - ----------------------------- Fatal Exception -----------------------------
-    ERROR - Memory errors don't have to match
-    ERROR - Traceback (most recent call last):
-    ERROR -   File ".../sysexit.py", line ..., in exit_on_exception
-    ERROR -     raise MemoryError("Simulated CALDP MemoryError.")
-    ERROR - MemoryError: Simulated CALDP MemoryError.
-    EXIT - CALDP_MEMORY_ERROR[32]: CALDP generated a Python MemoryError during processing or preview creation.
-
-    >>> os.environ["CALDP_SIMULATE_ERROR"] = str(exit_codes.OS_MEMORY_ERROR)
-    >>> try: #doctest: +ELLIPSIS
-    ...    with exit_on_exception(2, "Memory errors don't have to match"):
-    ...        print("Oh unhappy day.")
-    ... except SystemExit:
-    ...    pass
-    ERROR - ----------------------------- Fatal Exception -----------------------------
-    ERROR - Memory errors don't have to match
-    ERROR - Traceback (most recent call last):
-    ERROR -   File ".../sysexit.py", line ..., in exit_on_exception
-    ERROR -     raise OSError("Cannot allocate memory...")
-    ERROR - OSError: Cannot allocate memory...
-    EXIT - OS_MEMORY_ERROR[34]: Python raised OSError(Cannot allocate memory...),  possibly fork failure.
-
-    >>> os.environ["CALDP_SIMULATE_ERROR"] = "999"
-    >>> with exit_on_exception(3, "Only matching error codes are simulated."):
-    ...    print("should print normally")
-    should print normally
-
-    >>> del os.environ["CALDP_SIMULATE_ERROR"]
-
-    >>> saved, os._exit = os._exit, lambda x: print(f"os._exit({x})")
-    >>> with exit_receiver():  #doctest: +ELLIPSIS
+    >>> with test_sys_exit():  #doctest: +ELLIPSIS
     ...     with exit_on_exception(exit_codes.STAGE1_ERROR, "Failure running processing stage1."):
     ...         raise SubprocessFailure(-8)
     ERROR - ----------------------------- Fatal Exception -----------------------------
@@ -157,9 +131,28 @@ def exit_on_exception(exit_code, *args):
     ERROR - caldp.sysexit.SubprocessFailure: -8
     EXIT - Killed by UNIX signal SIGFPE[8]: 'Floating-point exception (ANSI).'
     EXIT - STAGE1_ERROR[23]: An error occurred in this instrument's stage1 processing step. e.g. calxxx
-    os._exit(23)
+    sys.exit(23)
 
-    >>> with exit_receiver():  #doctest: +ELLIPSIS
+    An OSError which includes "Cannot allocate memory" in its str() or repr() is trapped as
+    an appropriate CALDP memory error:
+
+    >>> with test_sys_exit():  #doctest: +ELLIPSIS
+    ...     with exit_on_exception(exit_codes.STAGE1_ERROR, "Failure running processing stage1."):
+    ...         raise OSError("Cannot allocate memory")
+    ERROR - ----------------------------- Fatal Exception -----------------------------
+    ERROR - Failure running processing stage1.
+    ERROR - Traceback (most recent call last):
+    ERROR -   File ".../caldp/sysexit.py", line ..., in exit_on_exception
+    ERROR -     yield
+    ERROR -   File "<doctest caldp.sysexit.exit_on_exception[...]>", line ..., in <module>
+    ERROR -     raise OSError("Cannot allocate memory")
+    ERROR - OSError: Cannot allocate memory
+    EXIT - OS_MEMORY_ERROR[34]: Python raised OSError(Cannot allocate memory...),  possibly fork failure.
+    sys.exit(34)
+
+    An OSError w/o "Cannot allocate memory" in its str() is treated normally:
+
+    >>> with test_sys_exit():  #doctest: +ELLIPSIS
     ...     with exit_on_exception(exit_codes.STAGE1_ERROR, "Failure running processing stage1."):
     ...         raise OSError("Something other than memory")
     ERROR - ----------------------------- Fatal Exception -----------------------------
@@ -171,52 +164,55 @@ def exit_on_exception(exit_code, *args):
     ERROR -     raise OSError("Something other than memory")
     ERROR - OSError: Something other than memory
     EXIT - STAGE1_ERROR[23]: An error occurred in this instrument's stage1 processing step. e.g. calxxx
-    os._exit(23)
+    sys.exit(23)
 
-    >>> os._exit = saved
+    Nested traps report from the innermost handler:
+
+    >>> with test_sys_exit():  #doctest: +ELLIPSIS
+    ...     with exit_on_exception(exit_codes.STAGE1_ERROR, "Failure running processing stage1."):
+    ...         with exit_on_exception(exit_codes.STAGE2_ERROR, "Failure running processing stage2."):
+    ...             raise OSError("Something other than memory")
+    ERROR - ----------------------------- Fatal Exception -----------------------------
+    ERROR - Failure running processing stage2.
+    ERROR - Traceback (most recent call last):
+    ERROR -   File ".../caldp/sysexit.py", line ..., in exit_on_exception
+    ERROR -     yield
+    ERROR -   File "<doctest caldp.sysexit.exit_on_exception[...]>", line ..., in <module>
+    ERROR -     raise OSError("Something other than memory")
+    ERROR - OSError: Something other than memory
+    EXIT - STAGE2_ERROR[24]: An error occurred in this instrument's stage2 processing step, e.g astrodrizzle
+    sys.exit(24)
     """
-    simulated_code = int(os.environ.get("CALDP_SIMULATE_ERROR", "0"))
     try:
-        if simulated_code == exit_codes.CALDP_MEMORY_ERROR:
-            raise MemoryError("Simulated CALDP MemoryError.")
-        elif simulated_code == exit_codes.OS_MEMORY_ERROR:
-            raise OSError("Cannot allocate memory...")
-        elif simulated_code == exit_codes.SUBPROCESS_MEMORY_ERROR:
-            print("MemoryError", file=sys.stderr)  # Output to process log determines final program exit status
-            raise RuntimeError("Simulated subprocess memory error with subsequent generic program exception.")
-        elif simulated_code == exit_codes.CONTAINER_MEMORY_ERROR:
-            log.info("Simulating hard memory error by allocating memory")
-            _ = bytearray(1024 * 2 ** 30)  # XXXX does not trigger container limit as intended
-        elif exit_code == simulated_code:
-            raise RuntimeError(f"Simulating error = {simulated_code}")
         yield
-    # don't mask memory errors or nested exit_on_exception handlers
+    except SystemExit:
+        raise
     except MemoryError:
         _report_exception(exit_codes.CALDP_MEMORY_ERROR, args)
-        raise CaldpExit(exit_codes.CALDP_MEMORY_ERROR)
     except OSError as exc:
         if "Cannot allocate memory" in str(exc) + repr(exc):
             _report_exception(exit_codes.OS_MEMORY_ERROR, args)
-            raise CaldpExit(exit_codes.OS_MEMORY_ERROR)
         else:
             _report_exception(exit_code, args)
-            raise CaldpExit(exit_code)
-    except CaldpExit:
-        raise
-    # below as always exit_code defines what will be CALDP's program exit status.
-    # in contrast,  exc.returncode is the subprocess exit status of a failed subprocess which may
-    # define an OS signal that killed the process.
     except SubprocessFailure as exc:
         _report_exception(exit_code, args, exc.returncode)
-        raise CaldpExit(exit_code)
     except Exception:
         _report_exception(exit_code, args)
-        raise CaldpExit(exit_code)
 
 
 def _report_exception(exit_code, args=None, returncode=None):
     """Issue trigger output for exit_on_exception, including `exit_code` and
     error message defined by `args`, as well as traceback.
+
+    If `return_code` is specified and negative then assume it describes the
+    UNIX signal which terminated a subprocess and provide a text
+    interpretation in the log output.
+
+    Exits - This function calls sys.exit() with `exit_code` and never returns.
+            The resulting SysExit exception is not trapped by CALDP and
+            silently unwinds the program stack.  It is eventually caught by
+            Python to do program cleanup such as flushing output buffers before
+            exiting with `exit_code` as the numerical program status.
     """
     log.divider("Fatal Exception", func=log.error)
     if args:
@@ -227,140 +223,7 @@ def _report_exception(exit_code, args=None, returncode=None):
     if returncode and returncode < 0:
         print(exit_codes.explain_signal(-returncode))
     print(exit_codes.explain(exit_code))
-
-
-@contextlib.contextmanager
-def exit_receiver():
-    """Use this contextmanager to bracket your top level code and land the sys.exit()
-    exceptions thrown by _raise_exit_exception() and exit_on_exception().
-
-    This program structure enables sys.exit() to fully unwind the stack doing
-    cleanup, then calls the low level os._exit() function which does no cleanup
-    as the "last thing".
-
-    If SystemExit is not raised by the code nested in the "with" block then
-    exit_receiver() essentially does nothing.
-
-    The program is exited with the numerical code passed to sys.exit().
-
-    >>> saved, os._exit = os._exit, lambda x: print(f"os._exit({x})")
-
-    >>> with exit_receiver():  #doctest: +ELLIPSIS
-    ...     print("Oh happy day.")
-    Oh happy day.
-    os._exit(0)
-
-    Generic unhandled exceptions are mapped to GENERIC_ERROR (1):
-
-    >>> def foo():
-    ...    print("foo!")
-    ...    bar()
-    >>> def bar():
-    ...    print("bar!")
-    ...    raise RuntimeError()
-
-    >>> with exit_receiver(): #doctest: +ELLIPSIS
-    ...     foo()
-    foo!
-    bar!
-    ERROR - ----------------------------- Fatal Exception -----------------------------
-    ERROR - Untrapped non-memory exception.
-    ERROR - Traceback (most recent call last):
-    ERROR -   File ".../caldp/sysexit.py", line ..., in exit_receiver
-    ERROR -     yield  # go off and execute the block
-    ERROR -   File "<doctest caldp.sysexit.exit_receiver[...]>", line ..., in <module>
-    ERROR -     foo()
-    ERROR -   File "<doctest caldp.sysexit.exit_receiver[...]>", line ..., in foo
-    ERROR -     bar()
-    ERROR -   File "<doctest caldp.sysexit.exit_receiver[...]>", line ..., in bar
-    ERROR -     raise RuntimeError()
-    ERROR - RuntimeError
-    EXIT - GENERIC_ERROR[1]: An error with no specific CALDP handling occurred somewhere.
-    os._exit(1)
-
-    MemoryError is remapped to CALDP_MEMORY_ERROR (32) inside exit_on_exception or not:
-
-    >>> with exit_receiver(): #doctest: +ELLIPSIS
-    ...     raise MemoryError("CALDP used up all memory directly.")
-    ERROR - ----------------------------- Fatal Exception -----------------------------
-    ERROR - Untrapped memory exception.
-    ERROR - Traceback (most recent call last):
-    ERROR -   File ".../caldp/sysexit.py", line ..., in exit_receiver
-    ERROR -     yield  # go off and execute the block
-    ERROR -   File "<doctest caldp.sysexit.exit_receiver[...]>", line ..., in <module>
-    ERROR -     raise MemoryError("CALDP used up all memory directly.")
-    ERROR - MemoryError: CALDP used up all memory directly.
-    EXIT - CALDP_MEMORY_ERROR[32]: CALDP generated a Python MemoryError during processing or preview creation.
-    os._exit(32)
-
-    Inside exit_on_exception, exit status is remapped to the exit_code parameter
-    of exit_on_exception():
-
-    >>> with exit_receiver(): #doctest: +ELLIPSIS
-    ...     raise OSError("Cannot allocate memory...")
-    ERROR - ----------------------------- Fatal Exception -----------------------------
-    ERROR - Untrapped OSError cannot callocate memory
-    ERROR - Traceback (most recent call last):
-    ERROR -   File ".../sysexit.py", line ..., in exit_receiver
-    ERROR -     yield  # go off and execute the block
-    ERROR -   File "<doctest ...sysexit.exit_receiver[...]>", line ..., in <module>
-    ERROR -     raise OSError("Cannot allocate memory...")
-    ERROR - OSError: Cannot allocate memory...
-    EXIT - OS_MEMORY_ERROR[34]: Python raised OSError(Cannot allocate memory...),  possibly fork failure.
-    os._exit(34)
-
-    >>> with exit_receiver(): #doctest: +ELLIPSIS
-    ...     raise OSError("Some non-memory os error.")
-    ERROR - ----------------------------- Fatal Exception -----------------------------
-    ERROR - Untrapped OSError, generic.
-    ERROR - Traceback (most recent call last):
-    ERROR -   File ".../sysexit.py", line ..., in exit_receiver
-    ERROR -     yield  # go off and execute the block
-    ERROR -   File "<doctest ...sysexit.exit_receiver[...]>", line ..., in <module>
-    ERROR -     raise OSError("Some non-memory os error.")
-    ERROR - OSError: Some non-memory os error.
-    EXIT - GENERIC_ERROR[1]: An error with no specific CALDP handling occurred somewhere.
-    os._exit(1)
-
-    >>> with exit_receiver(): #doctest: +ELLIPSIS
-    ...    with exit_on_exception(exit_codes.STAGE1_ERROR, "Stage1 processing failed for <ippssoot>"):
-    ...        raise RuntimeError("Some obscure error")
-    ERROR - ----------------------------- Fatal Exception -----------------------------
-    ERROR - Stage1 processing failed for <ippssoot>
-    ERROR - Traceback (most recent call last):
-    ERROR -   File ".../sysexit.py", line ..., in exit_on_exception
-    ERROR -     yield
-    ERROR -   File "<doctest ...sysexit.exit_receiver[...]>", line ..., in <module>
-    ERROR -     raise RuntimeError("Some obscure error")
-    ERROR - RuntimeError: Some obscure error
-    EXIT - STAGE1_ERROR[23]: An error occurred in this instrument's stage1 processing step. e.g. calxxx
-    os._exit(23)
-
-    >>> os._exit = saved
-
-    """
-    try:
-        # log.info("Container memory limit is: ", get_linux_memory_limit())
-        yield  # go off and execute the block
-        code = exit_codes.SUCCESS
-    except CaldpExit as exc:
-        code = exc.code
-        # Already reported deeper
-    except MemoryError:
-        code = exit_codes.CALDP_MEMORY_ERROR
-        _report_exception(code, ("Untrapped memory exception.",))
-    except OSError as exc:
-        if "Cannot allocate memory" in str(exc) + repr(exc):
-            code = exit_codes.OS_MEMORY_ERROR
-            args = ("Untrapped OSError cannot callocate memory",)
-        else:
-            code = exit_codes.GENERIC_ERROR
-            args = ("Untrapped OSError, generic.",)
-        _report_exception(code, args)
-    except BaseException:  # Catch absolutely everything.
-        code = exit_codes.GENERIC_ERROR
-        _report_exception(code, ("Untrapped non-memory exception.",))
-    os._exit(code)
+    sys.exit(exit_code)
 
 
 def get_linux_memory_limit():  # pragma: no cover
@@ -443,9 +306,7 @@ def test():  # pragma: no cover
     from doctest import testmod
     import caldp.sysexit
 
-    temp, os._exit = os._exit, lambda x: print(f"os._exit({x})")
     test_result = testmod(caldp.sysexit)
-    os._exit = temp
     return test_result
 
 
