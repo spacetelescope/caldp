@@ -360,6 +360,11 @@ def exit_receiver():
     except BaseException:  # Catch absolutely everything.
         code = exit_codes.GENERIC_ERROR
         _report_exception(code, ("Untrapped non-memory exception.",))
+    try:
+        sys.stderr.flush()
+        sys.stdout.flush()
+    except BaseException:
+        pass
     os._exit(code)
 
 
