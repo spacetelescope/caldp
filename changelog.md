@@ -1,1 +1,2 @@
-- default base docker image update to CALDP_20211129_CAL_final
+- default base docker image update to CALDP_20220214_COS_final
+- default crds update to hst_0981.pmap
