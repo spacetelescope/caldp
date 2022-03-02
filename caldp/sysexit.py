@@ -186,7 +186,7 @@ def exit_on_exception(exit_code, *args):
             raise RuntimeError("Simulated subprocess memory error with subsequent generic program exception.")
         elif simulated_code == exit_codes.CONTAINER_MEMORY_ERROR:
             log.info("Simulating hard memory error by allocating memory")
-            _ = bytearray(1024 * 2 ** 30)  # XXXX does not trigger container limit as intended
+            _ = bytearray(1024 * 2**30)  # XXXX does not trigger container limit as intended
         elif exit_code == simulated_code:
             raise RuntimeError(f"Simulating error = {simulated_code}")
         yield
@@ -433,7 +433,7 @@ def exponential_backoff(iteration, min_sleep=1, max_sleep=64, backoff=2):
     """
 
     # random uniform number(0.5,1) * backoff^iteration, but clip to min_backoff, max_backoff
-    return max(min(random.uniform(0.5, 1) * backoff ** iteration, max_sleep), min_sleep)
+    return max(min(random.uniform(0.5, 1) * backoff**iteration, max_sleep), min_sleep)
 
 
 # ==============================================================================
