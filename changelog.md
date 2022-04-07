@@ -1,3 +1,2 @@
-- default base docker image set to CALDP_20211129_CAL_final
-    - cannot use CALDP_20220214_COS_final as it is affected by the pip/drizzlepac/numpy build issue
-- default crds update to hst_0981.pmap
+- default base docker image set to CALDP_20220406_CAL_final
+- default crds update to hst_1002.pmap
