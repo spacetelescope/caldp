@@ -19,7 +19,7 @@ from caldp import sysexit
 # Set default CRDS Context
 CRDS_CONTEXT = os.environ.get("CRDS_CONTEXT")
 if CRDS_CONTEXT == "":
-    os.environ["CRDS_CONTEXT"] = "hst_0981.pmap"
+    os.environ["CRDS_CONTEXT"] = "hst_1002.pmap"
 
 # For applicable tests,  the product files associated with each ipppssoot below
 # must be present in the CWD after processing and be within 10% of the listed sizes.
@@ -256,14 +256,14 @@ RESULTS = [
 23400000 iacs01t4q_raw.fits
   247834 iacs01t4q_raw.jpg
  2649 iacs01t4q_raw_thumb.jpg
-89378 iacs01t4q.tra
+48082 iacs01t4q.tra
 35 outputs/iacs01t4q/env/iacs01t4q_cal_env.txt
 12600000 outputs/iacs01t4q/iacs01t4q_drz.fits
 16646400 outputs/iacs01t4q/iacs01t4q_flt.fits
 8640 outputs/iacs01t4q/iacs01t4q_flt_hlet.fits
 115686720 outputs/iacs01t4q/iacs01t4q_ima.fits
 23400000 outputs/iacs01t4q/iacs01t4q_raw.fits
-89378 outputs/iacs01t4q/iacs01t4q.tra
+48082 outputs/iacs01t4q/iacs01t4q.tra
 83733 outputs/iacs01t4q/previews/iacs01t4q_drz.jpg
 3604 outputs/iacs01t4q/previews/iacs01t4q_drz_thumb.jpg
 99891 outputs/iacs01t4q/previews/iacs01t4q_flt.jpg
