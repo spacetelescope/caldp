@@ -16,5 +16,5 @@ export CALDP_IMAGE_TAG=latest
 export CALDP_DOCKER_IMAGE=${CALDP_IMAGE_REPO}:${CALDP_IMAGE_TAG}
 
 # Fundamental calibration s/w image CALDP image inherits from
-export BASE_IMAGE_TAG=CALDP_20220406_CAL_final
+export BASE_IMAGE_TAG=CALDP_cosandhap_CAL_rc3
 export CAL_BASE_IMAGE=stsci/hst-pipeline:${BASE_IMAGE_TAG}
