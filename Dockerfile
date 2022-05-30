@@ -44,7 +44,8 @@ RUN yum remove -y kernel-devel   &&\
    patch \
    curl \
    rsync \
-   time
+   time \
+   which
 
 RUN mkdir -p /etc/ssl/certs && \
     mkdir -p /etc/pki/ca-trust/extracted/pem
@@ -89,4 +90,14 @@ RUN mkdir -p /grp/crds/cache && chown -R developer.developer /grp/crds/cache
 
 # ------------------------------------------------
 USER developer
-RUN cd caldp  &&  pip install .[dev,test]
+# for any base docker image created later than and including stsci/hst-pipeline:CALDP_20220420_CAL_final, 
+# the critical base environment is now buried in a conda environment named "linux"
+# this creates various issues with the docker run command
+# I played around for several hours with ways to bury the conda activation in a .bashrc or .bash_profile,
+# but I couldn't get docker to use it when the image was invoked with the docker run command.
+# in the end, the least-risky way to fix the issue seems to be to hardcode the conda activation into the path
+# and bake it straight into the image.
+# --bhayden, 5-24-22
+ENV PATH=/opt/conda/envs/linux/bin:/opt/conda/condabin:/opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+RUN cd caldp  && \ 
+    pip install .[dev,test]
