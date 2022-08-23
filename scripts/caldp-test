@@ -1,0 +1,9 @@
+#! /bin/bash -eu
+
+# Run the caldp unit tests passing any parameters to pytest
+# useful parameters: -v -v -v,  --profile,   see pytest --help
+
+export CALDP_DOCKER_RUN_PARS=${CALDP_DOCKER_RUN_PARS:-"-it --rm"}
+
+caldp-docker-run-container \
+    coverage run -m pytest --capture=tee-sys --doctest-modules caldp $*

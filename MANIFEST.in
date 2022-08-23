@@ -1,6 +1,8 @@
 include README.rst
-include CHANGES.rst
+include QUICKSTART.md
+include changelog.md
 include setup.cfg
+include caldp-setup
 include LICENSE.rst
 include pyproject.toml
 

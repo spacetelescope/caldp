@@ -1,0 +1,49 @@
+#! /bin/bash
+
+# Add caldp development and config scripts to PATH
+export PATH=`pwd`/scripts:${PATH}
+
+# Define the exact version of reference files you want to use.
+# Specify "hst-operational" if you want it defined automatically
+# by the CRDS server and/or cache.
+export CRDS_CONTEXT=hst_1015.pmap
+
+# Version of stsci/hst-pipeline base image to use
+export BASE_IMAGE_TAG=CALDP_20220527_CAL_final
+
+# Docker repo
+#
+# export CALDP_IMAGE_REPO=218835028644.dkr.ecr.us-east-1.amazonaws.com/caldp-sb
+export CALDP_IMAGE_REPO=alphasentaurii/caldp
+
+# Docker image tag
+export CALDP_IMAGE_TAG=latest
+
+# The host directory specified by CALDP_HOME is mounted r/w in the container
+# during development over /home/developer.
+# Use "none" to avoid r/w mount of storage into Docker
+# export CALDP_HOME="none"
+export CALDP_HOME=`pwd`
+
+# Primarily configures CRDS to work based on:
+#   local cache of reference files in /grp/crds/cache,  VPN, no server
+#     export CALDP_CONFIG=caldp-config-onsite
+#   S3 copies of references files, no server
+#     export CALDP_CONFIG=caldp-config-aws
+#   dynamic downloads of CRDS files,  requires server
+export CALDP_CONFIG=caldp-config-offsite
+
+# When configured -offsite,  it pays to mount a CRDS cache into Docker which
+# either avoids or caches CRDS file downloads for reuse.
+export CRDS_PATH=`pwd`/crds_cache
+
+# Fail if code coverage is below this number
+export CALDP_COVERAGE=70
+
+# ---------
+
+# Base image with CALDP package and fitscut added.
+export CALDP_DOCKER_IMAGE=${CALDP_IMAGE_REPO}:${CALDP_IMAGE_TAG}
+
+# Fundamental calibration s/w image CALDP image inherits from
+export CAL_BASE_IMAGE=stsci/hst-pipeline:${BASE_IMAGE_TAG}

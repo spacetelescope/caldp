@@ -1,0 +1,15 @@
+#! /bin/bash -eu
+
+# Expected context:  shell session outside Docker
+#
+# $ caldp-sh <docker run command and parameters... defaulting to /bin/bash>
+#
+# Development script that runs the specified command, or /bin/bash if no
+# command is specified inside the CALDP container.
+#
+# Configure Docker for an interactive terminal session which can cause problems
+# for other use cases.
+
+export CALDP_DOCKER_RUN_PARS="--rm -it"
+
+caldp-docker-run-container $*
