@@ -5,7 +5,10 @@
 # Central Store but will suffer from repeat downloads via VPN if Central Store
 # files are not effectively cached on offsite computers.
 #
-export CRDS_PATH=/grp/crds/hst
+# These values work inside and outside the container.
+#
+
+export CRDS_PATH=/grp/crds/cache
 
 export CRDS_SERVER_URL=https://hst-serverless-mode.stsci.edu
 export CRDS_READONLY_CACHE=1
@@ -17,4 +20,3 @@ export lref=${CRDS_PATH}/references/hst/
 export nref=${CRDS_PATH}/references/hst/
 export uref=${CRDS_PATH}/references/hst/
 export uref_linux=$uref
-

@@ -4,7 +4,7 @@ on: [push, pull_request, workflow_dispatch]
 
 jobs:
   docker:
-    name: docker image build and single dataset
+    name: docker image build and test
     runs-on: ubuntu-20.04
 
     strategy:
@@ -15,16 +15,22 @@ jobs:
       - name: checkout code
         uses: actions/checkout@v2
 
-      - name: set up environment
-        run: scripts/caldp-cal-env-github-actions ${{ matrix.HSTCAL }} >> $GITHUB_ENV
+      - name: docker build
+        run: |
+          source caldp-setup
+          caldp-image-build
 
-      - name: build docker image
-        uses: docker/build-push-action@v1
-        with:
-          push: false
-          repository: ${{ env.DOCKER_REPO }}
-          tags: ${{ env.DOCKER_TAG }}
-          build_args: CAL_BASE_IMAGE=${{ env.CAL_BASE_IMAGE }}
+      - name: run tests
+        run: |
+          source caldp-setup
+          export CALDP_DOCKER_RUN_PARS="--rm --user root:root"  # non-interactive terminal, enable write this dir with root
+          caldp-test
+
+      - name: compute test coverage
+        uses: codecov/codecov-action@v2
 
       - name: run sample container
-        run: 'docker run $DOCKER_REPO:$DOCKER_TAG caldp-process j8cb010b0 astroquery: none caldp-config-offsite'
+        run: |
+          source caldp-setup
+          export CALDP_DOCKER_RUN_PARS="--rm --user root:root"  # non-interactive terminal, enable write this dir with root
+          caldp-docker-run-pipeline j8cb010b0 astroquery: none caldp-config-offsite

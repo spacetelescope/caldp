@@ -1,19 +1,20 @@
 #! /bin/bash -eu
 
+# Expected context:  shell session outside Docker
 #
-# Does Docker setup and runs commands in the CALDP container on a
-# local (non-cloud) system.
+# $ caldp-docker-run-container <command to run inside container>
+#
+# Does Docker setup and runs commands in the CALDP container on a development
+# or CI system.
 #
 # Define the native Docker working directory using CALDP_HOME if you want
-#  something other than the default.
-#
-# Map (jupyter lab) container port 8888 to docker host port 8888.
+# something other than the default.
 
-# Choose the CALDP docker image configured by an installed
-# caldp-image-config
-source caldp-image-config
+# Define the environment to establish inside the container prior to running
+# the commmand.
+export CALDP_CONFIG=${CALDP_CONFIG:-caldp-config-offsite}
 
-#
+
 # Mount native file systems into the Docker container:
 # 1. $CALDP_HOME or `pwd` is mounted as /home/developer
 #     inside Docker, and is r/w.
@@ -22,44 +23,54 @@ source caldp-image-config
 #
 # To support use of AWS, consider copying or linking ~/.aws into whatever
 # native directory you mount at /home/developer.
-#
+
+# ------------------------------------------------------------------------------
 # If $CALDP_HOME is defined in the environment, mount that directory at
-# /home/developer when Docker is run. By default, when $CALDP_HOME is not
-# defined, mount the current working directory at /home/developer inside the
-# container.  If CALDP_HOME is set to "none" then don't mount anything.
+# /home/developer when Docker is run. If CALDP_HOME is set to "none"
+# (defaulted) then don't mount anything.
 #
 # Paths specified on the command line are interpreted within the context of the
 # running container.  Hence relative paths are relative to /home/developer
 # and/or relative to whatever native directory is mounted at /home/developer.
-#
-DEV_HOME=${CALDP_HOME:-`pwd`}
-mkdir -p $DEV_HOME
-if [ ${DEV_HOME} != "none" ]; then
-    MOUNTS="--mount type=bind,source=$DEV_HOME,target=/home/developer"
+
+
+export CALDP_HOME=${CALDP_HOME:-"none"}
+if [[ ${CALDP_HOME} == "none" ]]; then
+    MOUNTS=""
 else
-    MOUNTS = ""
+    mkdir -p $CALDP_HOME
+    MOUNTS="-v $CALDP_HOME:/home/developer"
 fi
-#
+
+# ------------------------------------------------------------------------------
 # Mount CRDS_PATH inside container at /grp/crds/cache, defaulting CRDS_PATH to
 # /grp/crds/cache on Central Store if the user does not define it in their
 # environment.
 #
-# NOTE: The file system at CRDS_PATH must be "shared" in Docker, use the Docker
-# GUI to share it so that it is accessible to the mount switch below and thereby
-# visible inside the container.
-#
-CRDS_SRC=${CRDS_PATH:-/grp/crds/hst}
-READONLY=${CRDS_READONLY_CACHE:-0}
+# NOTE: The file system at CRDS_PATH mauy need to be "shared" by Docker
+# Desktop, use the Docker GUI to share it so that it is accessible to the mount
+# switch below and thereby visible inside the container.  (This "shared" may be
+# different than the "shared" option of -v or --mount.
 
-if [[ "$READONLY" == "0" && "$CRDS_SRC" != "/grp/crds/hst" ]]; then
-    MOUNTS="${MOUNTS} --mount type=bind,source=${CRDS_SRC},target=/grp/crds/cache"
+export CRDS_PATH=${CRDS_PATH:-/grp/crds/cache}
+export CRDS_READONLY_CACHE=${CRDS_READONLY_CACHE:-0}
+
+if [[ "$CRDS_READONLY_CACHE" == "0" && "$CRDS_PATH" != "/grp/crds/cache" ]]; then
+    MOUNTS="${MOUNTS} -v ${CRDS_PATH}:/grp/crds/cache"
 else
-    MOUNTS="${MOUNTS} --mount type=bind,source=${CRDS_SRC},target=/grp/crds/cache,readonly"
+    MOUNTS="${MOUNTS} -v ${CRDS_PATH}:/grp/crds/cache:ro"
 fi
 
-# -it -p 8888:8888    # for interactive debug and JupyterHub access.
-caldp_docker_run_pars=${CALDP_DOCKER_RUN_PARS:-"--rm"}
+# default here should not include -it which fails in some environments like github
+export CALDP_DOCKER_RUN_PARS=${CALDP_DOCKER_RUN_PARS:-"--rm"}
 
-# we pass DEV_HOME into the container as an env variable so that the output paths in the message
-# can refer to the local, out-of-container path.
-docker run ${caldp_docker_run_pars}  --env DEV_HOME=$DEV_HOME --env CALDP_DOCKER=1 $MOUNTS $CALDP_DOCKER_IMAGE $*
+set -x
+
+# caldp-shim below runs $* in the environment defined by sourcing CALDP_CONFIG
+docker run \
+       ${CALDP_DOCKER_RUN_PARS}  \
+       --env CALDP_DOCKER=1 \
+       --env CALDP_CONFIG=$CALDP_CONFIG \
+       ${MOUNTS} \
+       ${CALDP_DOCKER_IMAGE} \
+       caldp-shim $*
