@@ -35,15 +35,23 @@ export CALDP_CONFIG=caldp-config-offsite
 
 # When configured -offsite,  it pays to mount a CRDS cache into Docker which
 # either avoids or caches CRDS file downloads for reuse.
-export CRDS_PATH=`pwd`/crds_cache
+export CRDS_PATH=$HOME/crds_cache
 
 # Fail if code coverage is below this number
 export CALDP_COVERAGE=70
 
-# ---------
+# vvvvvvvvvvvvvv  unlikely to change vvvvvvvvvvvvvvvvvvvvvvvvv
 
 # Base image with CALDP package and fitscut added.
 export CALDP_DOCKER_IMAGE=${CALDP_IMAGE_REPO}:${CALDP_IMAGE_TAG}
 
 # Fundamental calibration s/w image CALDP image inherits from
 export CAL_BASE_IMAGE=stsci/hst-pipeline:${BASE_IMAGE_TAG}
+
+# The root of the git clone,  don't change this,  scripts cd here
+export CALDP_CLONE=`pwd`
+
+# --------------------------------------------------------------
+# Add stupid little conveniences as aliases here instead of script files
+
+alias caldp-bnt="caldp-image-build && caldp-test"

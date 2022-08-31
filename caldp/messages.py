@@ -57,7 +57,7 @@ class Logs:
             obj = objectname + "/" + os.path.basename(v)
             with open(k, "rb") as f:
                 client.upload_fileobj(f, bucket, obj)
-                log.info(f"\t{v}.")
+                log.info(f"\t Uploading {k} to s3://{bucket}/{obj}.")
                 # os.remove(k)
         log.info("Log files uploaded.")
 
@@ -223,24 +223,26 @@ def log_metrics(log_file, metrics):
 def clean_up(ipppssoot, IO):
     print(f"Cleaning up {IO}...")
     folder = os.path.join(os.getcwd(), IO)
-    if IO == "messages":
-        file_list = list(glob.glob(f"{folder}/*"))
-        for f in file_list:
-            os.remove(f)
-    else:
-        ipst = os.path.join(folder, ipppssoot)
-        file_list = list(glob.glob(f"{ipst}/*"))
-        for f in file_list:
-            if os.path.isfile(f):
-                os.remove(f)
-            elif os.path.isdir(f):
-                if len(os.listdir(f)) > 0:
-                    shutil.rmtree(f)
-                else:
-                    os.rmdir(f)
-        os.rmdir(ipst)
-    os.rmdir(folder)
+    shutil.rmtree(folder)
     print("Done.")
+    # if IO == "messages":
+    #     file_list = list(glob.glob(f"{folder}/*"))
+    #     for f in file_list:
+    #         os.remove(f)
+    # else:
+    #     ipst = os.path.join(folder, ipppssoot)
+    #     file_list = list(glob.glob(f"{ipst}/*"))
+    #     for f in file_list:
+    #         if os.path.isfile(f):
+    #             os.remove(f)
+    #         elif os.path.isdir(f):
+    #             if len(os.listdir(f)) > 0:
+    #                 shutil.rmtree(f)
+    #             else:
+    #                 os.rmdir(f)
+    #     os.rmdir(ipst)
+    # os.rmdir(folder)
+    # print("Done.")
 
 
 # primarily for test cov where output_uri is "none"

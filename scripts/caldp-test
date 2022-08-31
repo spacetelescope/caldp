@@ -1,9 +1,14 @@
-#! /bin/bash -eu
+#! /bin/bash
+
+set -eu
+set -o pipefail
 
 # Run the caldp unit tests passing any parameters to pytest
 # useful parameters: -v -v -v,  --profile,   see pytest --help
 
 export CALDP_DOCKER_RUN_PARS=${CALDP_DOCKER_RUN_PARS:-"-it --rm"}
 
-caldp-docker-run-container \
-    coverage run -m pytest --capture=tee-sys --doctest-modules caldp $*
+
+
+( caldp-docker-run-container \
+    pytest  --color=no  --capture=tee-sys --cov=caldp --cov-report=html:htmlcov --doctest-modules caldp $* ) 2>&1 | tee $CALDP_CLONE/test.log

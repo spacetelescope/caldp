@@ -11,6 +11,20 @@ from caldp import exit_codes
 from caldp import sysexit
 
 
+def s3_split_uri(uri):
+    """
+    >>> s3_split_uri('s3://the-bucket/prefix/parts/come/next')
+    ('the-bucket', 'prefix/parts/come/next')
+
+    >>> s3_split_uri('s3://the-bucket')
+    ('the-bucket', '')
+    """
+    parts = uri[5:].split("/")
+    bucket, prefix = parts[0], "/".join(parts[1:])
+    # print("s3_split_uri:", uri, "->", bucket, prefix)
+    return bucket, prefix
+
+
 def get_input_path(input_uri, ipppssoot, make=False):
     """Fetches the path to input files"""
     cwd = os.getcwd()
@@ -166,5 +180,4 @@ def tar_outputs(ipppssoot, input_uri, output_uri):
     upload_tar(tar, output_path)
     clean_up(file_list, ipppssoot, dirs=["previews", "env"])
     os.chdir(working_dir)
-    if output_uri.startswith("file"):  # test cov only
-        return tar, file_list  # , local_outpath
+    return tar, file_list
