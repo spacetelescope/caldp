@@ -357,7 +357,7 @@ CALDP_TEST_FILE_SIZE_THRESHOLD = float(os.environ.get("CALDP_TEST_FILE_SIZE_THRE
 # ----------------------------------------------------------------------------------------
 
 
-@pytest.mark.parametrize("output_uri", ["file:outputs", CALDP_S3_TEST_OUTPUTS])
+@pytest.mark.parametrize("output_uri", ["file:outputs"])  # , CALDP_S3_TEST_OUTPUTS])
 @pytest.mark.parametrize("input_uri", ["file:inputs", "astroquery:", CALDP_S3_TEST_INPUTS])
 @pytest.mark.parametrize("ipppssoot", SHORT_TEST_IPPPSSOOTS)
 def test_io_modes(tmpdir, ipppssoot, input_uri, output_uri):
