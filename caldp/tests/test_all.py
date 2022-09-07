@@ -2,7 +2,6 @@
 assigning references, and basic calibrations.
 """
 import os
-import subprocess
 import tempfile
 
 import pytest
@@ -13,6 +12,7 @@ from caldp import messages
 from caldp import file_ops
 from caldp import sysexit
 
+from moto import mock_s3
 
 # ----------------------------------------------------------------------------------------
 
@@ -23,10 +23,11 @@ if CRDS_CONTEXT == "":
 
 # For applicable tests,  the product files associated with each ipppssoot below
 # must be present in the CWD after processing and be within 10% of the listed sizes.
-RESULTS = [
-    (
-        "j8cb010b0",
-        """
+RESULTS = dict(
+    [
+        (
+            "j8cb010b0",
+            """
 18457 inputs/j8cb010b1_crj.jpg
 1036 inputs/j8cb010b1_crj_thumb.jpg
 31941 inputs/j8cb010b1_drz.jpg
@@ -78,10 +79,10 @@ RESULTS = [
 11520 outputs/j8cb010b0/j8cb010b0_asn.fits
 62666 outputs/j8cb010b0/j8cb010b0.tra
 """,
-    ),
-    (
-        "obes03010",
-        """
+        ),
+        (
+            "obes03010",
+            """
 8486 obes03010_sx1_thumb.png
 121908 obes03010_sx1.png
 80640 obes03010_sx1.fits
@@ -101,10 +102,10 @@ RESULTS = [
 11520 outputs/obes03010/obes03010_asn.fits
 21052800 outputs/obes03010/obes03010_flt.fits
         """,
-    ),
-    (
-        "la8q99030",
-        """
+        ),
+        (
+            "la8q99030",
+            """
 7799 la8q99ixq_x1d_thumb.png
 115200 la8q99ixq_x1d_prev.fits
 235844 la8q99ixq_x1d.png
@@ -148,10 +149,10 @@ RESULTS = [
 218880 outputs/la8q99030/la8q99030_jnk.fits
 259200 outputs/la8q99030/la8q99030_x1dsum.fits
         """,
-    ),
-    (
-        "ib8t01010",
-        """
+        ),
+        (
+            "ib8t01010",
+            """
 48819 ib8t01htq_ima.jpg
 1877 ib8t01htq_ima_thumb.jpg
 205588 ib8t01hwq_raw.jpg
@@ -207,10 +208,10 @@ RESULTS = [
 11520 outputs/ib8t01010/ib8t01010_asn.fits
 86860 outputs/ib8t01010/ib8t01010.tra
         """,
-    ),  # wfc3 and acs singletons
-    (
-        "ibc604b9q",
-        """
+        ),  # wfc3 and acs singletons
+        (
+            "ibc604b9q",
+            """
 828 ibc604b9q.tra
 32518080 ibc604b9q_raw.fits
 221702 ibc604b9q_raw.jpg
@@ -220,10 +221,10 @@ RESULTS = [
 842 outputs/ibc604b9q/ibc604b9q_raw_thumb.jpg
 221702 outputs/ibc604b9q/ibc604b9q_raw.jpg
         """,
-    ),
-    (
-        "j8f54obeq",
-        """
+        ),
+        (
+            "j8f54obeq",
+            """
 184035 j8f54obeq_raw.jpg
 7289 j8f54obeq_raw_thumb.jpg
 178971 j8f54obeq_flt.jpg
@@ -239,10 +240,10 @@ RESULTS = [
 7354 outputs/j8f54obeq/j8f54obeq_flt_thumb.jpg
 178971 outputs/j8f54obeq/j8f54obeq_flt.jpg
         """,
-    ),  # testing env file
-    (
-        "iacs01t4q",
-        """
+        ),  # testing env file
+        (
+            "iacs01t4q",
+            """
 12600000 iacs01t4q_drz.fits
 83733 iacs01t4q_drz.jpg
  3604 iacs01t4q_drz_thumb.jpg
@@ -273,79 +274,82 @@ RESULTS = [
 247834 outputs/iacs01t4q/previews/iacs01t4q_raw.jpg
 2649 outputs/iacs01t4q/previews/iacs01t4q_raw_thumb.jpg
         """,
-    ),
-]
+        ),
+    ]
+)
 
-TARFILES = [
-    ("j8cb010b0", "32586581 j8cb010b0.tar.gz"),
-    ("iacs01t4q", "106921504 iacs01t4q.tar.gz"),
-]
+TARFILES = dict([("j8cb010b0", "32586581 j8cb010b0.tar.gz"), ("iacs01t4q", "106921504 iacs01t4q.tar.gz")])
 
-S3_OUTPUTS = [
-    (
-        "j8cb010b0",
-        """
+S3_OUTPUTS = dict(
+    [
+        (
+            "j8cb010b0",
+            """
         32586581 j8cb010b0.tar.gz
         3726 preview.txt
         112 preview_metrics.txt
         8701 process.txt
         112 process_metrics.txt
         """,
-    ),
-    (
-        "obes03010",
-        """
+        ),
+        (
+            "obes03010",
+            """
         32802820 obes03010.tar.gz
         11611 preview.txt
         823 preview_metrics.txt
         29773 process.txt
         819 process_metrics.txt
         """,
-    ),
-    (
-        "la8q99030",
-        """
+        ),
+        (
+            "la8q99030",
+            """
         11883173 la8q99030.tar.gz
         6445 preview.txt
         827 preview_metrics.txt
         9782 process.txt
         824 process_metrics.txt
         """,
-    ),
-    (
-        "ib8t01010",
-        """
+        ),
+        (
+            "ib8t01010",
+            """
         277780489 ib8t01010.tar.gz
         93209 preview.txt
         828 preview_metrics.txt
         91292 process.txt
         827 process_metrics.txt
         """,
-    ),
-]
+        ),
+    ]
+)
 
-FAIL_OUTPUTS = [
-    (
-        "j8f54obeq",
-        """
+FAIL_OUTPUTS = dict(
+    [
+        (
+            "j8f54obeq",
+            """
         6445230 j8f54obeq.tar.gz
         1136 preview.txt
         113 preview_metrics.txt
         4557 process.txt
         112 process_metrics.txt
         """,
-    ),
-]
+        ),
+    ]
+)
 
-SHORT_TEST_IPPPSSOOTS = [result[0] for result in RESULTS][:1]
-LONG_TEST_IPPPSSOOTS = [result[0] for result in RESULTS][:-1]  # [1:]
-ENV_TEST_IPPPSSOOTS = [result[0] for result in RESULTS][-1:]
+SHORT_TEST_IPPPSSOOTS = list(RESULTS.keys())[:1]
+LONG_TEST_IPPPSSOOTS = list(RESULTS.keys())[:-1]  # [1:]
+ENV_TEST_IPPPSSOOTS = list(RESULTS.keys())[-1:]
 
 # LONG_TEST_IPPPSSOOTS += SHORT_TEST_IPPPSSOOTS  # Include all for creating test cases.
 
 # Leave S3 config undefined to skip S3 tests
-CALDP_S3_TEST_OUTPUTS = os.environ.get("CALDP_S3_TEST_OUTPUTS")  # s3://caldp-output-test/pytest/outputs
-CALDP_S3_TEST_INPUTS = os.environ.get("CALDP_S3_TEST_INPUTS")  # s3://caldp-output-test/inputs
+CALDP_S3_TEST_OUTPUTS = os.environ.get("CALDP_S3_TEST_OUTPUTS", "s3://caldp-pytest")
+CALDP_S3_TEST_INPUTS = os.environ.get("CALDP_S3_TEST_INPUTS", "s3://caldp-pytest/inputs")
+CALDP_S3_MOTO = int(os.environ.get("CALDP_S3_MOTO", 1))
 
 # Output sizes must be within +- this fraction of truth value
 CALDP_TEST_FILE_SIZE_THRESHOLD = float(os.environ.get("CALDP_TEST_FILE_SIZE_THRESHOLD", 0.4))
@@ -353,7 +357,7 @@ CALDP_TEST_FILE_SIZE_THRESHOLD = float(os.environ.get("CALDP_TEST_FILE_SIZE_THRE
 # ----------------------------------------------------------------------------------------
 
 
-@pytest.mark.parametrize("output_uri", ["file:outputs", CALDP_S3_TEST_OUTPUTS])
+@pytest.mark.parametrize("output_uri", ["file:outputs"])  # , CALDP_S3_TEST_OUTPUTS])
 @pytest.mark.parametrize("input_uri", ["file:inputs", "astroquery:", CALDP_S3_TEST_INPUTS])
 @pytest.mark.parametrize("ipppssoot", SHORT_TEST_IPPPSSOOTS)
 def test_io_modes(tmpdir, ipppssoot, input_uri, output_uri):
@@ -374,34 +378,52 @@ def test_instruments(tmpdir, ipppssoot, input_uri, output_uri):
     coretst(tmpdir, ipppssoot, input_uri, output_uri)
 
 
+# Conditionally mock S3,  defaulting to mock
+mock_s3 = mock_s3 if CALDP_S3_MOTO else lambda x: x
+
+
+@mock_s3
 def coretst(temp_dir, ipppssoot, input_uri, output_uri):
     """Run every `ipppssoot` through process.process() downloading input files from
     astroquery and writing output files to local storage.   Verify that call to process
     outputs the expected files with reasonable sizes into it's CWD.
     """
-    print("Test case", ipppssoot, input_uri, output_uri)
     if not input_uri or not output_uri:
         print("Skipping case", ipppssoot, input_uri, output_uri)
         return
     working_dir = os.path.join(temp_dir, ipppssoot)
     os.makedirs(working_dir, exist_ok=True)
     os.chdir(working_dir)
+    output_uri = setup_s3(ipppssoot, input_uri, output_uri)
+    print("Test case", ipppssoot, input_uri, output_uri)
     try:
         if input_uri.startswith("file"):
             setup_io(ipppssoot, input_uri, output_uri)
             tarball = check_tarball_in(ipppssoot)
+        elif input_uri.startswith("s3:"):
+            setup_io(ipppssoot, input_uri, output_uri)
+            tarball = check_tarball_in(ipppssoot)
+            file_ops.upload_tar(tarball, input_uri)
+            os.remove(tarball)
 
-        process.process(ipppssoot, input_uri, output_uri)
+        process.main(["process.py", input_uri, output_uri, ipppssoot])
+
         messages.log_metrics(log_file="process.txt", metrics="process_metrics.txt")
+
         check_messages(ipppssoot, output_uri, status="processing")
+
         create_previews.main(ipppssoot, input_uri, output_uri)
+
         messages.log_metrics(log_file="preview.txt", metrics="preview_metrics.txt")
+
         expected_inputs, expected_outputs = expected(RESULTS, ipppssoot)
         actual_inputs = list_inputs(ipppssoot, input_uri)
         actual_outputs = list_outputs(ipppssoot, output_uri)
         check_inputs(input_uri, expected_inputs, actual_inputs)
         check_outputs(output_uri, expected_outputs, actual_outputs)
+
         messages.main(input_uri, output_uri, ipppssoot)
+
         check_s3_outputs(S3_OUTPUTS, actual_outputs, ipppssoot, output_uri)
         check_logs(input_uri, output_uri, ipppssoot)
         check_messages(ipppssoot, output_uri, status="processed.trigger")
@@ -414,8 +436,10 @@ def coretst(temp_dir, ipppssoot, input_uri, output_uri):
             check_pathfinder(ipppssoot)
             message_status_check(input_uri, output_uri, ipppssoot)
             os.remove(tarball)
+
         # check output tarball for failed jobs
         check_failed_job_tarball(ipppssoot, input_uri, output_uri)
+
         check_messages_cleanup(ipppssoot)
         if input_uri.startswith("astroquery"):
             check_IO_clean_up(ipppssoot)
@@ -426,19 +450,47 @@ def coretst(temp_dir, ipppssoot, input_uri, output_uri):
 
 # ----------------------------------------------------------------------------------------
 
+# Conditionally set up and tear down moto S3 for AWS simulation
+
+
+def setup_s3(ipppssoot, input_uri, output_uri):
+    if CALDP_S3_MOTO:  # moto doesn't seem to care about duplicate creates
+        maybe_create_bucket(input_uri, ipppssoot)
+        output_uri = maybe_create_bucket(output_uri, ipppssoot)
+    return output_uri
+
+
+# For S3 uri's,  return the *real* output URI for caldp-process,  not just the bucket
+def maybe_create_bucket(uri, ipppssoot):
+    import boto3
+
+    if uri.startswith("s3://"):
+        bucket = file_ops.s3_split_uri(uri)[0]
+        print("Creating bucket:", bucket)
+        if bucket:
+            boto3.client("s3").create_bucket(
+                Bucket=bucket,
+                ACL="private",
+            )
+            return f"{uri}/outputs/{ipppssoot}"
+    else:
+        return uri
+
+
+# ----------------------------------------------------------------------------------------
+
 
 def parse_results(results):
-    """Break up multiline output from ls into a list of (name, size) tuples."""
-    return [(line.split()[1], int(line.split()[0])) for line in results.splitlines() if line.strip()]
+    """Break up multiline output from ls into dict of form:  {filename: size, ...}"""
+    return dict([(line.split()[1], int(line.split()[0])) for line in results.splitlines() if line.strip()])
 
 
 def setup_io(ipppssoot, input_uri, output_uri):
     working_dir = os.getcwd()
-    if input_uri.startswith("file"):
-        os.makedirs("outputs", exist_ok=True)
-        os.makedirs("inputs", exist_ok=True)
-        os.chdir("inputs")
-        process.download_inputs(ipppssoot, input_uri, output_uri, make_env=True)
+    os.makedirs("outputs", exist_ok=True)
+    os.makedirs("inputs", exist_ok=True)
+    os.chdir("inputs")
+    process.download_inputs(ipppssoot, input_uri, output_uri, make_env=True)
     os.chdir(working_dir)
 
 
@@ -481,10 +533,7 @@ def check_failed_job_tarball(ipppssoot, input_uri, output_uri):
     """
     if ipppssoot == "j8f54obeq" and input_uri.startswith("astroquery"):
         working_dir = os.getcwd()
-        fail_outputs = dict(FAIL_OUTPUTS)
-        expected = {}
-        for (name, size) in parse_results(fail_outputs[ipppssoot]):
-            expected[name] = size
+        expected = parse_results(FAIL_OUTPUTS[ipppssoot])
         # manually search and delete output files so it's forced to use the inputs
         output_dir = file_ops.get_output_dir(output_uri)
         os.chdir(output_dir)
@@ -561,14 +610,27 @@ def list_logs(logpath):
     return log_dict
 
 
-def list_objects(path):
-    object_dict = {}
-    output = pipe(f"aws s3 ls --recursive {path}")
-    results = [(int(line.split()[2]), line.split()[3]) for line in output.splitlines() if line.strip()]
-    for (size, name) in results:
-        filename = os.path.basename(name)
-        object_dict[filename] = size
-    return object_dict
+def list_objects(s3_prefix):
+    """Given `s3_prefix` s3 bucket and prefix to list, yield the full
+    s3 paths of every object in the associated bucket which match the prefix.
+    """
+    import boto3
+
+    bucket_name, prefix = file_ops.s3_split_uri(s3_prefix)
+    paginator = boto3.client("s3").get_paginator("list_objects_v2")
+    config = {"MaxItems": 10**7, "PageSize": 1000}
+    rval = {}
+    for page in paginator.paginate(Bucket=bucket_name, Prefix=prefix, PaginationConfig=config):
+        for result in page.get("Contents", []):
+            if result["Key"]:
+                filename = os.path.basename(result["Key"])
+                rval[filename] = result["Size"]
+    print("list_objects:", s3_prefix, "->", rval)
+    return rval
+
+
+def dump_uri(path):
+    list_objects(path)
 
 
 def list_inputs(ipppssoot, input_uri):
@@ -588,41 +650,14 @@ def list_outputs(ipppssoot, output_uri):
     output_path = process.get_output_path(output_uri, ipppssoot)
     if output_uri.startswith("file"):
         outputs = list_files(output_path, ipppssoot)
-    elif CALDP_S3_TEST_OUTPUTS and output_uri.lower().startswith("s3"):
+    elif output_uri.lower().startswith("s3"):
         outputs = list_objects(output_path)
     return outputs
 
 
-def pipe(*args, encoding="utf-8", print_output=False, raise_exception=False):
-    """Every arg should be a subprocess command string which will be run and piped to
-    any subsequent args in a linear process chain.  Each arg will be split into command
-    words based on whitespace so whitespace embedded within words is not possible.
-
-    Returns stdout from the chain.
-    """
-    pipes = []
-    for cmd in args:
-        words = cmd.split()
-        if pipes:
-            p = subprocess.Popen(words, stdin=pipes[-1].stdout, stdout=subprocess.PIPE)
-            pipes[-1].stdout.close()
-        else:
-            p = subprocess.Popen(words, stdout=subprocess.PIPE)
-        pipes.append(p)
-    output = p.communicate()[0]
-    ret_code = p.wait()
-    if ret_code and raise_exception:
-        raise RuntimeError(f"Subprocess failed with with status: {ret_code}")
-    output = output.decode(encoding) if encoding else output
-    if print_output:
-        print(output, end="")
-    return output
-
-
 def expected(RESULTS, ipppssoot):
-    results = dict(RESULTS)
     expected_outputs, expected_inputs = {}, {}
-    for (name, size) in parse_results(results[ipppssoot]):
+    for (name, size) in parse_results(RESULTS[ipppssoot]).items():
         if name.startswith("outputs"):
             name = os.path.basename(name)
             expected_outputs[name] = size
@@ -647,27 +682,17 @@ def check_outputs(output_uri, expected_outputs, actual_outputs):
 
 
 def check_tarfiles(TARFILES, actual_tarfiles, ipppssoot, output_uri):
-    tarfiles = dict(TARFILES)
-    expected = {}
-    for (name, size) in parse_results(tarfiles[ipppssoot]):
-        expected[name] = size
-
-    # check_tarball_out doesn't handle s3 output_uris so actual_tarfiles is NoneType in come cases
     if not output_uri.startswith("s3:"):
-        for name, size in expected.items():
+        for name, size in parse_results(TARFILES[ipppssoot]).items():
             assert name in list(actual_tarfiles.keys())
             assert abs(actual_tarfiles[name] - size) < CALDP_TEST_FILE_SIZE_THRESHOLD * size, "bad size for " + repr(
                 name
             )
 
 
-def check_s3_outputs(TARFILES, actual_outputs, ipppssoot, output_uri):
-    if CALDP_S3_TEST_OUTPUTS and output_uri.lower().startswith("s3"):
-        tarfiles = dict(S3_OUTPUTS)
-        expected = {}
-        for (name, size) in parse_results(tarfiles[ipppssoot]):
-            expected[name] = size
-        for name, size in expected.items():
+def check_s3_outputs(S3_OUTPUTS, actual_outputs, ipppssoot, output_uri):
+    if output_uri.lower().startswith("s3"):
+        for name, size in parse_results(S3_OUTPUTS[ipppssoot]).items():
             assert name in list(actual_outputs.keys())
             assert abs(actual_outputs[name] - size) < CALDP_TEST_FILE_SIZE_THRESHOLD * size, "bad size for " + repr(
                 name
@@ -701,14 +726,22 @@ def check_logs(input_uri, output_uri, ipppssoot):
 
 
 def check_messages(ipppssoot, output_uri, status):
+    print("check_messages:", ipppssoot, output_uri, status)
     if "." in status:
         status, suffix = status.split(".")
         suffix = f".{suffix}"
     else:
         suffix = ""
 
-    if CALDP_S3_TEST_OUTPUTS and output_uri.lower().startswith("s3"):
-        s3_messages = list_objects(f"{output_uri}/messages")
+    # output_uri of form:  s3://bucket/outputs/ipppssoot
+
+    if output_uri.lower().startswith("s3"):
+        bucket, key = file_ops.s3_split_uri(output_uri)
+        dump_uri(f"s3://{bucket}")
+        dump_uri(f"s3://{bucket}/inputs/")
+        dump_uri(f"s3://{bucket}/outputs/")
+        dump_uri(f"s3://{bucket}/messages/")
+        s3_messages = list_objects(f"s3://{bucket}/messages/")
         expected_message = f"{status}-{ipppssoot}{suffix}"
         assert expected_message in list(s3_messages.keys())
     else:

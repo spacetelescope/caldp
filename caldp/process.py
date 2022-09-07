@@ -23,10 +23,7 @@ import boto3
 
 from astropy.io import fits
 
-try:  # pragma: no cover
-    from drizzlepac.haputils.astroquery_utils import retrieve_observation
-except ImportError:
-    from drizzlepac.hlautils.astroquery_utils import retrieve_observation
+from drizzlepac.haputils.astroquery_utils import retrieve_observation
 
 from crds.bestrefs import bestrefs
 
@@ -78,6 +75,12 @@ def get_instrument(ipppssoot):
     -------
     instrument : str
         Name of the instrument in lowercase corresponding to `ipppssoot`, e.g. 'acs'
+
+    >>> get_instrument('acs')
+    'acs'
+
+    >>> get_instrument('J8CB010B0')
+    'acs'
     """
     if ipppssoot.lower() in INSTRUMENTS:
         return ipppssoot.lower()
@@ -102,8 +105,15 @@ def get_output_path(output_uri, ipppssoot):
     object_path : str
         A fully specified S3 object, including bucket, directory, and filename,
         or a directory path.
+
     >>> get_output_path("s3://caldp-output-test/outputs", "j8cb010b0")
     's3://caldp-output-test/outputs/j8cb010b0'
+
+    >>> get_output_path("s3://caldp-output-test/outputs/j8cb010b0", "j8cb010b0")
+    's3://caldp-output-test/outputs/j8cb010b0'
+
+    >>> get_output_path(None, "j8cb010b0")
+    'none'
     """
     # instrument_name = get_instrument(ipppssoot)
     if output_uri is None:
@@ -114,7 +124,6 @@ def get_output_path(output_uri, ipppssoot):
     else:
         bucket = output_uri[5:].split("/")[0]
         output_path = f"s3://{bucket}/outputs/{ipppssoot}"
-
     return output_path
 
 
@@ -782,6 +791,7 @@ def download_inputs(ipppssoot, input_uri, output_uri, make_env=False):
     with tarfile.open(tar, "x:gz") as t:
         for f in input_files:
             t.add(f)
+    return tar
 
 
 # -----------------------------------------------------------------------------
@@ -820,16 +830,6 @@ def process_ipppssoots(ipppssoots, input_uri=None, output_uri=None):
     """
     for ipppssoot in ipppssoots:
         process(ipppssoot, input_uri, output_uri)
-
-
-# -----------------------------------------------------------------------------
-
-
-def test():
-    from caldp import process
-    import doctest
-
-    return doctest.testmod(process)
 
 
 # -----------------------------------------------------------------------------
