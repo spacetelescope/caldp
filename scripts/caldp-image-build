@@ -1,7 +1,9 @@
-#! /bin/bash -xu
+#! /bin/bash -eu
 
 # This script is used to build the caldp container image using Docker.
 
-source caldp-image-config
+cd ${CALDP_CLONE}             # root of git checkout where Dockerfile is located
 
-docker build -f Dockerfile -t ${CALDP_DOCKER_IMAGE} --build-arg CAL_BASE_IMAGE=$CAL_BASE_IMAGE  .
+set -x
+
+docker build -f Dockerfile -t caldp -t ${CALDP_DOCKER_IMAGE} --build-arg CAL_BASE_IMAGE=$CAL_BASE_IMAGE  .

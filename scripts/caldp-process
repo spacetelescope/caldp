@@ -1,5 +1,7 @@
 #! /bin/bash
 
+# Expected context:  running inside Docker
+
 # Primary command script passed into Batch container runs
 
 # caldp-process  ipppssoot  <input_path>  <output_path>  <caldp_config>
@@ -8,10 +10,6 @@ ipppssoot=$1
 input_path=${2:-"file:."}
 output_path=${3:-"file:."}
 caldp_config=${4:-"caldp-config-onsite"}
-
-if [ -z "$DEV_HOME" ]; then
-    export DEV_HOME=.
-fi
 
 # Configure TIME to point to Gnu's time program which can collect process metrics.
 if [ `uname` = "Darwin" -a -f /usr/local/bin/gtime ]; then  # brew install gnu-time

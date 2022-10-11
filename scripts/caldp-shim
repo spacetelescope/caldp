@@ -1,0 +1,22 @@
+#! /bin/bash -eu
+
+#
+# Expected context:  inside Docker container
+#
+# This shim is used to first source an environment file then exec a command
+# within that environment.  This is particularly useful in development since
+# it enables using identical exports both on the host and inside the container
+# defined in ordinary shell syntax.
+#
+# CALDP_CONFIG can be set to
+#  caldp-config-onsite
+#  caldp-config-offsite
+#  caldp-config-aws
+# defaulting to caldp-config-offsite
+
+export CALDP_CONFIG=${CALDP_CONFIG:-caldp-config-offsite}
+
+export CMD=${*:-/bin/bash}
+
+source ${CALDP_CONFIG}
+${CMD}
