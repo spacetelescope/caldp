@@ -19,10 +19,6 @@ nominally main(), and land the CaldpExit() exception raised by
 exit_on_exception() after the stack has been unwound and cleanup functions
 performed.  exit_receiver() then exits Python with the error code originally
 passed into exit_on_exception().
-
->>> from caldp import log
->>> log.set_test_mode()
->>> log.reset()
 """
 import sys
 import os

@@ -19,7 +19,7 @@ from moto import mock_s3
 # Set default CRDS Context
 CRDS_CONTEXT = os.environ.get("CRDS_CONTEXT")
 if CRDS_CONTEXT == "":
-    os.environ["CRDS_CONTEXT"] = "hst_1015.pmap"
+    os.environ["CRDS_CONTEXT"] = "hst_1038.pmap"
 
 # For applicable tests,  the product files associated with each ipppssoot below
 # must be present in the CWD after processing and be within 10% of the listed sizes.
@@ -286,9 +286,9 @@ S3_OUTPUTS = dict(
             "j8cb010b0",
             """
         32586581 j8cb010b0.tar.gz
-        3726 preview.txt
+        1917 preview.txt
         112 preview_metrics.txt
-        8701 process.txt
+        59000 process.txt
         112 process_metrics.txt
         """,
         ),
@@ -357,7 +357,7 @@ CALDP_TEST_FILE_SIZE_THRESHOLD = float(os.environ.get("CALDP_TEST_FILE_SIZE_THRE
 # ----------------------------------------------------------------------------------------
 
 
-@pytest.mark.parametrize("output_uri", ["file:outputs"])  # , CALDP_S3_TEST_OUTPUTS])
+@pytest.mark.parametrize("output_uri", ["file:outputs", CALDP_S3_TEST_OUTPUTS])
 @pytest.mark.parametrize("input_uri", ["file:inputs", "astroquery:", CALDP_S3_TEST_INPUTS])
 @pytest.mark.parametrize("ipppssoot", SHORT_TEST_IPPPSSOOTS)
 def test_io_modes(tmpdir, ipppssoot, input_uri, output_uri):
@@ -418,21 +418,23 @@ def coretst(temp_dir, ipppssoot, input_uri, output_uri):
 
         expected_inputs, expected_outputs = expected(RESULTS, ipppssoot)
         actual_inputs = list_inputs(ipppssoot, input_uri)
-        actual_outputs = list_outputs(ipppssoot, output_uri)
         check_inputs(input_uri, expected_inputs, actual_inputs)
-        check_outputs(output_uri, expected_outputs, actual_outputs)
 
         messages.main(input_uri, output_uri, ipppssoot)
+        actual_outputs = list_outputs(ipppssoot, output_uri)
 
-        check_s3_outputs(S3_OUTPUTS, actual_outputs, ipppssoot, output_uri)
-        check_logs(input_uri, output_uri, ipppssoot)
+        if output_uri.startswith("file"):
+            check_outputs(output_uri, expected_outputs, actual_outputs)
+        elif output_uri.lower().startswith("s3"):
+            check_s3_outputs(S3_OUTPUTS, actual_outputs, ipppssoot, output_uri)
         check_messages(ipppssoot, output_uri, status="processed.trigger")
         # tests whether file_ops gracefully handles an exception type
         file_ops.clean_up([], ipppssoot, dirs=["dummy_dir"])
 
         if input_uri.startswith("file"):  # create tarfile if s3 access unavailable
             actual_tarfiles = check_tarball_out(ipppssoot, input_uri, output_uri)
-            check_tarfiles(TARFILES, actual_tarfiles, ipppssoot, output_uri)
+            if not output_uri.startswith("s3:"):
+                check_tarfiles(TARFILES, actual_tarfiles, ipppssoot, output_uri)
             check_pathfinder(ipppssoot)
             message_status_check(input_uri, output_uri, ipppssoot)
             os.remove(tarball)
@@ -555,7 +557,8 @@ def check_failed_job_tarball(ipppssoot, input_uri, output_uri):
         log_path = os.path.join("outputs", ipppssoot, "logs")
         assert os.path.exists(log_path)
         actual.update(list_logs(log_path))
-        check_outputs(output_uri, expected, actual)
+        if output_uri.startswith("file"):
+            check_outputs(output_uri, expected, actual)
 
 
 def check_messages_cleanup(ipppssoot):
@@ -673,30 +676,21 @@ def check_inputs(input_uri, expected_inputs, actual_inputs):
 
 
 def check_outputs(output_uri, expected_outputs, actual_outputs):
-    if output_uri.startswith("file"):
-        for name, size in expected_outputs.items():
-            assert name in list(actual_outputs.keys())
-            assert abs(actual_outputs[name] - size) < CALDP_TEST_FILE_SIZE_THRESHOLD * size, "bad size for " + repr(
-                name
-            )
+    for name, size in expected_outputs.items():
+        assert name in list(actual_outputs.keys())
+        assert abs(actual_outputs[name] - size) < CALDP_TEST_FILE_SIZE_THRESHOLD * size, "bad size for " + repr(name)
 
 
 def check_tarfiles(TARFILES, actual_tarfiles, ipppssoot, output_uri):
-    if not output_uri.startswith("s3:"):
-        for name, size in parse_results(TARFILES[ipppssoot]).items():
-            assert name in list(actual_tarfiles.keys())
-            assert abs(actual_tarfiles[name] - size) < CALDP_TEST_FILE_SIZE_THRESHOLD * size, "bad size for " + repr(
-                name
-            )
+    for name, size in parse_results(TARFILES[ipppssoot]).items():
+        assert name in list(actual_tarfiles.keys())
+        assert abs(actual_tarfiles[name] - size) < CALDP_TEST_FILE_SIZE_THRESHOLD * size, "bad size for " + repr(name)
 
 
 def check_s3_outputs(S3_OUTPUTS, actual_outputs, ipppssoot, output_uri):
-    if output_uri.lower().startswith("s3"):
-        for name, size in parse_results(S3_OUTPUTS[ipppssoot]).items():
-            assert name in list(actual_outputs.keys())
-            assert abs(actual_outputs[name] - size) < CALDP_TEST_FILE_SIZE_THRESHOLD * size, "bad size for " + repr(
-                name
-            )
+    for name, size in parse_results(S3_OUTPUTS[ipppssoot]).items():
+        assert name in list(actual_outputs.keys())
+        assert abs(actual_outputs[name] - size) < CALDP_TEST_FILE_SIZE_THRESHOLD * size, "bad size for " + repr(name)
 
 
 def check_pathfinder(ipppssoot):
@@ -710,19 +704,6 @@ def check_pathfinder(ipppssoot):
     output_uri, output_path = messages.path_finder(input_uri_prefix, output_uri_prefix, ipppssoot)
     prefix = os.path.join(os.getcwd(), "inputs", ipppssoot)
     assert output_uri == f"file:{prefix}"
-
-
-def check_logs(input_uri, output_uri, ipppssoot):
-    if output_uri.startswith("file"):
-        output_uri, output_path = messages.path_finder(input_uri, output_uri, ipppssoot)
-        logs = messages.Logs(output_path, output_uri, ipppssoot)
-        log_path = logs.get_log_output()
-        assert os.path.exists(log_path)
-        try:
-            logs.upload_logs()
-        except Exception as e:
-            print("s3 error check: ", e)
-            assert True
 
 
 def check_messages(ipppssoot, output_uri, status):
