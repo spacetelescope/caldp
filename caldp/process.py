@@ -292,11 +292,13 @@ class InstrumentManager:
         cmd = tuple(cmd.split()) + args  # Handle stage values with switches.
         self.divider("Running:", cmd)
         with sysexit.exit_on_exception(exit_code, self.ipppssoot, "Command:", repr(cmd)):
-            err = subprocess.call(cmd)
-            if err in self.ignore_err_nums:
-                log.info("Ignoring error status =", err)
-            elif err:
-                raise sysexit.SubprocessFailure(err)
+            p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            for line in p.stdout:
+                log.echo(line.strip().decode("utf-8"))
+            if p.returncode in self.ignore_err_nums:
+                log.info("Ignoring error status =", p.returncode)
+            elif p.returncode:
+                raise sysexit.SubprocessFailure(p.returncode)
 
     def run_stage1(self, *args):
         return self.run(exit_codes.STAGE1_ERROR, self.stage1, *args)
@@ -756,8 +758,6 @@ def process(ipppssoot, input_uri, output_uri):
     -------
     None
     """
-    process_log = log.CaldpLogger(enable_console=False, log_file="process.txt")
-
     if output_uri is None:
         output_uri, output_path = messages.path_finder(input_uri, output_uri, ipppssoot)
     output_path = get_output_path(output_uri, ipppssoot)
@@ -768,8 +768,6 @@ def process(ipppssoot, input_uri, output_uri):
 
     manager = get_instrument_manager(ipppssoot, input_uri, output_uri)
     manager.main()
-
-    del process_log
 
 
 def download_inputs(ipppssoot, input_uri, output_uri, make_env=False):
@@ -844,7 +842,9 @@ def main(argv):
         input_uri.rstrip("/")
     if output_uri.lower().startswith("none"):
         output_uri = None
+    log.init_log("process.txt")
     process_ipppssoots(ipppssoots, input_uri, output_uri)
+    log.close_log()
 
 
 if __name__ == "__main__":

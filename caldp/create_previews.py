@@ -7,6 +7,7 @@ import logging
 import glob
 import shutil
 import boto3
+
 from astropy.io import fits
 
 from caldp import log
@@ -190,7 +191,7 @@ def main(ipppssoot, input_uri_prefix, output_uri_prefix):
     output_path = messages.get_local_outpath(output_uri_prefix, ipppssoot)
     msg = messages.Messages(output_uri_prefix, output_path, ipppssoot)
     msg.preview_message()  # processing
-    logger = log.CaldpLogger(enable_console=False, log_file="preview.txt")
+    log.init_log("preview.txt")
     input_dir = file_ops.get_input_path(input_uri_prefix, ipppssoot)
     # append process.txt to trailer file
     # file_ops.append_trailer(input_dir, output_path, ipppssoot)
@@ -211,9 +212,7 @@ def main(ipppssoot, input_uri_prefix, output_uri_prefix):
         preview_output = process.get_output_path(output_uri_prefix, ipppssoot) + "/previews"
         os.makedirs(preview_output, exist_ok=True)
         copy_previews(previews, preview_output)
-    else:
-        return
-    del logger
+    log.close_log()
 
 
 def parse_args():

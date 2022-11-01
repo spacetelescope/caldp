@@ -83,8 +83,8 @@ fi
 echo ........................................ processing log ..............................................
 pwd
 set -o pipefail && $TIME --verbose -o process_metrics.txt \
-    python -m caldp.process $input_path $output_path $ipppssoot \
-    2>&1 | tee process.txt
+    python -m caldp.process $input_path $output_path $ipppssoot
+
 process_exit_status=$?
 echo "Processing exit status ${process_exit_status}"
 
@@ -98,8 +98,7 @@ echo ........................................ previews log .....................
 
 
 set -o pipefail && $TIME --verbose -o preview_metrics.txt \
-    python -m caldp.create_previews $input_path $output_path $ipppssoot \
-    2>&1 | tee preview.txt
+    python -m caldp.create_previews $input_path $output_path $ipppssoot
 
 preview_exit_status=$?
 echo "Preview exit status ${preview_exit_status}"

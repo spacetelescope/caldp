@@ -56,8 +56,8 @@ class Logs:
         for k, v in log_dict.items():
             obj = objectname + "/" + os.path.basename(v)
             with open(k, "rb") as f:
-                client.upload_fileobj(f, bucket, obj)
                 log.info(f"\t Uploading {k} to s3://{bucket}/{obj}.")
+                client.upload_fileobj(f, bucket, obj)
                 # os.remove(k)
         log.info("Log files uploaded.")
 
@@ -223,7 +223,7 @@ def log_metrics(log_file, metrics):
 def clean_up(ipppssoot, IO):
     print(f"Cleaning up {IO}...")
     folder = os.path.join(os.getcwd(), IO)
-    shutil.rmtree(folder)
+    shutil.rmtree(folder, ignore_errors=True)
     print("Done.")
     # if IO == "messages":
     #     file_list = list(glob.glob(f"{folder}/*"))
