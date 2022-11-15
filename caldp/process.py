@@ -89,16 +89,16 @@ def get_instrument(ipppssoot):
 
 
 # -----------------------------------------------------------------------------
-def get_output_path(output_uri, ipppssoot):
+def get_output_path(output_uri, dataset):
     """Given an `output_uri` string which nominally defines an S3 bucket and
-    directory base path,  and an `ipppssoot` dataset name,  generate a full
-    S3 output path (or directory) where outputs from processing `ipppssoot`
+     directory base path,  and a dataset name,  generate a full
+    S3 output path (or directory) where outputs from processing `dataset`
     should be stored.
     Parameters
     ----------
     output_uri : str
         A combination of S3 bucket and object directory prefix
-    ipppssoot : str
+    dataset : str
         HST-style dataset name for which outputs will be stored.
     Returns
     -------
@@ -115,22 +115,21 @@ def get_output_path(output_uri, ipppssoot):
     >>> get_output_path(None, "j8cb010b0")
     'none'
     """
-    # instrument_name = get_instrument(ipppssoot)
     if output_uri is None:
         return "none"
     elif output_uri.startswith("file"):
         prefix = output_uri.split(":")[-1]
-        output_path = os.path.join(prefix, ipppssoot)  # 'outputs/obes03010'
+        output_path = os.path.join(prefix, dataset)  # 'outputs/obes03010'
     else:
         bucket = output_uri[5:].split("/")[0]
-        output_path = f"s3://{bucket}/outputs/{ipppssoot}"
+        output_path = f"s3://{bucket}/outputs/{dataset}"
     return output_path
 
 
 # -------------------------------------------------------------
 
 
-def upload_filepath(ipppssoot, src_filepath, dest_filepath):
+def upload_filepath(dataset, src_filepath, dest_filepath):
     """Given `filepath` to upload, copy it to `s3_filepath`.
 
     Parameters
@@ -147,7 +146,7 @@ def upload_filepath(ipppssoot, src_filepath, dest_filepath):
     """
     if dest_filepath.startswith("s3"):
         # make copies locally to be included in tarfile for s3
-        output_dir = get_output_path("file:outputs", ipppssoot)
+        output_dir = get_output_path("file:outputs", dataset)
         os.makedirs(output_dir, exist_ok=True)
         local_outpath = os.path.join(output_dir, os.path.basename(dest_filepath))
         shutil.copy(src_filepath, local_outpath)

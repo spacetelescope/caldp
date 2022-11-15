@@ -22,6 +22,7 @@ LOGGER = logging.getLogger(__name__)
 
 AUTOSCALE = 99.5
 
+## Need to update this to set MVM preview size
 OUTPUT_FORMATS = [("_thumb", 128), ("", -1)]
 
 
@@ -196,6 +197,7 @@ def main(ipppssoot, input_uri_prefix, output_uri_prefix):
     # append process.txt to trailer file
     # file_ops.append_trailer(input_dir, output_path, ipppssoot)
     input_paths = get_inputs(ipppssoot, input_dir)
+    ## Need to refactor the next two lines and get_preview_inputs to handle HAP dataset
     instr = process.get_instrument(ipppssoot)
     preview_inputs = get_preview_inputs(instr, input_paths)
     # create previews

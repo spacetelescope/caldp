@@ -10,10 +10,10 @@ from caldp import log
 
 
 class Logs:
-    def __init__(self, output_path, output_uri, ipppssoot):
+    def __init__(self, output_path, output_uri, dataset):
         self.output_path = output_path
         self.output_uri = output_uri
-        self.ipppssoot = ipppssoot
+        self.dataset = dataset
 
     def get_log_output(self, local=True):
         if local is True:
@@ -21,7 +21,7 @@ class Logs:
                 log_output = os.path.join(self.output_path, "logs")
                 os.makedirs(log_output, exist_ok=True)
             else:
-                log_output = get_local_outpath(self.output_uri, self.ipppssoot)
+                log_output = get_local_outpath(self.output_uri, self.dataset)
         elif local is False:
             log_output = self.output_path
         return log_output
@@ -72,16 +72,16 @@ class Messages:
 
     When stat is incremented, the status (filename) updates
     0: None (default state)
-    1: 'submit-ipppssoot'
-    2: 'processing-ipppssoot'
-    3: 'processed-ipppssoot.trigger'
-    -1: 'error-ipppssoot'
+    1: 'submit-dataset'
+    2: 'processing-dataset'
+    3: 'processed-dataset.trigger'
+    -1: 'error-dataset'
     """
 
-    def __init__(self, output_uri, output_path, ipppssoot):
+    def __init__(self, output_uri, output_path, dataset):
         self.output_uri = output_uri
         self.output_path = output_path
-        self.ipppssoot = ipppssoot
+        self.dataset = dataset
         self.msg_dir = os.path.join(os.getcwd(), "messages")
         self.stat = 0
         self.name = None
@@ -89,9 +89,9 @@ class Messages:
 
     def clear_messages(self):
         previous_files = [
-            f"error-{self.ipppssoot}",
-            f"processing-{self.ipppssoot}",
-            f"processed-{self.ipppssoot}.trigger",
+            f"error-{self.dataset}",
+            f"processing-{self.dataset}",
+            f"processed-{self.dataset}.trigger",
         ]
         for f in previous_files:
             self.remove_message(f)
@@ -100,7 +100,7 @@ class Messages:
         os.makedirs(self.msg_dir, exist_ok=True)
         self.clear_messages()
         if self.stat == 0:
-            self.name = f"submit-{self.ipppssoot}"
+            self.name = f"submit-{self.dataset}"
             self.file = f"{self.msg_dir}/{self.name}"
             # self.write_message()  # submit-xxx is written by CALCLOUD
             self.stat += 1  # increment status
@@ -109,7 +109,7 @@ class Messages:
     def process_message(self):
         last_file = self.file
         if self.stat == 1:
-            self.name = f"processing-{self.ipppssoot}"
+            self.name = f"processing-{self.dataset}"
             self.file = f"{self.msg_dir}/{self.name}"
             self.write_message()
             self.remove_message(last_file)
@@ -119,7 +119,7 @@ class Messages:
 
     def preview_message(self):
         self.stat = 2
-        self.name = f"processing-{self.ipppssoot}"
+        self.name = f"processing-{self.dataset}"
         self.file = f"{self.msg_dir}/{self.name}"
         return self
 
@@ -141,10 +141,10 @@ class Messages:
             result = int(proc_stat) + int(prev_stat)
 
             if result > 0:
-                self.name = f"error-{self.ipppssoot}"
+                self.name = f"error-{self.dataset}"
                 self.stat = -1
             else:
-                self.name = f"processed-{self.ipppssoot}.trigger"
+                self.name = f"processed-{self.dataset}.trigger"
                 self.stat += 1
 
             last_file = self.file
@@ -186,8 +186,8 @@ class Messages:
     def sync_dataset(self):
         if self.output_uri.startswith("file"):
             preview_output = os.path.join(self.output_path, "previews")
-            files = glob.glob(f"{self.output_path}/{self.ipppssoot[0:5]}*")
-            files.extend(glob.glob(f"{preview_output}/{self.ipppssoot[0:5]}*"))
+            files = glob.glob(f"{self.output_path}/{self.dataset[0:5]}*")
+            files.extend(glob.glob(f"{preview_output}/{self.dataset[0:5]}*"))
             outputs = list(sorted(files))
             for line in outputs:
                 with open(self.file, "a") as m:
@@ -195,7 +195,7 @@ class Messages:
             log.info(f"Dataset synced: {outputs}")
 
         elif self.output_uri.startswith("s3"):
-            s3_path = f"{self.output_path}/{self.ipppssoot}.tar.gz"
+            s3_path = f"{self.output_path}/{self.dataset}.tar.gz"
             with open(self.file, "w") as m:
                 m.write(s3_path)
             log.info(f"Dataset synced: {s3_path}")
@@ -220,7 +220,7 @@ def log_metrics(log_file, metrics):
     return res
 
 
-def clean_up(ipppssoot, IO):
+def clean_up(dataset, IO):
     print(f"Cleaning up {IO}...")
     folder = os.path.join(os.getcwd(), IO)
     shutil.rmtree(folder, ignore_errors=True)
@@ -246,56 +246,56 @@ def clean_up(ipppssoot, IO):
 
 
 # primarily for test cov where output_uri is "none"
-def path_finder(input_uri, output_uri_prefix, ipppssoot):
+def path_finder(input_uri, output_uri_prefix, dataset):
     if output_uri_prefix is None:
         if input_uri.startswith("file"):
             output_uri = input_uri
             output_dir = output_uri.split(":")[-1] or "."
             output_path = os.path.abspath(output_dir)
         else:
-            output_dir = os.path.join(os.getcwd(), "inputs", ipppssoot)
+            output_dir = os.path.join(os.getcwd(), "inputs", dataset)
             output_uri = f"file:{output_dir}"
             output_path = os.path.abspath(output_dir)
     else:
         output_uri = output_uri_prefix
-        output_path = process.get_output_path(output_uri, ipppssoot)
+        output_path = process.get_output_path(output_uri, dataset)
     return output_uri, output_path
 
 
 # find where to put logs
-def get_local_outpath(output_uri, ipppssoot):
+def get_local_outpath(output_uri, dataset):
     """Returns full path to folder containing output files."""
     if output_uri.startswith("s3"):
-        local_outpath = process.get_output_path("file:outputs", ipppssoot)
+        local_outpath = process.get_output_path("file:outputs", dataset)
     else:
-        local_outpath = process.get_output_path(output_uri, ipppssoot)
+        local_outpath = process.get_output_path(output_uri, dataset)
     return local_outpath
 
 
-def main(input_uri, output_uri_prefix, ipppssoot):
+def main(input_uri, output_uri_prefix, dataset):
     """This function is designed to run after calibration has completed."""
-    output_uri, output_path = path_finder(input_uri, output_uri_prefix, ipppssoot)
-    logs = Logs(output_path, output_uri, ipppssoot)
+    output_uri, output_path = path_finder(input_uri, output_uri_prefix, dataset)
+    logs = Logs(output_path, output_uri, dataset)
     logs.copy_logs()
-    msg = Messages(output_uri, output_path, ipppssoot)
+    msg = Messages(output_uri, output_path, dataset)
     msg.preview_message()
     msg.final_message()
     if output_uri.startswith("s3"):
         logs.upload_logs()
-        clean_up(ipppssoot, IO="outputs")
-        clean_up(ipppssoot, IO="messages")
+        clean_up(dataset, IO="outputs")
+        clean_up(dataset, IO="messages")
         if not input_uri.startswith("file"):
-            clean_up(ipppssoot, IO="inputs")
+            clean_up(dataset, IO="inputs")
 
 
 def cmd(argv):
-    """Top level function, process args <input_uri> <output_uri>  <ipppssoot>"""
+    """Top level function, process args <input_uri> <output_uri>  <dataset>"""
     input_uri = str(argv[1])
     output_uri_prefix = str(argv[2])
-    ipppssoot = str(argv[3])
+    dataset = str(argv[3])
     if output_uri_prefix.lower().startswith("none"):
         output_uri_prefix = None
-    main(input_uri, output_uri_prefix, ipppssoot)
+    main(input_uri, output_uri_prefix, dataset)
 
 
 if __name__ == "__main__":
