@@ -36,6 +36,7 @@ def get_input_path(input_uri, dataset, make=False):
             os.makedirs(input_path, exist_ok=True)
     return input_path
 
+
 # # append_trailer does not appear to be called anywhere
 # def append_trailer(output_path, ipppssoot):  # pragma: no cover
 #     """Fetch process log and append to trailer file
@@ -78,6 +79,7 @@ def get_input_dir(input_uri):
     else:
         input_dir = os.path.join(os.getcwd(), "inputs")
     return input_dir
+
 
 # May need to be updated to include HAP output files
 def find_output_files(ipppssoot):
