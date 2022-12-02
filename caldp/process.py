@@ -92,6 +92,30 @@ def get_instrument(ipppssoot):
         return IPPPSSOOT_INSTR.get(ipppssoot.upper()[0])
 
 
+def get_dataset_type(dataset):
+    """Given and `dataset` determine the dataset_type (ipst, svm, mvm)
+
+    Parameters
+    ----------
+    dataset : str
+        The HST dataset name to be processed.
+
+    Returns
+    -------
+    dataset_type : "ipst", "svm", or "mvm"
+    """
+    if IPPPSSOOT_RE.match(dataset):
+        dataset_type = "ipst"
+    elif SVM_RE.match(dataset) and dataset.split("_")[0] in list(SVM_INSTR.keys()):
+        dataset_type = "svm"
+    elif MVM_RE.match(dataset):
+        dataset_type = "mvm"
+    else:
+        raise ValueError("Invalid dataset name {dataset}, dataset must be an ipppssoot, SVM, or MVM dataset")
+
+    return dataset_type
+
+
 def get_svm_obs_set(svm_dataset):
     """
     Return the ipppss (up to the observation set ID) when given an SVM dataset name
@@ -1012,16 +1036,16 @@ def get_manager(dataset, input_uri, output_uri):
     -------
     instrument_manager : InstrumentManager subclass
         The instrument-specific InstrumentManager subclass instance appropriate for
-        processing dataset name `ipppssoot`.
+        processing dataset name.
     """
-    if IPPPSSOOT_RE.match(dataset):
+    dataset_type = get_dataset_type(dataset)
+
+    if dataset_type == "ipst":
         manager_type = get_instrument(dataset)
-    elif SVM_RE.match(dataset) and dataset.split("_")[0] in list(SVM_INSTR.keys()):
+    elif dataset_type == "svm":
         manager_type = "svm"
-    elif MVM_RE.match(dataset):
+    elif dataset_type == "mvm":
         manager_type = "mvm"
-    else:
-        raise ValueError("Invalid dataset name {dataset}, dataset must be an ipppssoot, SVM, or MVM dataset")
 
     manager = MANAGERS[manager_type](dataset, input_uri, output_uri)
     return manager

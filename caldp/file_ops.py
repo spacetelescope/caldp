@@ -81,13 +81,36 @@ def get_input_dir(input_uri):
     return input_dir
 
 
-# May need to be updated to include HAP output files
-def find_output_files(ipppssoot):
-    search_fits = f"{ipppssoot}/*.fits"
-    search_tra = f"{ipppssoot}/*.tra"
-    output_files = list(glob.glob(search_fits))
-    output_files.extend(list(glob.glob(search_tra)))
-    return output_files
+def find_output_files(dataset):
+    if process.IPPPSSOOT_RE.match(dataset):
+        search_fits = f"{dataset}/*.fits"
+        search_tra = f"{dataset}/*.tra"
+        output_files = list(glob.glob(search_fits))
+        output_files.extend(list(glob.glob(search_tra)))
+        return output_files
+    elif process.SVM_RE.match(dataset) and dataset.split("_")[0] in list(process.SVM_INSTR.keys()):
+        ipppss = process.get_svm_obs_set(dataset)
+        search_fits = f"{dataset}/hst_*{ipppss}*.fits"
+        search_txt = f"{dataset}/hst_*{ipppss}*.txt"
+        search_ecsv = f"{dataset}/hst_*{ipppss}*.ecsv"
+        search_manifest = f"{dataset}/{dataset}_manifest.txt"
+        search_log = f"{dataset}/astrodrizzle.log"
+        output_files = list(glob.glob(search_fits))
+        output_files.extend(list(glob.glob(search_txt)))
+        output_files.extend(list(glob.glob(search_ecsv)))
+        output_files.extend(list(glob.glob(search_manifest)))
+        output_files.extend(list(glob.glob(search_log)))
+        return output_files
+    elif process.MVM_RE.match(dataset):
+        search_fits = f"{dataset}/hst_{dataset}*.fits"
+        search_txt = f"{dataset}/hst_{dataset}*.txt"
+        search_manifest = f"{dataset}/{dataset}_manifest.txt"
+        output_files = list(glob.glob(search_fits))
+        output_files.extend(list(glob.glob(search_txt)))
+        output_files.extend(list(glob.glob(search_manifest)))
+        return output_files
+    else:
+        raise ValueError("Invalid dataset name {dataset}, dataset must be an ipppssoot, SVM, or MVM dataset")
 
 
 def find_previews(dataset, output_files):
