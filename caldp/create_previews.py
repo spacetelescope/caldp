@@ -28,6 +28,7 @@ HAP_SEP = "_"
 
 
 def get_suffix(suffix_param):
+    """Returns the suffixes of files to generate previews"""
     if suffix_param == "stis":
         req_sfx = ["x1d", "sx1"]
     elif suffix_param == "cos":
@@ -54,6 +55,55 @@ def get_suffix(suffix_param):
 
 
 class PreviewManager:
+    """Abstract preview manager baseclass which is customized based on dataset type.
+    Further customizations are applied as by overriding baseclass methods.
+
+    Attributes
+    ----------
+    dataset  : str
+        (instance) Name of dataset being processed
+    input_uri_prefix : str
+        (instance) root input path
+    output_uri_prefix : str
+        (instance) Root output path,  e.g. s3://bucket/subdir/subdir/.../subdir
+
+    search_input_pattern : str
+        pattern to use to search for input files e.g. f"{self.dataset.lower()[0:5]}*.fits"
+    suffix_param : str
+        parameter used to retrieve file suffixes for generating previews from get_suffix()
+    output_formats : list of tuples
+        preview suffixes and sizes
+
+    Methods
+    -------
+    __init__(dataset, input_uri_prefix, output_uri_prefix)
+    generate_image_preview(input_path, output_path, size, autoscale, more_options)
+        Runs fitscut command with given args
+    generate_image_previews(input_path, filename_base)
+        Calls generate_image_preview() for each output format
+    generate_spectral_previews(input_path)
+        Runs make_hst_spec_previews
+    get_inputs()
+        Searches for potential preview inputs using search_input_pattern
+    get_preview_inputs(input_paths)
+        Filter input files using req_sfx from get_suffix()
+    get_previews()
+        Returns a list of previews files generated
+    create_previews(preview_inputs)
+        Abstract class called by main that generates previews,
+        customized based on dataset type (HAP or ipppssoot)
+    upload_previews(previews, output_path)
+        Upload previews to S3
+    copy_previews(previews, output_path)
+        Copy previews to output_path
+    main()
+        Generates previews based on input and output directories
+        according to specified args
+
+
+
+    """
+
     def __init__(self, dataset, input_uri_prefix, output_uri_prefix):
         self.dataset = dataset
         self.input_uri_prefix = input_uri_prefix
@@ -135,7 +185,7 @@ class PreviewManager:
         return list(sorted(preview_files))
 
     def create_previews(self, preview_inputs):
-        """Abstrac class called by main that generates previews based on s3 downloads
+        """Abstract class called by main that generates previews based on s3 downloads
         Returns a list of file paths to previews
         """
         pass
