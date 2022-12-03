@@ -289,7 +289,7 @@ class HapPreviewManager(PreviewManager):
                     r"([^\s]+)",  # 3 instrument
                     r"([^\s]+)",  # 4 det
                     r"([a-z]\d{3}[a-z])",  # 5 filter
-                    self.mosaic_name,  #  mosaic_name (already a var, no need to capture)
+                    self.mosaic_name,  # mosaic_name (already a var, no need to capture)
                     r"([a-z]{3}).fits",  # 6 suffix.fits
                 ]
             )

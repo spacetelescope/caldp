@@ -917,8 +917,8 @@ class SvmManager(Manager):
             f"{self.dataset.lower()}_manifest.txt",
             "astrodrizzle.log",
         ]
-        self.search_input_tar_pattern = f"{self.dataset.lower()}*.tgz"
-        self.s3_tar_key = self.dataset.lower() + ".tgz"
+        self.search_input_tar_pattern = f"{self.dataset.lower()}*.tar.gz"
+        self.s3_tar_key = self.dataset.lower() + ".tar.gz"
 
     # -----------------------------------------------------------------------------
 
@@ -980,8 +980,8 @@ class MvmManager(Manager):
             f"hst_{self.dataset.lower()}*.txt",
             f"{self.dataset.lower()}_manifest.txt",
         ]
-        self.search_input_tar_pattern = f"{self.dataset.lower()}*.tgz"
-        self.s3_tar_key = self.dataset.lower() + ".tgz"
+        self.search_input_tar_pattern = f"{self.dataset.lower()}*.tar.gz"
+        self.s3_tar_key = self.dataset.lower() + ".tar.gz"
 
     # -----------------------------------------------------------------------------
 
