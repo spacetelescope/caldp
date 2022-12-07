@@ -7,6 +7,7 @@ import boto3
 import time
 from caldp import process
 from caldp import log
+from caldp import file_ops
 
 
 class Logs:
@@ -185,10 +186,16 @@ class Messages:
 
     def sync_dataset(self):
         if self.output_uri.startswith("file"):
-            preview_output = os.path.join(self.output_path, "previews")
-            files = glob.glob(f"{self.output_path}/{self.dataset[0:5]}*")
-            files.extend(glob.glob(f"{preview_output}/{self.dataset[0:5]}*"))
-            outputs = list(sorted(files))
+            output_dir = file_ops.get_output_dir(self.output_uri)
+            working_dir = os.getcwd()
+            os.chdir(output_dir)
+            output_files = file_ops.find_output_files(self.dataset)
+            outputs = file_ops.find_previews(self.dataset, output_files)
+            os.chdir(working_dir)
+            # preview_output = os.path.join(self.output_path, "previews")
+            # files = glob.glob(f"{self.output_path}/{self.dataset[0:5]}*")
+            # files.extend(glob.glob(f"{preview_output}/{self.dataset[0:5]}*"))
+            # outputs = list(sorted(files))
             for line in outputs:
                 with open(self.file, "a") as m:
                     m.write(f"{line}\n")

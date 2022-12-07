@@ -37,33 +37,6 @@ def get_input_path(input_uri, dataset, make=False):
     return input_path
 
 
-# # append_trailer does not appear to be called anywhere
-# def append_trailer(output_path, ipppssoot):  # pragma: no cover
-#     """Fetch process log and append to trailer file
-#     Note: copies trailer file from inputs directory
-#     and copies to outputs directory prior to appending log
-#     """
-#     try:
-#         tra1 = list(glob.glob(f"{output_path}/{ipppssoot.lower()}.tra"))
-#         tra2 = list(glob.glob(f"{output_path}/{ipppssoot.lower()[0:5]}*.tra"))
-#         if os.path.exists(tra1[0]):
-#             trailer = tra1[0]
-#         elif os.path.exists(tra2[0]):
-#             trailer = tra2[0]
-#         else:
-#             log.info("Trailer file not found - skipping.")
-
-#         log.info(f"Updating {trailer} with process log:")
-#         proc_log = list(glob.glob(f"{os.getcwd()}/process.txt"))[0]
-#         with open(trailer, "a") as tra:
-#             with open(proc_log, "r") as proc:
-#                 tra.write(proc.read())
-#         log.info("Trailer file updated: ", trailer)
-#     except IndexError:
-#         log.info("Trailer file not found - skipping.")
-#         return
-
-
 def get_output_dir(output_uri):
     """Returns full path to output folder"""
     if output_uri.startswith("file"):

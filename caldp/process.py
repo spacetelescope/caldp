@@ -461,7 +461,7 @@ class Manager:
         Abstract class for downloading files from astroquery if input_uri starts is `astroquery`
         Download any data files for the `dataset`
         """
-        pass
+        raise NotImplementedError
 
     def find_input_files(self):
         """Scrape the input_uri for the needed input_files.
@@ -940,7 +940,7 @@ class SvmManager(Manager):
         filepaths : sorted list
             Local file system paths of files which were downloaded for `dataset`.
         """
-        pass
+        raise NotImplementedError
 
 
 class MvmManager(Manager):
@@ -1003,7 +1003,7 @@ class MvmManager(Manager):
         filepaths : sorted list
             Local file system paths of files which were downloaded for `dataset`.
         """
-        pass
+        raise NotImplementedError
 
 
 # ............................................................................
@@ -1055,13 +1055,13 @@ def get_manager(dataset, input_uri, output_uri):
 
 
 def process(dataset, input_uri, output_uri):
-    """Given an `ipppssoot`, `input_uri`, and `output_uri` where products should be stored,
-    perform all required processing steps for the `ipppssoot` and store all
+    """Given an `dataset`, `input_uri`, and `output_uri` where products should be stored,
+    perform all required processing steps for the `dataset` and store all
     products to `output_uri`.
 
     Parameters
     ----------
-    ipppssoot : str
+    dataset : str
         The HST dataset name to be processed.
     output_uri : str
         The base path to which outputs will be copied, nominally S3://bucket/subdir/.../subdir
