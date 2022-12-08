@@ -25,42 +25,16 @@ def s3_split_uri(uri):
     return bucket, prefix
 
 
-def get_input_path(input_uri, ipppssoot, make=False):
+def get_input_path(input_uri, dataset, make=False):
     """Fetches the path to input files"""
     cwd = os.getcwd()
     if input_uri.startswith("file"):
         input_path = input_uri.split(":")[-1]
     else:
-        input_path = os.path.join(cwd, "inputs", ipppssoot)
+        input_path = os.path.join(cwd, "inputs", dataset)
         if make is True:
             os.makedirs(input_path, exist_ok=True)
     return input_path
-
-
-def append_trailer(output_path, ipppssoot):  # pragma: no cover
-    """Fetch process log and append to trailer file
-    Note: copies trailer file from inputs directory
-    and copies to outputs directory prior to appending log
-    """
-    try:
-        tra1 = list(glob.glob(f"{output_path}/{ipppssoot.lower()}.tra"))
-        tra2 = list(glob.glob(f"{output_path}/{ipppssoot.lower()[0:5]}*.tra"))
-        if os.path.exists(tra1[0]):
-            trailer = tra1[0]
-        elif os.path.exists(tra2[0]):
-            trailer = tra2[0]
-        else:
-            log.info("Trailer file not found - skipping.")
-
-        log.info(f"Updating {trailer} with process log:")
-        proc_log = list(glob.glob(f"{os.getcwd()}/process.txt"))[0]
-        with open(trailer, "a") as tra:
-            with open(proc_log, "r") as proc:
-                tra.write(proc.read())
-        log.info("Trailer file updated: ", trailer)
-    except IndexError:
-        log.info("Trailer file not found - skipping.")
-        return
 
 
 def get_output_dir(output_uri):
@@ -80,29 +54,53 @@ def get_input_dir(input_uri):
     return input_dir
 
 
-def find_output_files(ipppssoot):
-    search_fits = f"{ipppssoot}/*.fits"
-    search_tra = f"{ipppssoot}/*.tra"
-    output_files = list(glob.glob(search_fits))
-    output_files.extend(list(glob.glob(search_tra)))
-    return output_files
+def find_output_files(dataset):
+    if process.IPPPSSOOT_RE.match(dataset):
+        search_fits = f"{dataset}/*.fits"
+        search_tra = f"{dataset}/*.tra"
+        output_files = list(glob.glob(search_fits))
+        output_files.extend(list(glob.glob(search_tra)))
+        return output_files
+    elif process.SVM_RE.match(dataset) and dataset.split("_")[0] in list(process.SVM_INSTR.keys()):
+        ipppss = process.get_svm_obs_set(dataset)
+        search_fits = f"{dataset}/hst_*{ipppss}*.fits"
+        search_txt = f"{dataset}/hst_*{ipppss}*.txt"
+        search_ecsv = f"{dataset}/hst_*{ipppss}*.ecsv"
+        search_manifest = f"{dataset}/{dataset}_manifest.txt"
+        search_log = f"{dataset}/astrodrizzle.log"
+        output_files = list(glob.glob(search_fits))
+        output_files.extend(list(glob.glob(search_txt)))
+        output_files.extend(list(glob.glob(search_ecsv)))
+        output_files.extend(list(glob.glob(search_manifest)))
+        output_files.extend(list(glob.glob(search_log)))
+        return output_files
+    elif process.MVM_RE.match(dataset):
+        search_fits = f"{dataset}/hst_{dataset}*.fits"
+        search_txt = f"{dataset}/hst_{dataset}*.txt"
+        search_manifest = f"{dataset}/{dataset}_manifest.txt"
+        output_files = list(glob.glob(search_fits))
+        output_files.extend(list(glob.glob(search_txt)))
+        output_files.extend(list(glob.glob(search_manifest)))
+        return output_files
+    else:
+        raise ValueError("Invalid dataset name {dataset}, dataset must be an ipppssoot, SVM, or MVM dataset")
 
 
-def find_previews(ipppssoot, output_files):
-    search_prev = f"{ipppssoot}/previews/*"
+def find_previews(dataset, output_files):
+    search_prev = f"{dataset}/previews/*"
     output_files.extend(list(glob.glob(search_prev)))
     return output_files
 
 
-def find_input_files(ipppssoot):
+def find_input_files(dataset):
     """If job fails (no outputs), tar the input files instead for debugging purposes."""
-    search_inputs = f"{ipppssoot}/*"
+    search_inputs = f"{dataset}/*"
     file_list = list(glob.glob(search_inputs))
     return file_list
 
 
-def make_tar(file_list, ipppssoot):
-    tar = ipppssoot + ".tar.gz"
+def make_tar(file_list, dataset):
+    tar = dataset + ".tar.gz"
     log.info("Creating tarfile: ", tar)
     if os.path.exists(tar):
         os.remove(tar)  # clean up from prev attempts
@@ -111,8 +109,8 @@ def make_tar(file_list, ipppssoot):
             print(os.path.basename(f))
             t.add(f)
     log.info("Tar successful: ", tar)
-    tar_dest = os.path.join(ipppssoot, tar)
-    shutil.copy(tar, ipppssoot)  # move tarfile to outputs/{ipst}
+    tar_dest = os.path.join(dataset, tar)
+    shutil.copy(tar, dataset)  # move tarfile to outputs/{ipst}
     os.remove(tar)
     return tar_dest
 
@@ -145,7 +143,7 @@ class ProgressPercentage(object):
             sys.stdout.flush()
 
 
-def clean_up(file_list, ipppssoot, dirs=None):
+def clean_up(file_list, dataset, dirs=None):
     print("\nCleaning up...")
     for f in file_list:
         try:
@@ -154,7 +152,7 @@ def clean_up(file_list, ipppssoot, dirs=None):
             print(f"file {f} not found")
     if dirs is not None:
         for d in dirs:
-            subdir = os.path.abspath(f"{ipppssoot}/{d}")
+            subdir = os.path.abspath(f"{dataset}/{d}")
             try:
                 shutil.rmtree(subdir)
             except OSError:
@@ -162,22 +160,22 @@ def clean_up(file_list, ipppssoot, dirs=None):
     print("Done.")
 
 
-def tar_outputs(ipppssoot, input_uri, output_uri):
+def tar_outputs(dataset, input_uri, output_uri):
     working_dir = os.getcwd()
-    output_path = process.get_output_path(output_uri, ipppssoot)
+    output_path = process.get_output_path(output_uri, dataset)
     output_dir = get_output_dir(output_uri)
     os.chdir(output_dir)  # create tarfile with ipst/*fits (ipst is parent dir)
-    output_files = find_output_files(ipppssoot)
+    output_files = find_output_files(dataset)
     if len(output_files) == 0:
         log.info("No output files found. Tarring inputs for debugging.")
         os.chdir(working_dir)
         input_dir = get_input_dir(input_uri)
         os.chdir(input_dir)
-        file_list = find_input_files(ipppssoot)
+        file_list = find_input_files(dataset)
     else:
-        file_list = find_previews(ipppssoot, output_files)
-    tar = make_tar(file_list, ipppssoot)
+        file_list = find_previews(dataset, output_files)
+    tar = make_tar(file_list, dataset)
     upload_tar(tar, output_path)
-    clean_up(file_list, ipppssoot, dirs=["previews", "env"])
+    clean_up(file_list, dataset, dirs=["previews", "env"])
     os.chdir(working_dir)
     return tar, file_list
