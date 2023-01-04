@@ -278,6 +278,184 @@ RESULTS = dict(
     ]
 )
 
+HAP_RESULTS = dict(
+    [
+        (
+            "skycell-p2381x06y09",
+            """
+740 inputs/skycell-p2381x06y09_input.out
+4613760 inputs/hst_skycell-p2381x06y09_wfc3_uvis_f547m_all_drc.fits
+168644160 inputs/hst_13773_20_wfc3_uvis_f657n_icnk20a8_flc.fits
+16107 inputs/hst_skycell-p2381x06y09_wfc3_uvis_f547m_all_drc.jpg
+168644160 inputs/hst_13773_20_wfc3_uvis_f657n_icnk20af_flc.fits
+2568 inputs/hst_skycell-p2381x06y09_wfc3_uvis_f547m_all_drc_thumb.jpg
+64590 inputs/hst_skycell-p2381x06y09_wfc3_uvis_f547m_all_trl.txt
+3301 inputs/hst_skycell-p2381x06y09_wfc3_uvis_total_all_drc_color_thumb.jpg
+4619520 inputs/hst_skycell-p2381x06y09_wfc3_uvis_f657n_all_drc.fits
+169148160 inputs/hst_13773_20_wfc3_uvis_f547m_icnk20aw_flc.fits
+210 inputs/skycell-p2381x06y09_manifest.txt
+168713280 inputs/hst_13773_20_wfc3_uvis_f657n_icnk20ad_flc.fits
+2492 inputs/hst_skycell-p2381x06y09_wfc3_uvis_f657n_all_drc_thumb.jpg
+169148160 inputs/hst_13773_20_wfc3_uvis_f547m_icnk20ay_flc.fits
+17486 inputs/hst_skycell-p2381x06y09_wfc3_uvis_f657n_all_drc.jpg
+21579 inputs/hst_skycell-p2381x06y09_wfc3_uvis_total_all_drc_color.jpg
+71946 inputs/hst_skycell-p2381x06y09_wfc3_uvis_f657n_all_trl.txt
+4613760 outputs/skycell-p2381x06y09/hst_skycell-p2381x06y09_wfc3_uvis_f547m_all_drc.fits
+64590 outputs/skycell-p2381x06y09/hst_skycell-p2381x06y09_wfc3_uvis_f547m_all_trl.txt
+4619520 outputs/skycell-p2381x06y09/hst_skycell-p2381x06y09_wfc3_uvis_f657n_all_drc.fits
+210 outputs/skycell-p2381x06y09/skycell-p2381x06y09_manifest.txt
+71946 outputs/skycell-p2381x06y09/hst_skycell-p2381x06y09_wfc3_uvis_f657n_all_trl.txt
+16107 outputs/skycell-p2381x06y09/previews/hst_skycell-p2381x06y09_wfc3_uvis_f547m_all_drc.jpg
+2568 outputs/skycell-p2381x06y09/previews/hst_skycell-p2381x06y09_wfc3_uvis_f547m_all_drc_thumb.jpg
+3301 outputs/skycell-p2381x06y09/previews/hst_skycell-p2381x06y09_wfc3_uvis_total_all_drc_color_thumb.jpg
+2492 outputs/skycell-p2381x06y09/previews/hst_skycell-p2381x06y09_wfc3_uvis_f657n_all_drc_thumb.jpg
+17486 outputs/skycell-p2381x06y09/previews/hst_skycell-p2381x06y09_wfc3_uvis_f657n_all_drc.jpg
+21579 outputs/skycell-p2381x06y09/previews/hst_skycell-p2381x06y09_wfc3_uvis_total_all_drc_color.jpg
+        """,
+        ),
+        (
+            "acs_8ph_01",
+            """
+4848398 inputs/hst_9774_01_acs_wfc_f555w_j8ph01_drc.jpg
+5526 inputs/hst_9774_01_acs_wfc_f814w_j8ph01g0_drc_thumb.jpg
+7685 inputs/hst_9774_01_acs_wfc_f555w_j8ph01g7_trl.txt
+336142080 inputs/hst_9774_01_acs_wfc_f435w_j8ph01g3_drc.fits
+5453 inputs/hst_9774_01_acs_wfc_f435w_j8ph01g5_drc_thumb.jpg
+634177 inputs/hst_9774_01_acs_wfc_f555w_j8ph01_segment-cat.ecsv
+32797 inputs/hst_9774_01_acs_wfc_flc_metawcs_all_ref_cat.ecsv
+7690 inputs/hst_9774_01_acs_wfc_f435w_j8ph01g5_trl.txt
+21024 inputs/hst_9774_01_acs_wfc_f555w_j8ph01_trl.txt
+3509517 inputs/hst_9774_01_acs_wfc_f555w_j8ph01g7_drc.jpg
+168327360 inputs/j8ph01g0q_flc.fits
+336150720 inputs/hst_9774_01_acs_wfc_f814w_j8ph01_drc.fits
+168448320 inputs/hst_9774_01_acs_wfc_f555w_j8ph01g9_flc.fits
+112320 inputs/hst_9774_01_acs_wfc_f814w_j8ph01g1_hlet.fits
+168448320 inputs/hst_9774_01_acs_wfc_f435w_j8ph01g5_flc.fits
+3767533 inputs/hst_9774_01_acs_wfc_f435w_j8ph01g5_drc.jpg
+5069316 inputs/hst_9774_01_acs_wfc_f814w_j8ph01g0_drc.jpg
+112320 inputs/hst_9774_01_acs_wfc_f435w_j8ph01g3_hlet.fits
+397493 inputs/hst_9774_01_acs_wfc_total_j8ph01_trl.txt
+168327360 inputs/j8ph01g7q_flc.fits
+7658 inputs/hst_9774_01_acs_wfc_f814w_j8ph01g1_trl.txt
+168448320 inputs/hst_9774_01_acs_wfc_f435w_j8ph01g3_flc.fits
+336150720 inputs/hst_9774_01_acs_wfc_f555w_j8ph01_drc.fits
+145980 inputs/hst_9774_01_acs_wfc_f814w_j8ph01_point-cat.ecsv
+112320 inputs/hst_9774_01_acs_wfc_f555w_j8ph01g9_hlet.fits
+7689 inputs/hst_9774_01_acs_wfc_f814w_j8ph01g0_trl.txt
+168327360 inputs/j8ph01g1q_flc.fits
+112320 inputs/hst_9774_01_acs_wfc_f814w_j8ph01g0_hlet.fits
+336142080 inputs/hst_9774_01_acs_wfc_f435w_j8ph01g5_drc.fits
+112320 inputs/hst_9774_01_acs_wfc_f435w_j8ph01g5_hlet.fits
+4225764 inputs/hst_9774_01_acs_wfc_total_j8ph01_drc.jpg
+121418 inputs/hst_9774_01_acs_wfc_total_j8ph01_point-cat.ecsv
+443 inputs/acs_8ph_01_input.out
+336142080 inputs/hst_9774_01_acs_wfc_f555w_j8ph01g9_drc.fits
+3399924 inputs/hst_9774_01_acs_wfc_f814w_j8ph01g1_drc.jpg
+4087 inputs/hst_9774_01_acs_wfc_f435w_j8ph01_drc_thumb.jpg
+4767 inputs/hst_9774_01_acs_wfc_total_j8ph01_drc_color_thumb.jpg
+9288 inputs/astrodrizzle.log
+146132 inputs/hst_9774_01_acs_wfc_f555w_j8ph01_point-cat.ecsv
+112320 inputs/hst_9774_01_acs_wfc_f555w_j8ph01g7_hlet.fits
+4749594 inputs/hst_9774_01_acs_wfc_f435w_j8ph01_drc.jpg
+7659 inputs/hst_9774_01_acs_wfc_f555w_j8ph01g9_trl.txt
+5117 inputs/hst_9774_01_acs_wfc_f555w_j8ph01g9_drc_thumb.jpg
+4092 inputs/hst_9774_01_acs_wfc_total_j8ph01_drc_thumb.jpg
+168327360 inputs/j8ph01g9q_flc.fits
+3617827 inputs/hst_9774_01_acs_wfc_f435w_j8ph01g3_drc.jpg
+4481418 inputs/hst_9774_01_acs_wfc_f814w_j8ph01_drc.jpg
+632332 inputs/hst_9774_01_acs_wfc_f814w_j8ph01_segment-cat.ecsv
+4099 inputs/hst_9774_01_acs_wfc_f555w_j8ph01_drc_thumb.jpg
+336142080 inputs/hst_9774_01_acs_wfc_f814w_j8ph01g0_drc.fits
+336142080 inputs/hst_9774_01_acs_wfc_f814w_j8ph01g1_drc.fits
+21020 inputs/hst_9774_01_acs_wfc_f435w_j8ph01_trl.txt
+2864520 inputs/hst_9774_01_acs_wfc_f555w_j8ph01g9_drc.jpg
+336142080 inputs/hst_9774_01_acs_wfc_f555w_j8ph01g7_drc.fits
+634886 inputs/hst_9774_01_acs_wfc_f435w_j8ph01_segment-cat.ecsv
+7659 inputs/hst_9774_01_acs_wfc_f435w_j8ph01g3_trl.txt
+20150 inputs/hst_9774_01_acs_wfc_f814w_j8ph01_trl.txt
+168327360 inputs/j8ph01g5q_flc.fits
+214045 inputs/hst_9774_01_acs_wfc_total_j8ph01_segment-cat.ecsv
+336150720 inputs/hst_9774_01_acs_wfc_f435w_j8ph01_drc.fits
+1780 inputs/acs_8ph_01_manifest.txt
+5945138 inputs/hst_9774_01_acs_wfc_total_j8ph01_drc_color.jpg
+4223 inputs/hst_9774_01_acs_wfc_f814w_j8ph01_drc_thumb.jpg
+5532 inputs/hst_9774_01_acs_wfc_f435w_j8ph01g3_drc_thumb.jpg
+5148 inputs/hst_9774_01_acs_wfc_f814w_j8ph01g1_drc_thumb.jpg
+168448320 inputs/hst_9774_01_acs_wfc_f555w_j8ph01g7_flc.fits
+168327360 inputs/j8ph01g3q_flc.fits
+146083 inputs/hst_9774_01_acs_wfc_f435w_j8ph01_point-cat.ecsv
+168448320 inputs/hst_9774_01_acs_wfc_f814w_j8ph01g1_flc.fits
+168448320 inputs/hst_9774_01_acs_wfc_f814w_j8ph01g0_flc.fits
+336182400 inputs/hst_9774_01_acs_wfc_total_j8ph01_drc.fits
+5476 inputs/hst_9774_01_acs_wfc_f555w_j8ph01g7_drc_thumb.jpg
+7685 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f555w_j8ph01g7_trl.txt
+336142080 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f435w_j8ph01g3_drc.fits
+634177 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f555w_j8ph01_segment-cat.ecsv
+7690 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f435w_j8ph01g5_trl.txt
+21024 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f555w_j8ph01_trl.txt
+336150720 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f814w_j8ph01_drc.fits
+168448320 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f555w_j8ph01g9_flc.fits
+112320 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f814w_j8ph01g1_hlet.fits
+168448320 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f435w_j8ph01g5_flc.fits
+112320 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f435w_j8ph01g3_hlet.fits
+397493 outputs/acs_8ph_01/hst_9774_01_acs_wfc_total_j8ph01_trl.txt
+7658 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f814w_j8ph01g1_trl.txt
+168448320 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f435w_j8ph01g3_flc.fits
+336150720 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f555w_j8ph01_drc.fits
+145980 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f814w_j8ph01_point-cat.ecsv
+112320 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f555w_j8ph01g9_hlet.fits
+7689 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f814w_j8ph01g0_trl.txt
+112320 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f814w_j8ph01g0_hlet.fits
+336142080 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f435w_j8ph01g5_drc.fits
+112320 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f435w_j8ph01g5_hlet.fits
+121418 outputs/acs_8ph_01/hst_9774_01_acs_wfc_total_j8ph01_point-cat.ecsv
+336142080 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f555w_j8ph01g9_drc.fits
+9288 outputs/acs_8ph_01/astrodrizzle.log
+146132 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f555w_j8ph01_point-cat.ecsv
+112320 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f555w_j8ph01g7_hlet.fits
+7659 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f555w_j8ph01g9_trl.txt
+632332 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f814w_j8ph01_segment-cat.ecsv
+336142080 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f814w_j8ph01g0_drc.fits
+336142080 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f814w_j8ph01g1_drc.fits
+21020 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f435w_j8ph01_trl.txt
+336142080 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f555w_j8ph01g7_drc.fits
+634886 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f435w_j8ph01_segment-cat.ecsv
+7659 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f435w_j8ph01g3_trl.txt
+20150 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f814w_j8ph01_trl.txt
+214045 outputs/acs_8ph_01/hst_9774_01_acs_wfc_total_j8ph01_segment-cat.ecsv
+336150720 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f435w_j8ph01_drc.fits
+1780 outputs/acs_8ph_01/acs_8ph_01_manifest.txt
+168448320 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f555w_j8ph01g7_flc.fits
+146083 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f435w_j8ph01_point-cat.ecsv
+168448320 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f814w_j8ph01g1_flc.fits
+168448320 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f814w_j8ph01g0_flc.fits
+336182400 outputs/acs_8ph_01/hst_9774_01_acs_wfc_total_j8ph01_drc.fits
+4848398 outputs/acs_8ph_01/previews/hst_9774_01_acs_wfc_f555w_j8ph01_drc.jpg
+5526 outputs/acs_8ph_01/previews/hst_9774_01_acs_wfc_f814w_j8ph01g0_drc_thumb.jpg
+5453 outputs/acs_8ph_01/previews/hst_9774_01_acs_wfc_f435w_j8ph01g5_drc_thumb.jpg
+3509517 outputs/acs_8ph_01/previews/hst_9774_01_acs_wfc_f555w_j8ph01g7_drc.jpg
+3767533 outputs/acs_8ph_01/previews/hst_9774_01_acs_wfc_f435w_j8ph01g5_drc.jpg
+5069316 outputs/acs_8ph_01/previews/hst_9774_01_acs_wfc_f814w_j8ph01g0_drc.jpg
+4225764 outputs/acs_8ph_01/previews/hst_9774_01_acs_wfc_total_j8ph01_drc.jpg
+3399924 outputs/acs_8ph_01/previews/hst_9774_01_acs_wfc_f814w_j8ph01g1_drc.jpg
+4087 outputs/acs_8ph_01/previews/hst_9774_01_acs_wfc_f435w_j8ph01_drc_thumb.jpg
+4767 outputs/acs_8ph_01/previews/hst_9774_01_acs_wfc_total_j8ph01_drc_color_thumb.jpg
+4749594 outputs/acs_8ph_01/previews/hst_9774_01_acs_wfc_f435w_j8ph01_drc.jpg
+5117 outputs/acs_8ph_01/previews/hst_9774_01_acs_wfc_f555w_j8ph01g9_drc_thumb.jpg
+4092 outputs/acs_8ph_01/previews/hst_9774_01_acs_wfc_total_j8ph01_drc_thumb.jpg
+3617827 outputs/acs_8ph_01/previews/hst_9774_01_acs_wfc_f435w_j8ph01g3_drc.jpg
+4481418 outputs/acs_8ph_01/previews/hst_9774_01_acs_wfc_f814w_j8ph01_drc.jpg
+4099 outputs/acs_8ph_01/previews/hst_9774_01_acs_wfc_f555w_j8ph01_drc_thumb.jpg
+2864520 outputs/acs_8ph_01/previews/hst_9774_01_acs_wfc_f555w_j8ph01g9_drc.jpg
+5945138 outputs/acs_8ph_01/previews/hst_9774_01_acs_wfc_total_j8ph01_drc_color.jpg
+4223 outputs/acs_8ph_01/previews/hst_9774_01_acs_wfc_f814w_j8ph01_drc_thumb.jpg
+5532 outputs/acs_8ph_01/previews/hst_9774_01_acs_wfc_f435w_j8ph01g3_drc_thumb.jpg
+5148 outputs/acs_8ph_01/previews/hst_9774_01_acs_wfc_f814w_j8ph01g1_drc_thumb.jpg
+5476 outputs/acs_8ph_01/previews/hst_9774_01_acs_wfc_f555w_j8ph01g7_drc_thumb.jpg
+        """,
+        ),
+    ]
+)
 TARFILES = dict([("j8cb010b0", "32586581 j8cb010b0.tar.gz"), ("iacs01t4q", "106921504 iacs01t4q.tar.gz")])
 
 S3_OUTPUTS = dict(
@@ -378,8 +556,74 @@ def test_instruments(tmpdir, ipppssoot, input_uri, output_uri):
     coretst(tmpdir, ipppssoot, input_uri, output_uri)
 
 
+@pytest.mark.parametrize("output_uri", ["file:outputs"])
+@pytest.mark.parametrize("input_uri", ["astroquery:s3://hap-poller-files"])
+@pytest.mark.parametrize("dataset", ["skycell-p2381x06y09"])
+def test_mvm(dataset, input_uri, output_uri):
+    haptst(dataset, input_uri, output_uri)
+
+
+@pytest.mark.parametrize("output_uri", ["file:outputs"])
+@pytest.mark.parametrize("input_uri", ["astroquery:s3://hap-poller-files"])
+@pytest.mark.parametrize("dataset", ["acs_8ph_01"])
+def test_svm(dataset, input_uri, output_uri):
+    haptst(dataset, input_uri, output_uri)
+
+
 # Conditionally mock S3,  defaulting to mock
 mock_s3 = mock_s3 if CALDP_S3_MOTO else lambda x: x
+
+
+@mock_s3
+def haptst(dataset, input_uri, output_uri):
+    """
+    Test creating products for SVM and MVM datasets
+    Currently only supports input from astroquery downloads and output to local (file:)
+    <dataset>_input.out files must be staged in the caldp/tests/ directory
+    """
+
+    import boto3
+
+    client = boto3.client("s3")
+
+    test_dir = os.path.join(os.path.expanduser("~"), "caldp/tests")
+    hap_poller_file_path = os.path.join(test_dir, f"{dataset}_input.out")
+    hap_poller_file_name = f"{dataset}_input.out"
+
+    if input_uri.startswith("astroquery:"):
+        input_uri_split = input_uri.split(":")
+        if len(input_uri_split) == 3 and input_uri_split[1] == "s3":
+            # Upload <dataset>_input.out to S3 if input_uri is astroquery:s3://bucket/prefix
+            s3_path = input_uri_split[2].replace("//", "").split("/")
+            bucket, prefix = s3_path[0], "/".join(s3_path[1:])
+            if prefix:
+                objectname = prefix.strip("/") + "/" + hap_poller_file_name
+            else:
+                objectname = hap_poller_file_name
+            client.create_bucket(Bucket=bucket)
+            with open(hap_poller_file_path, "rb") as f:
+                print("Uploading HAP poller file to S3")
+                print("S3 bucket", bucket)
+                print("S3 objectname", objectname)
+                client.upload_fileobj(f, bucket, objectname)
+
+        process.main(["process.py", input_uri, output_uri, dataset])
+        create_previews.main(dataset, input_uri, output_uri)
+
+        expected_inputs, expected_outputs = expected(HAP_RESULTS, dataset)
+
+        input_path = os.path.join(os.getcwd(), "inputs", dataset)
+        actual_inputs = list_files_hap(input_path, dataset)
+        check_inputs(input_uri, expected_inputs, actual_inputs)
+
+    if output_uri.startswith("file"):
+        output_path = process.get_output_path(output_uri, dataset)
+        actual_outputs = list_files_hap(output_path, dataset)
+        check_outputs(output_uri, expected_outputs, actual_outputs)
+
+    check_messages_cleanup(dataset)
+    if input_uri.startswith("astroquery"):
+        check_IO_clean_up(dataset)
 
 
 @mock_s3
@@ -602,6 +846,28 @@ def list_files(startpath, ipppssoot):
         for f in sorted(files, key=lambda f: os.path.getsize(root + os.sep + f)):
             if f.startswith(ipppssoot[0:5]):
                 file_dict[f] = os.path.getsize(root + os.sep + f)
+    return file_dict
+
+
+def list_files_hap(startpath, dataset):
+    file_dict = {}
+    dataset_type = process.get_dataset_type(dataset)
+    if dataset_type == "svm":
+        ipppss = process.get_svm_obs_set(dataset)
+        for root, _, files in os.walk(startpath):
+            for f in sorted(files, key=lambda f: os.path.getsize(root + os.sep + f)):
+                if (
+                    f.startswith("hst")
+                    or f.__contains__(ipppss)
+                    or f.__contains__(dataset)
+                    or f.startswith("astrodrizzle.log")
+                ):
+                    file_dict[f] = os.path.getsize(root + os.sep + f)
+    elif dataset_type == "mvm":
+        for root, _, files in os.walk(startpath):
+            for f in sorted(files, key=lambda f: os.path.getsize(root + os.sep + f)):
+                if f.startswith("hst") or f.__contains__(dataset):
+                    file_dict[f] = os.path.getsize(root + os.sep + f)
     return file_dict
 
 
