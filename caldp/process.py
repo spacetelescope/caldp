@@ -891,13 +891,12 @@ class SvmManager(Manager):
     input_uri : str
         (instance) root input path, or astroquery:// to download from MAST
 
-
     Methods
     -------
     __init__(dataset, input_uri, output_uri)
 
     download()
-        Downloads data files for `ipppssoot` from astroquery (not implemented)
+        Downloads data files for `ipppssoot` from astroquery
     process_inputs(input_files)
         Runs SVM workflow on dataset_input.out file.
     """
@@ -906,6 +905,8 @@ class SvmManager(Manager):
         super().__init__(dataset, input_uri, output_uri)
         self.ipppss = get_svm_obs_set(self.dataset)
         self.runsinglehap = "runsinglehap"
+        self.download_suffixes = ["FLC"]
+        self.input_path = self.get_input_path()
         self.create_file_search_patterns()
 
     def create_file_search_patterns(self):
@@ -930,21 +931,82 @@ class SvmManager(Manager):
     # -----------------------------------------------------------------------------
 
     def download(self):
-        # Not Implemented
         """Called if input_uri starts is `astroquery`
         Download any data files for the `dataset`,  issuing start and
         stop divider messages.
+        Path to a HAP poller output file (dataset_input.out) must be included
+        input_uri = "astroquery:/path/to/file/"
+        or if the poller file is in S3
+        input_uri = "astroquery:s3://bucket/prefix"
 
         Returns
         -------
         filepaths : sorted list
             Local file system paths of files which were downloaded for `dataset`.
         """
-        raise NotImplementedError
+        input_uri_split = self.input_uri.split(":")
+        hap_poller_file_name = f"{self.dataset}_input.out"
+        if len(input_uri_split) > 1 and input_uri_split[1]:
+            if len(input_uri_split) == 2:
+                # local HAP poller file
+                # input_uri = astroquery:/path/to/local/file
+                hap_poller_file_path = input_uri_split[1]
+            if len(input_uri_split) == 3 and input_uri_split[1] == "s3":
+                # HAP poller file on S3
+                # input_uri = astroquery:s3://bucket/prefix
+                hap_poller_file_path = os.getcwd()
+                s3_path = input_uri_split[2].replace("//", "").split("/")
+                bucket, prefix = s3_path[0], "/".join(s3_path[1:])
+                key = hap_poller_file_name
+                if len(prefix) == 0:
+                    obj = key
+                else:  # remove trailing slash from prefix if there is one
+                    obj = prefix.strip("/") + "/" + key
+                self.divider(f"Retrieving SVM poller file: s3://{bucket}/{obj}")
+                with sysexit.exit_on_exception(
+                    exit_codes.S3_DOWNLOAD_ERROR, f"Failed downloading or extracting s3://{bucket}/{obj}"
+                ):
+                    client = boto3.client("s3")
+                    with open(key, "wb") as f:
+                        client.download_fileobj(bucket, obj, f)
+        else:
+            raise Exception(
+                "Path to poller output ([dataset]_input.out) file must be included when using astroquery with HAP"
+            )
+
+        hap_poller_file_search = f"{hap_poller_file_path}/{hap_poller_file_name}"
+        hap_poller_file = glob.glob(hap_poller_file_search)
+
+        if len(hap_poller_file) == 0:
+            raise RuntimeError(f"No HAP poller file found for: {repr(hap_poller_file_search)}")
+        elif len(hap_poller_file) == 1:
+            hap_poller_file_input_path = os.path.join(self.input_path, hap_poller_file_name)
+            hap_poller_file = hap_poller_file[0]
+            if not os.path.exists(hap_poller_file_input_path):
+                shutil.copy(hap_poller_file, hap_poller_file_input_path)
+
+            with sysexit.exit_on_exception(
+                exit_codes.ASTROQUERY_ERROR, "Astroquery exception downloading suffixes:", self.download_suffixes
+            ):
+                self.divider("Retrieving pipeline data files for:", self.download_suffixes)
+                files = retrieve_observation(f"{self.ipppss}*", suffix=self.download_suffixes, product_type="pipeline")
+                self.divider("Download data complete.")
+
+            files = list()
+            for input_search_pattern in self.input_search_patterns:
+                search_str = f"{self.input_path}/{input_search_pattern}"
+                self.divider("Finding input data using:", repr(search_str))
+                # find the base path to the files
+                found_files = glob.glob(search_str)
+                files.extend(found_files)
+
+            return list(sorted(files))
+        else:
+            raise RuntimeError(f"Too many HAP poller files found for: {repr(hap_poller_file_search)}")
 
 
 class MvmManager(Manager):
-    """
+    """)
     Attributes
     ----------
     runmultihap : str
@@ -963,7 +1025,7 @@ class MvmManager(Manager):
     __init__(dataset, input_uri, output_uri)
 
     download()
-        Downloads data files for `ipppssoot` from astroquery (not implemented)
+        Downloads data files for `ipppssoot` from astroquery
     process(input_files)
         Runs MVM workflow on dataset_input.out file.
     """
@@ -971,6 +1033,8 @@ class MvmManager(Manager):
     def __init__(self, dataset, input_uri, output_uri):
         super().__init__(dataset, input_uri, output_uri)
         self.runmultihap = "runmultihap"
+        self.input_path = self.get_input_path()
+        self.download_suffixes = ["FLC"]
         self.create_file_search_patterns()
 
     def create_file_search_patterns(self):
@@ -993,17 +1057,88 @@ class MvmManager(Manager):
     # -----------------------------------------------------------------------------
 
     def download(self):
-        # Not Implemented
         """Called if input_uri starts is `astroquery`
         Download any data files for the `dataset`,  issuing start and
         stop divider messages.
+        Path to a HAP poller output file (dataset_input.out) must be included
+        input_uri = "astroquery:/path/to/file/"
+        or if the poller file is in S3
+        input_uri = "astroquery:s3://bucket/prefix"
 
         Returns
         -------
         filepaths : sorted list
             Local file system paths of files which were downloaded for `dataset`.
         """
-        raise NotImplementedError
+
+        input_uri_split = self.input_uri.split(":")
+        hap_poller_file_name = f"{self.dataset}_input.out"
+        if len(input_uri_split) > 1 and input_uri_split[1]:
+            if len(input_uri_split) == 2:
+                # local HAP poller file
+                # input_uri = astroquery:/path/to/local/file
+                hap_poller_file_path = input_uri_split[1]
+            if len(input_uri_split) == 3 and input_uri_split[1] == "s3":
+                # HAP poller file on S3
+                # input_uri = astroquery:s3://bucket/prefix
+                hap_poller_file_path = os.getcwd()
+                s3_path = input_uri_split[2].replace("//", "").split("/")
+                bucket, prefix = s3_path[0], "/".join(s3_path[1:])
+                key = hap_poller_file_name
+                if len(prefix) == 0:
+                    obj = key
+                else:  # remove trailing slash from prefix if there is one
+                    obj = prefix.strip("/") + "/" + key
+                self.divider(f"Retrieving MVM poller file: s3://{bucket}/{obj}")
+                with sysexit.exit_on_exception(
+                    exit_codes.S3_DOWNLOAD_ERROR, f"Failed downloading or extracting s3://{bucket}/{obj}"
+                ):
+                    client = boto3.client("s3")
+                    with open(key, "wb") as f:
+                        client.download_fileobj(bucket, obj, f)
+        else:
+            raise Exception(
+                "Path to poller output ([dataset]_input.out) file must be included when using astroquery with HAP"
+            )
+
+        hap_poller_file_search = f"{hap_poller_file_path}/{hap_poller_file_name}"
+        hap_poller_file = glob.glob(hap_poller_file_search)
+
+        if len(hap_poller_file) == 0:
+            raise RuntimeError(f"No HAP poller file found for: {repr(hap_poller_file_search)}")
+        elif len(hap_poller_file) == 1:
+            hap_poller_file_input_path = os.path.join(self.input_path, hap_poller_file_name)
+            hap_poller_file = hap_poller_file[0]
+            if not os.path.exists(hap_poller_file_input_path):
+                shutil.copy(hap_poller_file, hap_poller_file_input_path)
+
+            with open(hap_poller_file_input_path, "r") as f:
+                obs_set_ids = []
+                for line in f:
+                    obs_set_id = line.split(",")[0].split("_")[-2][0:6]
+                    obs_set_ids.append(obs_set_id)
+
+            obs_set_ids = list(set(obs_set_ids))
+
+            for ipppss in obs_set_ids:
+                with sysexit.exit_on_exception(
+                    exit_codes.ASTROQUERY_ERROR, "Astroquery exception downloading suffixes:", self.download_suffixes
+                ):
+                    self.divider("Retrieving HAP data files for:", f"{ipppss}*")
+                    files = retrieve_observation(f"{ipppss}*", suffix=self.download_suffixes, product_type="HAP")
+                    self.divider("Download data complete.")
+
+            files = list()
+            for input_search_pattern in self.input_search_patterns:
+                search_str = f"{self.input_path}/{input_search_pattern}"
+                self.divider("Finding input data using:", repr(search_str))
+                # find the base path to the files
+                found_files = glob.glob(search_str)
+                files.extend(found_files)
+
+            return list(sorted(files))
+        else:
+            raise RuntimeError(f"Too many HAP poller files found for: {repr(hap_poller_file_search)}")
 
 
 # ............................................................................
