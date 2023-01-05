@@ -301,6 +301,7 @@ class HapPreviewManager(PreviewManager):
         #     self.filters_file_path = os.path.join(os.path.expanduser("~"), "caldp/ACS_WFC3_filters.txt")
         # else:
         #     self.filters_file_path = find_file("ACS_WFC3_filters.txt", os.path.expanduser("~"))
+        
         self.acs_wfc3_filters = {}
 
     def determine_data_type(self, fitsfile):
@@ -484,12 +485,10 @@ class HapPreviewManager(PreviewManager):
 
 PREVIEW_MANAGERS = {"ipst": IpstPreviewManager, "svm": HapPreviewManager, "mvm": HapPreviewManager}
 
-
 def find_file(name, path):
     for root, dirs, files in os.walk(path):
         if name in files:
             return os.path.join(root, name)
-
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Create image and spectral previews")

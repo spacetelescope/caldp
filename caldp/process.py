@@ -891,7 +891,6 @@ class SvmManager(Manager):
     input_uri : str
         (instance) root input path, or astroquery:// to download from MAST
 
-
     Methods
     -------
     __init__(dataset, input_uri, output_uri)
