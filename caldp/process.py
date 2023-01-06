@@ -86,7 +86,7 @@ def safe_extractall(tar, path=".", members=None, *, numeric_owner=False):
         if not is_within_directory(path, member_path):  # pragma: no cover
             raise Exception("Attempted Path Traversal in Tar File")
 
-    tar.extractall(path, members, numeric_owner)
+    tar.extractall(path, members, numeric_owner=numeric_owner)
 
 
 def get_instrument(ipppssoot):
