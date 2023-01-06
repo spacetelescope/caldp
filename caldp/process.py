@@ -62,6 +62,33 @@ SVM_INSTR = {"acs": "j", "wfc3": "i"}
 INSTRUMENTS = set(IPPPSSOOT_INSTR.values())
 
 
+def is_within_directory(directory, target):
+    """Part of the fix for CVE-2007-4559
+    To ensure that there is no attempt at path traversal
+    from within a tar file, which could lead to arbitrary
+    code execution."""
+
+    abs_directory = os.path.abspath(directory)
+    abs_target = os.path.abspath(target)
+
+    prefix = os.path.commonprefix([abs_directory, abs_target])
+
+    return prefix == abs_directory
+
+
+def safe_extractall(tar, path=".", members=None, *, numeric_owner=False):
+
+    """uses is_within_directory to ensure the tarfile is safe to extract
+    (see CVE-2007-4559 for details on the vulnerability)"""
+
+    for member in tar.getmembers():
+        member_path = os.path.join(path, member.name)
+        if not is_within_directory(path, member_path):  # pragma: no cover
+            raise Exception("Attempted Path Traversal in Tar File")
+
+    tar.extractall(path, members, numeric_owner)
+
+
 def get_instrument(ipppssoot):
     """Given an `ipppssoot` ID, return the corresponding instrument name.
 
@@ -446,7 +473,7 @@ class Manager:
         with sysexit.exit_on_exception(exit_codes.INPUT_TAR_FILE_ERROR, "Failed extracting inputs from", key):
             self.divider(f"Extracting files from {key}")
             with tarfile.open(key, "r:gz") as tar_ref:
-                tar_ref.extractall()
+                safe_extractall(tar_ref)
                 # then delete tars
         os.remove(key)
         self.divider("Gathering fits files for calibration")
@@ -491,7 +518,7 @@ class Manager:
                 log.info("Extracting inputs from: ", tar_files)
                 os.chdir(base_path)
                 with tarfile.open(tar_files[0], "r:gz") as tar_ref:
-                    tar_ref.extractall()
+                    safe_extractall(tar_ref)
             else:
                 raise RuntimeError(f"Too many tar files for: {repr(search_tar)} = {tar_files}")
         os.chdir(cwd)
