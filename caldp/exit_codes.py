@@ -30,6 +30,8 @@ _EXIT_CODES = dict(
     CALDP_MEMORY_ERROR=32,
     CONTAINER_MEMORY_ERROR=33,
     OS_MEMORY_ERROR=34,
+    SVM_ERROR=40,
+    MVM_ERROR=41,
 )
 
 
@@ -41,6 +43,8 @@ _NAME_EXPLANATIONS = dict(
     ASTROQUERY_ERROR="An error occurred downloading astroqery: inputs",
     STAGE1_ERROR="An error occurred in this instrument's stage1 processing step. e.g. calxxx",
     STAGE2_ERROR="An error occurred in this instrument's stage2 processing step, e.g astrodrizzle",
+    SVM_ERROR="An error occurred while running runsinglehap",
+    MVM_ERROR="An error occurred while running runmultihap",
     S3_UPLOAD_ERROR="An error occurred uploading the outputs tarball to S3.",
     S3_DOWNLOAD_ERROR="An error occurred downloading inputs from S3.",
     BESTREFS_ERROR="An error occurred computing or downloading CRDS reference files.",
@@ -56,7 +60,7 @@ _NAME_EXPLANATIONS = dict(
 _CODE_TO_NAME = dict()
 
 # Set up original module global variables / named constants
-for (name, code) in _EXIT_CODES.items():
+for name, code in _EXIT_CODES.items():
     globals()[name] = code
     _CODE_TO_NAME[code] = name
     _CODE_TO_NAME[str(code)] = name

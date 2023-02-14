@@ -4,9 +4,9 @@
 
 # Primary command script passed into Batch container runs
 
-# caldp-process  ipppssoot  <input_path>  <output_path>  <caldp_config>
+# caldp-process  dataset  <input_path>  <output_path>  <caldp_config>
 
-ipppssoot=$1
+dataset=$1
 input_path=${2:-"file:."}
 output_path=${3:-"file:."}
 caldp_config=${4:-"caldp-config-onsite"}
@@ -20,7 +20,7 @@ else
     TIME=eval
 fi
 
-echo "Starting caldp-process at (input) ${input_path} (output) ${output_path} for ${ipppssoot} using config ${caldp_config}"
+echo "Starting caldp-process at (input) ${input_path} (output) ${output_path} for ${dataset} using config ${caldp_config}"
 
 source ${caldp_config}
 
@@ -83,12 +83,12 @@ fi
 echo ........................................ processing log ..............................................
 pwd
 set -o pipefail && $TIME --verbose -o process_metrics.txt \
-    python -m caldp.process $input_path $output_path $ipppssoot \
-    2>&1 | tee process.txt
+    python -m caldp.process $input_path $output_path $dataset
+
 process_exit_status=$?
 echo "Processing exit status ${process_exit_status}"
 
-processing_output_dir=`caldp-get-output-path  $output_path $ipppssoot`
+processing_output_dir=`caldp-get-output-path  $output_path $dataset`
 echo "Processing output_dir is" $processing_output_dir
 
 previews_output_dir="${processing_output_dir}/previews"
@@ -98,8 +98,7 @@ echo ........................................ previews log .....................
 
 
 set -o pipefail && $TIME --verbose -o preview_metrics.txt \
-    python -m caldp.create_previews $input_path $output_path $ipppssoot \
-    2>&1 | tee preview.txt
+    python -m caldp.create_previews $input_path $output_path $dataset
 
 preview_exit_status=$?
 echo "Preview exit status ${preview_exit_status}"
@@ -114,7 +113,7 @@ cat preview_metrics.txt
 echo ........................... handling outputs for ${output_location} ..................................
 
 # Note: this action is not logged since log files are being transferred.
-python -m caldp.messages $input_path $output_path $ipppssoot
+python -m caldp.messages $input_path $output_path $dataset
 messages_exit_status=$?
 echo "messages exit status = ${messages_exit_status}"
 

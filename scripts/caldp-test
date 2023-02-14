@@ -8,7 +8,10 @@ set -o pipefail
 
 export CALDP_DOCKER_RUN_PARS=${CALDP_DOCKER_RUN_PARS:-"-it --rm"}
 
-
-
-( caldp-docker-run-container \
-    pytest  --color=no  --capture=tee-sys --cov=caldp --cov-report=html:htmlcov --doctest-modules caldp $* ) 2>&1 | tee $CALDP_CLONE/test.log
+( caldp-docker-run-container pytest  \
+   -o log_cli=True \
+   --log-level=INFO --log-cli-level=INFO \
+   --color=no  --capture=no \
+   --cov=caldp --cov-report=html:htmlcov \
+   --doctest-modules caldp $* \
+) 2>&1 | tee $CALDP_CLONE/test.log
