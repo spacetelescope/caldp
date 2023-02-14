@@ -77,7 +77,6 @@ def is_within_directory(directory, target):
 
 
 def safe_extractall(tar, path=".", members=None, *, numeric_owner=False):
-
     """uses is_within_directory to ensure the tarfile is safe to extract
     (see CVE-2007-4559 for details on the vulnerability)"""
 

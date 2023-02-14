@@ -926,7 +926,7 @@ def list_outputs(ipppssoot, output_uri):
 
 def expected(RESULTS, ipppssoot):
     expected_outputs, expected_inputs = {}, {}
-    for (name, size) in parse_results(RESULTS[ipppssoot]).items():
+    for name, size in parse_results(RESULTS[ipppssoot]).items():
         if name.startswith("outputs"):
             name = os.path.basename(name)
             expected_outputs[name] = size
