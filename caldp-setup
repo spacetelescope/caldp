@@ -9,7 +9,7 @@ export PATH=`pwd`/scripts:${PATH}
 export CRDS_CONTEXT=hst_1077.pmap
 
 # Version of stsci/hst-pipeline base image to use
-export BASE_IMAGE_TAG=CALDP_onlywfpc2drizzle_CAL_rc3
+export BASE_IMAGE_TAG=CALDP_20230613_CAL_final
 
 # Docker repo
 #
