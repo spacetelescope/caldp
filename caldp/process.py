@@ -89,7 +89,7 @@ def checked_tar_members(tar):
     return members
 
 
-def safe_extractall(tarpath, mode="r:gz"):
+def safe_tar_extrct(tarpath, mode="r:gz"):
     """Extract all members of tar file at `path` opened using mode 'r:gz'
     after verifying member paths and types are safe.
     """
@@ -480,7 +480,7 @@ class Manager:
 
         with sysexit.exit_on_exception(exit_codes.INPUT_TAR_FILE_ERROR, "Failed extracting inputs from", key):
             self.divider(f"Extracting files from {key}")
-            safe_extractall(key)
+            safe_tar_extrct(key)
             # then delete tars
         os.remove(key)
         self.divider("Gathering fits files for calibration")
@@ -524,7 +524,7 @@ class Manager:
             elif len(tar_files) == 1:
                 log.info("Extracting inputs from: ", tar_files)
                 os.chdir(base_path)
-                safe_extractall(tar_files[0])
+                safe_tar_extrct(tar_files[0])
             else:
                 raise RuntimeError(f"Too many tar files for: {repr(search_tar)} = {tar_files}")
         os.chdir(cwd)
