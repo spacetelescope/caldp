@@ -76,7 +76,7 @@ def is_within_directory(directory, target):
     return prefix == abs_directory
 
 
-def checked_tar_members(tar) -> list[tarfile.TarInfo]:
+def checked_tar_members(tar):
     """uses is_within_directory to ensure the tarfile is safe to extract
     (see CVE-2007-4559 for details on the vulnerability)
     """
@@ -94,7 +94,7 @@ def safe_extractall(tarpath, mode="r:gz"):
     after verifying member paths and types are safe.
     """
     with tarfile.open(tarpath, mode) as tar:
-        tar.extractall(members=checked_tar_members)
+        tar.extractall(members=checked_tar_members(tar))
 
 
 def get_instrument(ipppssoot):
