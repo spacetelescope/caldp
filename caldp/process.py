@@ -76,16 +76,25 @@ def is_within_directory(directory, target):
     return prefix == abs_directory
 
 
-def safe_extractall(tar, path=".", members=None, *, numeric_owner=False):
+def checked_tar_members(tar):
     """uses is_within_directory to ensure the tarfile is safe to extract
-    (see CVE-2007-4559 for details on the vulnerability)"""
-
-    for member in tar.getmembers():
-        member_path = os.path.join(path, member.name)
-        if not is_within_directory(path, member_path):  # pragma: no cover
+    (see CVE-2007-4559 for details on the vulnerability)
+    """
+    members = tar.getmembers()
+    for member in members:
+        if not is_within_directory(".", member.name):  # pragma: no cover
             raise Exception("Attempted Path Traversal in Tar File")
+        if member.isdev():
+            raise ValueError(f"Tarfile member {member.name} is a device file.")
+    return members
 
-    tar.extractall(path, members, numeric_owner=numeric_owner)
+
+def safe_tar_extrct(tarpath, mode="r:gz"):
+    """Extract all members of tar file at `path` opened using mode 'r:gz'
+    after verifying member paths and types are safe.
+    """
+    with tarfile.open(tarpath, mode) as tar:
+        tar.extractall(members=checked_tar_members(tar))
 
 
 def get_instrument(ipppssoot):
@@ -471,9 +480,8 @@ class Manager:
 
         with sysexit.exit_on_exception(exit_codes.INPUT_TAR_FILE_ERROR, "Failed extracting inputs from", key):
             self.divider(f"Extracting files from {key}")
-            with tarfile.open(key, "r:gz") as tar_ref:
-                safe_extractall(tar_ref)
-                # then delete tars
+            safe_tar_extrct(key)
+            # then delete tars
         os.remove(key)
         self.divider("Gathering fits files for calibration")
         files = []
@@ -516,8 +524,7 @@ class Manager:
             elif len(tar_files) == 1:
                 log.info("Extracting inputs from: ", tar_files)
                 os.chdir(base_path)
-                with tarfile.open(tar_files[0], "r:gz") as tar_ref:
-                    safe_extractall(tar_ref)
+                safe_tar_extrct(tar_files[0])
             else:
                 raise RuntimeError(f"Too many tar files for: {repr(search_tar)} = {tar_files}")
         os.chdir(cwd)
