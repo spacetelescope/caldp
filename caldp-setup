@@ -6,10 +6,10 @@ export PATH=`pwd`/scripts:${PATH}
 # Define the exact version of reference files you want to use.
 # Specify "hst-operational" if you want it defined automatically
 # by the CRDS server and/or cache.
-export CRDS_CONTEXT=hst_1064.pmap
+export CRDS_CONTEXT=hst_1089.pmap
 
 # Version of stsci/hst-pipeline base image to use
-export BASE_IMAGE_TAG=CALDP_20230208_CAL_final
+export BASE_IMAGE_TAG=CALDP_20230810_CAL_final
 
 # Docker repo
 #
