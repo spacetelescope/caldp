@@ -1,2 +1,3 @@
 - default base docker image set to CALDP_cosandpin_CAL_rc1
 - default crds update to hst_1089.pmap
+- security update for tarball extraction
