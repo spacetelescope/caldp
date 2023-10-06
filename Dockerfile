@@ -2,7 +2,7 @@
 # Distributed under the terms of the Modified BSD License.
 
 # DATB's HST CAL code build for fundamental calibration s/w
-ARG CAL_BASE_IMAGE=stsci/hst-pipeline:testing
+ARG CAL_BASE_IMAGE=stsci/hst-pipeline:stable
 FROM ${CAL_BASE_IMAGE}
 
 # Keyword added to products
