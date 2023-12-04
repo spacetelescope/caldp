@@ -19,7 +19,7 @@ from moto import mock_s3
 # Set default CRDS Context
 CRDS_CONTEXT = os.environ.get("CRDS_CONTEXT")
 if CRDS_CONTEXT == "":
-    os.environ["CRDS_CONTEXT"] = "hst_1089.pmap"
+    os.environ["CRDS_CONTEXT"] = "hst_1099.pmap"
 
 # For applicable tests,  the product files associated with each ipppssoot below
 # must be present in the CWD after processing and be within 10% of the listed sizes.
@@ -322,7 +322,7 @@ HAP_RESULTS = dict(
 336142080 inputs/hst_9774_01_acs_wfc_f435w_j8ph01g3_drc.fits
 5453 inputs/hst_9774_01_acs_wfc_f435w_j8ph01g5_drc_thumb.jpg
 634177 inputs/hst_9774_01_acs_wfc_f555w_j8ph01_segment-cat.ecsv
-32797 inputs/hst_9774_01_acs_wfc_flc_metawcs_all_ref_cat.ecsv
+32787 inputs/hst_9774_01_acs_wfc_j8p_metawcs_all_ref_cat.ecsv
 7690 inputs/hst_9774_01_acs_wfc_f435w_j8ph01g5_trl.txt
 21024 inputs/hst_9774_01_acs_wfc_f555w_j8ph01_trl.txt
 3509517 inputs/hst_9774_01_acs_wfc_f555w_j8ph01g7_drc.jpg
