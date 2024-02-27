@@ -263,13 +263,14 @@ def exit_receiver():
     ERROR - ----------------------------- Fatal Exception -----------------------------
     ERROR - Untrapped non-memory exception.
     ERROR - Traceback (most recent call last):
-    ERROR -   File ".../caldp/sysexit.py", line ..., in exit_receiver
+    ERROR -   File "/home/developer/caldp/sysexit.py", line 341, in exit_receiver
     ERROR -     yield  # go off and execute the block
-    ERROR -   File "<doctest caldp.sysexit.exit_receiver[...]>", line ..., in <module>
+    ERROR -     ^^^^^
+    ERROR -   File "<doctest caldp.sysexit.exit_receiver[4]>", line 2, in <module>
     ERROR -     foo()
-    ERROR -   File "<doctest caldp.sysexit.exit_receiver[...]>", line ..., in foo
+    ERROR -   ERROR -   File "<doctest caldp.sysexit.exit_receiver[2]>", line 3, in foo
     ERROR -     bar()
-    ERROR -   File "<doctest caldp.sysexit.exit_receiver[...]>", line ..., in bar
+    ERROR -   ERROR -   File "<doctest caldp.sysexit.exit_receiver[3]>", line 3, in bar
     ERROR -     raise RuntimeError()
     ERROR - RuntimeError
     EXIT - GENERIC_ERROR[1]: An error with no specific CALDP handling occurred somewhere.
