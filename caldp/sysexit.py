@@ -283,9 +283,10 @@ def exit_receiver():
     ERROR - ----------------------------- Fatal Exception -----------------------------
     ERROR - Untrapped memory exception.
     ERROR - Traceback (most recent call last):
-    ERROR -   File ".../caldp/sysexit.py", line ..., in exit_receiver
+    ERROR -   File "/home/developer/caldp/sysexit.py", line 342, in exit_receiver
     ERROR -     yield  # go off and execute the block
-    ERROR -   File "<doctest caldp.sysexit.exit_receiver[...]>", line ..., in <module>
+    ERROR -     ^^^^^
+    ERROR -   File "<doctest caldp.sysexit.exit_receiver[5]>", line 2, in <module>
     ERROR -     raise MemoryError("CALDP used up all memory directly.")
     ERROR - MemoryError: CALDP used up all memory directly.
     EXIT - CALDP_MEMORY_ERROR[32]: CALDP generated a Python MemoryError during processing or preview creation.
@@ -299,9 +300,10 @@ def exit_receiver():
     ERROR - ----------------------------- Fatal Exception -----------------------------
     ERROR - Untrapped OSError cannot callocate memory
     ERROR - Traceback (most recent call last):
-    ERROR -   File ".../sysexit.py", line ..., in exit_receiver
+    ERROR -   File "/home/developer/caldp/sysexit.py", line 342, in exit_receiver
     ERROR -     yield  # go off and execute the block
-    ERROR -   File "<doctest ...sysexit.exit_receiver[...]>", line ..., in <module>
+    ERROR -     ^^^^^
+    ERROR -   File "<doctest caldp.sysexit.exit_receiver[6]>", line 2, in <module>
     ERROR -     raise OSError("Cannot allocate memory...")
     ERROR - OSError: Cannot allocate memory...
     EXIT - OS_MEMORY_ERROR[34]: Python raised OSError(Cannot allocate memory...),  possibly fork failure.
@@ -312,9 +314,10 @@ def exit_receiver():
     ERROR - ----------------------------- Fatal Exception -----------------------------
     ERROR - Untrapped OSError, generic.
     ERROR - Traceback (most recent call last):
-    ERROR -   File ".../sysexit.py", line ..., in exit_receiver
+    ERROR -   File "/home/developer/caldp/sysexit.py", line 342, in exit_receiver
     ERROR -     yield  # go off and execute the block
-    ERROR -   File "<doctest ...sysexit.exit_receiver[...]>", line ..., in <module>
+    ERROR -     ^^^^^
+    ERROR -   File "<doctest caldp.sysexit.exit_receiver[7]>", line 2, in <module>
     ERROR -     raise OSError("Some non-memory os error.")
     ERROR - OSError: Some non-memory os error.
     EXIT - GENERIC_ERROR[1]: An error with no specific CALDP handling occurred somewhere.
