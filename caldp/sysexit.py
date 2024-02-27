@@ -263,7 +263,7 @@ def exit_receiver():
     ERROR - ----------------------------- Fatal Exception -----------------------------
     ERROR - Untrapped non-memory exception.
     ERROR - Traceback (most recent call last):
-    ERROR -   File "/home/developer/caldp/sysexit.py", line 342, in exit_receiver
+    ERROR -   File "/home/developer/caldp/sysexit.py", line 345, in exit_receiver
     ERROR -     yield  # go off and execute the block
     ERROR -     ^^^^^
     ERROR -   File "<doctest caldp.sysexit.exit_receiver[4]>", line 2, in <module>
@@ -283,7 +283,7 @@ def exit_receiver():
     ERROR - ----------------------------- Fatal Exception -----------------------------
     ERROR - Untrapped memory exception.
     ERROR - Traceback (most recent call last):
-    ERROR -   File "/home/developer/caldp/sysexit.py", line 342, in exit_receiver
+    ERROR -   File "/home/developer/caldp/sysexit.py", line 345, in exit_receiver
     ERROR -     yield  # go off and execute the block
     ERROR -     ^^^^^
     ERROR -   File "<doctest caldp.sysexit.exit_receiver[5]>", line 2, in <module>
@@ -300,7 +300,7 @@ def exit_receiver():
     ERROR - ----------------------------- Fatal Exception -----------------------------
     ERROR - Untrapped OSError cannot callocate memory
     ERROR - Traceback (most recent call last):
-    ERROR -   File "/home/developer/caldp/sysexit.py", line 342, in exit_receiver
+    ERROR -   File "/home/developer/caldp/sysexit.py", line 345, in exit_receiver
     ERROR -     yield  # go off and execute the block
     ERROR -     ^^^^^
     ERROR -   File "<doctest caldp.sysexit.exit_receiver[6]>", line 2, in <module>
@@ -314,7 +314,7 @@ def exit_receiver():
     ERROR - ----------------------------- Fatal Exception -----------------------------
     ERROR - Untrapped OSError, generic.
     ERROR - Traceback (most recent call last):
-    ERROR -   File "/home/developer/caldp/sysexit.py", line 342, in exit_receiver
+    ERROR -   File "/home/developer/caldp/sysexit.py", line 345, in exit_receiver
     ERROR -     yield  # go off and execute the block
     ERROR -     ^^^^^
     ERROR -   File "<doctest caldp.sysexit.exit_receiver[7]>", line 2, in <module>
