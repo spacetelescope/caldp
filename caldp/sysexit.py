@@ -20,6 +20,7 @@ exit_on_exception() after the stack has been unwound and cleanup functions
 performed.  exit_receiver() then exits Python with the error code originally
 passed into exit_on_exception().
 """
+
 import sys
 import os
 import contextlib
