@@ -1,6 +1,7 @@
 """This module defines tests for the process.py module which handles obtaining data,
 assigning references, and basic calibrations.
 """
+
 import os
 import tempfile
 
@@ -12,14 +13,14 @@ from caldp import messages
 from caldp import file_ops
 from caldp import sysexit
 
-from moto import mock_s3
+from moto import mock_aws
 
 # ----------------------------------------------------------------------------------------
 
 # Set default CRDS Context
 CRDS_CONTEXT = os.environ.get("CRDS_CONTEXT")
 if CRDS_CONTEXT == "":
-    os.environ["CRDS_CONTEXT"] = "hst_1099.pmap"
+    os.environ["CRDS_CONTEXT"] = "hst_1140.pmap"
 
 # For applicable tests,  the product files associated with each ipppssoot below
 # must be present in the CWD after processing and be within 10% of the listed sizes.
@@ -571,10 +572,10 @@ def test_svm(dataset, input_uri, output_uri):
 
 
 # Conditionally mock S3,  defaulting to mock
-mock_s3 = mock_s3 if CALDP_S3_MOTO else lambda x: x
+mock_aws = mock_aws if CALDP_S3_MOTO else lambda x: x
 
 
-@mock_s3
+@mock_aws
 def haptst(dataset, input_uri, output_uri):
     """
     Test creating products for SVM and MVM datasets
@@ -626,7 +627,7 @@ def haptst(dataset, input_uri, output_uri):
         check_IO_clean_up(dataset)
 
 
-@mock_s3
+@mock_aws
 def coretst(temp_dir, ipppssoot, input_uri, output_uri):
     """Run every `ipppssoot` through process.process() downloading input files from
     astroquery and writing output files to local storage.   Verify that call to process

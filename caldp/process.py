@@ -9,6 +9,7 @@ output to an S3 bucket with IPPPSSOOT and batch name specific subdirectories.
 
 Notably,  previews are not currently computed here but rather in a seperate program run.
 """
+
 import sys
 import os
 import shutil
