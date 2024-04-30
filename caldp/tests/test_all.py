@@ -20,7 +20,7 @@ from moto import mock_aws
 # Set default CRDS Context
 CRDS_CONTEXT = os.environ.get("CRDS_CONTEXT")
 if CRDS_CONTEXT == "":
-    os.environ["CRDS_CONTEXT"] = "hst_1149.pmap"
+    os.environ["CRDS_CONTEXT"] = "hst_1155.pmap"
 
 # For applicable tests,  the product files associated with each ipppssoot below
 # must be present in the CWD after processing and be within 10% of the listed sizes.
