@@ -1,2 +1,4 @@
-- default base docker image set to CALDP_satandtools_CAL_rc4
-- default crds update to hst_1099.pmap
+- default base docker image set to CALDP_infrastructure_CAL_rc3
+- default crds update to hst_1155.pmap
+- black and mock_s3 fixes
+- fix chdir in make_color_preview

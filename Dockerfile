@@ -48,8 +48,12 @@ RUN yum remove -y kernel-devel   &&\
    which
 
 RUN mkdir -p /etc/ssl/certs && \
-    mkdir -p /etc/pki/ca-trust/extracted/pem
-COPY tls-ca-bundle.pem /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
+    mkdir -p /etc/pki/ca-trust/extracted/pem && \
+    mkdir -p /etc/pki/ca-trust/source/anchors
+#COPY tls-ca-bundle.pem /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
+COPY STSCICA.crt /etc/ssl/certs/STSCICA.crt
+COPY STSCICA.crt /etc/pki/ca-trust/source/anchors/STSCICA.crt
+RUN update-ca-trust
 RUN mv /etc/ssl/certs/ca-bundle.crt /etc/ssl/certs/ca-bundle.crt.org && \
     ln -s /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem  /etc/ssl/certs/ca-bundle.crt && \
    #  mv /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt.org && \
