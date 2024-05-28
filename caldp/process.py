@@ -374,6 +374,8 @@ class Manager:
             p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             for line in p.stdout:
                 log.echo(line.strip().decode("utf-8"))
+            # Wait for process to complete otherwise p.returncode is None and errors don't propagate
+            p.wait()
             if p.returncode in self.ignore_err_nums:
                 log.info("Ignoring error status =", p.returncode)
             elif p.returncode:
