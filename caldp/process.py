@@ -373,7 +373,7 @@ class Manager:
         with sysexit.exit_on_exception(exit_code, self.dataset, "Command:", repr(cmd)):
             p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             for line in p.stdout:
-                log.echo(line.strip().decode("utf-8"))
+                log.echo(line.strip().decode("utf-8", "backslashreplace"))
             if p.returncode in self.ignore_err_nums:
                 log.info("Ignoring error status =", p.returncode)
             elif p.returncode:
