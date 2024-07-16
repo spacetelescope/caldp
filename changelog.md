@@ -1,4 +1,3 @@
-- default base docker image set to CALDP_infrastructure_CAL_rc3
-- default crds update to hst_1155.pmap
-- black and mock_s3 fixes
-- fix chdir in make_color_preview
+- default base docker image set to CALDP_mostlyCOS_CAL_rc2
+- default crds update to hst_1168.pmap
+- update to spec-plots 1.36.0
