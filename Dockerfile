@@ -24,7 +24,8 @@ USER root
 
 # Removing kernel-headers seems to remove glibc and all packages which use them
 # Install s/w dev tools for fitscut build
-RUN yum remove -y kernel-devel   &&\
+RUN yum remove -y kernel-devel && \
+ yum install -y epel-release && \
  yum update  -y && \
  yum install -y \
    emacs-nox \
