@@ -25,6 +25,7 @@ USER root
 # Removing kernel-headers seems to remove glibc and all packages which use them
 # Install s/w dev tools for fitscut build
 RUN yum remove -y kernel-devel   &&\
+ yum install -y epel-release && \
  yum update  -y && \
  yum install -y \
    emacs-nox \
@@ -94,7 +95,7 @@ RUN mkdir -p /grp/crds/cache && chown -R developer.developer /grp/crds/cache
 
 # ------------------------------------------------
 USER developer
-# for any base docker image created later than and including stsci/hst-pipeline:CALDP_20220420_CAL_final, 
+# for any base docker image created later than and including stsci/hst-pipeline:CALDP_20220420_CAL_final,
 # the critical base environment is now buried in a conda environment named "linux"
 # this creates various issues with the docker run command
 # I played around for several hours with ways to bury the conda activation in a .bashrc or .bash_profile,
@@ -103,5 +104,5 @@ USER developer
 # and bake it straight into the image.
 # --bhayden, 5-24-22
 ENV PATH=/opt/conda/envs/linux/bin:/opt/conda/condabin:/opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-RUN cd caldp  && \ 
+RUN cd caldp  && \
     pip install .[dev,test]
