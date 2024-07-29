@@ -1,3 +1,3 @@
-- default base docker image set to CALDP_mostlyCOS_CAL_rc2
-- default crds update to hst_1168.pmap
+- default base docker image set to CALDP_mostlyCOS_CAL_rc4
+- default crds update to hst_1169.pmap
 - update to spec-plots 1.36.0
