@@ -371,7 +371,7 @@ HAP_RESULTS = dict(
 21020 inputs/hst_9774_01_acs_wfc_f435w_j8ph01_trl.txt
 2864520 inputs/hst_9774_01_acs_wfc_f555w_j8ph01g9_drc.jpg
 336142080 inputs/hst_9774_01_acs_wfc_f555w_j8ph01g7_drc.fits
-634886 inputs/hst_9774_01_acs_wfc_f435w_j8ph01_segment-cat.ecsv
+1928070 inputs/hst_9774_01_acs_wfc_f435w_j8ph01_segment-cat.ecsv
 7659 inputs/hst_9774_01_acs_wfc_f435w_j8ph01g3_trl.txt
 20150 inputs/hst_9774_01_acs_wfc_f814w_j8ph01_trl.txt
 168327360 inputs/j8ph01g5q_flc.fits
@@ -420,7 +420,7 @@ HAP_RESULTS = dict(
 336142080 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f814w_j8ph01g1_drc.fits
 21020 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f435w_j8ph01_trl.txt
 336142080 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f555w_j8ph01g7_drc.fits
-634886 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f435w_j8ph01_segment-cat.ecsv
+1928070 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f435w_j8ph01_segment-cat.ecsv
 7659 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f435w_j8ph01g3_trl.txt
 20150 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f814w_j8ph01_trl.txt
 214045 outputs/acs_8ph_01/hst_9774_01_acs_wfc_total_j8ph01_segment-cat.ecsv
