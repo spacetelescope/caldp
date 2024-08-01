@@ -1,3 +1,4 @@
-- default base docker image set to CALDP_mostlyCOS_CAL_rc4
+- default base docker image set to CALDP_mostlyCOS_CAL_rc5
 - default crds update to hst_1169.pmap
 - update to spec-plots 1.36.0
+- fix Dockerfile after switch to stream9 base image
