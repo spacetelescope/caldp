@@ -937,6 +937,11 @@ class SvmManager(Manager):
         Runs SVM workflow on dataset_input.out file.
     """
 
+    # In some cases, the inputs to SVM are not suitable for SVM generation.
+    # 55.  Only non-viable or SBC/HRC images in the multi-visit table - no processing done.
+    # 65.  No viable images in single/multi-visit table - no processing done.
+    ignore_err_nums = [55, 65]
+
     def __init__(self, dataset, input_uri, output_uri):
         super().__init__(dataset, input_uri, output_uri)
         self.ipppss = get_svm_obs_set(self.dataset)
@@ -1065,6 +1070,11 @@ class MvmManager(Manager):
     process(input_files)
         Runs MVM workflow on dataset_input.out file.
     """
+
+    # In some cases, the inputs to SVM are not suitable for SVM generation.
+    # 55.  Only non-viable or SBC/HRC images in the multi-visit table - no processing done.
+    # 65.  No viable images in single/multi-visit table - no processing done.
+    ignore_err_nums = [55, 65]
 
     def __init__(self, dataset, input_uri, output_uri):
         super().__init__(dataset, input_uri, output_uri)
