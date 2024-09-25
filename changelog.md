@@ -1,1 +1,2 @@
 - Added p.wait() in process.py to propagate errors correctly
+- set 55 and 65 as ignored error numbers in SVM and MVM Manager classes
