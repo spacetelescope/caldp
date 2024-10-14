@@ -45,7 +45,7 @@ RUN ./fix-certs
 RUN  yum remove -y kernel-devel && \
  yum install -y epel-release && \
  yum update  -y && \
- yum install -y \
+ yum install -y --allowerasing \
    emacs-nox \
    make \
    gcc \
