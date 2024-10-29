@@ -1,4 +1,2 @@
-- default base docker image set to CALDP_mostlyCOS_CAL_rc5
-- default crds update to hst_1169.pmap
-- update to spec-plots 1.36.0
-- fix Dockerfile after switch to stream9 base image
+- Added p.wait() in process.py to propagate errors correctly
+- set 55 and 65 as ignored error numbers in SVM and MVM Manager classes
