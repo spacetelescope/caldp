@@ -391,7 +391,7 @@ HAP_RESULTS = dict(
 5476 inputs/hst_9774_01_acs_wfc_f555w_j8ph01g7_drc_thumb.jpg
 7685 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f555w_j8ph01g7_trl.txt
 336142080 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f435w_j8ph01g3_drc.fits
-1930179 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f555w_j8ph01_segment-cat.ecsv
+14911739 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f555w_j8ph01_segment-cat.ecsv
 7690 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f435w_j8ph01g5_trl.txt
 21024 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f555w_j8ph01_trl.txt
 336150720 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f814w_j8ph01_drc.fits
