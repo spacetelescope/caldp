@@ -355,7 +355,7 @@ HAP_RESULTS = dict(
 4087 inputs/hst_9774_01_acs_wfc_f435w_j8ph01_drc_thumb.jpg
 4767 inputs/hst_9774_01_acs_wfc_total_j8ph01_drc_color_thumb.jpg
 9288 inputs/astrodrizzle.log
-146132 inputs/hst_9774_01_acs_wfc_f555w_j8ph01_point-cat.ecsv
+7067297 inputs/hst_9774_01_acs_wfc_f555w_j8ph01_point-cat.ecsv
 112320 inputs/hst_9774_01_acs_wfc_f555w_j8ph01g7_hlet.fits
 4749594 inputs/hst_9774_01_acs_wfc_f435w_j8ph01_drc.jpg
 7659 inputs/hst_9774_01_acs_wfc_f555w_j8ph01g9_trl.txt
@@ -412,7 +412,7 @@ HAP_RESULTS = dict(
 4505402 outputs/acs_8ph_01/hst_9774_01_acs_wfc_total_j8ph01_point-cat.ecsv
 336142080 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f555w_j8ph01g9_drc.fits
 9288 outputs/acs_8ph_01/astrodrizzle.log
-146132 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f555w_j8ph01_point-cat.ecsv
+7067297 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f555w_j8ph01_point-cat.ecsv
 112320 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f555w_j8ph01g7_hlet.fits
 7659 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f555w_j8ph01g9_trl.txt
 1922326 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f814w_j8ph01_segment-cat.ecsv
