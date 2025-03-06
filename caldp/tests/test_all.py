@@ -20,7 +20,7 @@ from moto import mock_aws
 # Set default CRDS Context
 CRDS_CONTEXT = os.environ.get("CRDS_CONTEXT")
 if CRDS_CONTEXT == "":
-    os.environ["CRDS_CONTEXT"] = "hst_1169.pmap"
+    os.environ["CRDS_CONTEXT"] = "hst_1205.pmap"
 
 # For applicable tests,  the product files associated with each ipppssoot below
 # must be present in the CWD after processing and be within 10% of the listed sizes.
@@ -322,7 +322,7 @@ HAP_RESULTS = dict(
 7685 inputs/hst_9774_01_acs_wfc_f555w_j8ph01g7_trl.txt
 336142080 inputs/hst_9774_01_acs_wfc_f435w_j8ph01g3_drc.fits
 5453 inputs/hst_9774_01_acs_wfc_f435w_j8ph01g5_drc_thumb.jpg
-1930179 inputs/hst_9774_01_acs_wfc_f555w_j8ph01_segment-cat.ecsv
+14911739 inputs/hst_9774_01_acs_wfc_f555w_j8ph01_segment-cat.ecsv
 32787 inputs/hst_9774_01_acs_wfc_j8p_metawcs_all_ref_cat.ecsv
 7690 inputs/hst_9774_01_acs_wfc_f435w_j8ph01g5_trl.txt
 21024 inputs/hst_9774_01_acs_wfc_f555w_j8ph01_trl.txt
@@ -340,7 +340,7 @@ HAP_RESULTS = dict(
 7658 inputs/hst_9774_01_acs_wfc_f814w_j8ph01g1_trl.txt
 168448320 inputs/hst_9774_01_acs_wfc_f435w_j8ph01g3_flc.fits
 336150720 inputs/hst_9774_01_acs_wfc_f555w_j8ph01_drc.fits
-145980 inputs/hst_9774_01_acs_wfc_f814w_j8ph01_point-cat.ecsv
+6890429 inputs/hst_9774_01_acs_wfc_f814w_j8ph01_point-cat.ecsv
 112320 inputs/hst_9774_01_acs_wfc_f555w_j8ph01g9_hlet.fits
 7689 inputs/hst_9774_01_acs_wfc_f814w_j8ph01g0_trl.txt
 168327360 inputs/j8ph01g1q_flc.fits
@@ -348,14 +348,14 @@ HAP_RESULTS = dict(
 336142080 inputs/hst_9774_01_acs_wfc_f435w_j8ph01g5_drc.fits
 112320 inputs/hst_9774_01_acs_wfc_f435w_j8ph01g5_hlet.fits
 4225764 inputs/hst_9774_01_acs_wfc_total_j8ph01_drc.jpg
-121418 inputs/hst_9774_01_acs_wfc_total_j8ph01_point-cat.ecsv
+4505402 inputs/hst_9774_01_acs_wfc_total_j8ph01_point-cat.ecsv
 443 inputs/acs_8ph_01_input.out
 336142080 inputs/hst_9774_01_acs_wfc_f555w_j8ph01g9_drc.fits
 3399924 inputs/hst_9774_01_acs_wfc_f814w_j8ph01g1_drc.jpg
 4087 inputs/hst_9774_01_acs_wfc_f435w_j8ph01_drc_thumb.jpg
 4767 inputs/hst_9774_01_acs_wfc_total_j8ph01_drc_color_thumb.jpg
 9288 inputs/astrodrizzle.log
-146132 inputs/hst_9774_01_acs_wfc_f555w_j8ph01_point-cat.ecsv
+7067297 inputs/hst_9774_01_acs_wfc_f555w_j8ph01_point-cat.ecsv
 112320 inputs/hst_9774_01_acs_wfc_f555w_j8ph01g7_hlet.fits
 4749594 inputs/hst_9774_01_acs_wfc_f435w_j8ph01_drc.jpg
 7659 inputs/hst_9774_01_acs_wfc_f555w_j8ph01g9_trl.txt
@@ -364,18 +364,18 @@ HAP_RESULTS = dict(
 168327360 inputs/j8ph01g9q_flc.fits
 3617827 inputs/hst_9774_01_acs_wfc_f435w_j8ph01g3_drc.jpg
 4481418 inputs/hst_9774_01_acs_wfc_f814w_j8ph01_drc.jpg
-1922326 inputs/hst_9774_01_acs_wfc_f814w_j8ph01_segment-cat.ecsv
+14865580 inputs/hst_9774_01_acs_wfc_f814w_j8ph01_segment-cat.ecsv
 4099 inputs/hst_9774_01_acs_wfc_f555w_j8ph01_drc_thumb.jpg
 336142080 inputs/hst_9774_01_acs_wfc_f814w_j8ph01g0_drc.fits
 336142080 inputs/hst_9774_01_acs_wfc_f814w_j8ph01g1_drc.fits
 21020 inputs/hst_9774_01_acs_wfc_f435w_j8ph01_trl.txt
 2864520 inputs/hst_9774_01_acs_wfc_f555w_j8ph01g9_drc.jpg
 336142080 inputs/hst_9774_01_acs_wfc_f555w_j8ph01g7_drc.fits
-1928070 inputs/hst_9774_01_acs_wfc_f435w_j8ph01_segment-cat.ecsv
+14898538 inputs/hst_9774_01_acs_wfc_f435w_j8ph01_segment-cat.ecsv
 7659 inputs/hst_9774_01_acs_wfc_f435w_j8ph01g3_trl.txt
 20150 inputs/hst_9774_01_acs_wfc_f814w_j8ph01_trl.txt
 168327360 inputs/j8ph01g5q_flc.fits
-614712 inputs/hst_9774_01_acs_wfc_total_j8ph01_segment-cat.ecsv
+4717948 inputs/hst_9774_01_acs_wfc_total_j8ph01_segment-cat.ecsv
 336150720 inputs/hst_9774_01_acs_wfc_f435w_j8ph01_drc.fits
 1780 inputs/acs_8ph_01_manifest.txt
 5945138 inputs/hst_9774_01_acs_wfc_total_j8ph01_drc_color.jpg
@@ -384,14 +384,14 @@ HAP_RESULTS = dict(
 5148 inputs/hst_9774_01_acs_wfc_f814w_j8ph01g1_drc_thumb.jpg
 168448320 inputs/hst_9774_01_acs_wfc_f555w_j8ph01g7_flc.fits
 168327360 inputs/j8ph01g3q_flc.fits
-146083 inputs/hst_9774_01_acs_wfc_f435w_j8ph01_point-cat.ecsv
+7046627 inputs/hst_9774_01_acs_wfc_f435w_j8ph01_point-cat.ecsv
 168448320 inputs/hst_9774_01_acs_wfc_f814w_j8ph01g1_flc.fits
 168448320 inputs/hst_9774_01_acs_wfc_f814w_j8ph01g0_flc.fits
 336182400 inputs/hst_9774_01_acs_wfc_total_j8ph01_drc.fits
 5476 inputs/hst_9774_01_acs_wfc_f555w_j8ph01g7_drc_thumb.jpg
 7685 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f555w_j8ph01g7_trl.txt
 336142080 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f435w_j8ph01g3_drc.fits
-1930179 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f555w_j8ph01_segment-cat.ecsv
+14911739 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f555w_j8ph01_segment-cat.ecsv
 7690 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f435w_j8ph01g5_trl.txt
 21024 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f555w_j8ph01_trl.txt
 336150720 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f814w_j8ph01_drc.fits
@@ -403,31 +403,31 @@ HAP_RESULTS = dict(
 7658 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f814w_j8ph01g1_trl.txt
 168448320 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f435w_j8ph01g3_flc.fits
 336150720 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f555w_j8ph01_drc.fits
-145980 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f814w_j8ph01_point-cat.ecsv
+6890429 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f814w_j8ph01_point-cat.ecsv
 112320 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f555w_j8ph01g9_hlet.fits
 7689 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f814w_j8ph01g0_trl.txt
 112320 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f814w_j8ph01g0_hlet.fits
 336142080 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f435w_j8ph01g5_drc.fits
 112320 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f435w_j8ph01g5_hlet.fits
-121418 outputs/acs_8ph_01/hst_9774_01_acs_wfc_total_j8ph01_point-cat.ecsv
+4505402 outputs/acs_8ph_01/hst_9774_01_acs_wfc_total_j8ph01_point-cat.ecsv
 336142080 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f555w_j8ph01g9_drc.fits
 9288 outputs/acs_8ph_01/astrodrizzle.log
-146132 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f555w_j8ph01_point-cat.ecsv
+7067297 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f555w_j8ph01_point-cat.ecsv
 112320 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f555w_j8ph01g7_hlet.fits
 7659 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f555w_j8ph01g9_trl.txt
-1922326 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f814w_j8ph01_segment-cat.ecsv
+14865580 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f814w_j8ph01_segment-cat.ecsv
 336142080 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f814w_j8ph01g0_drc.fits
 336142080 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f814w_j8ph01g1_drc.fits
 21020 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f435w_j8ph01_trl.txt
 336142080 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f555w_j8ph01g7_drc.fits
-1928070 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f435w_j8ph01_segment-cat.ecsv
+14898538 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f435w_j8ph01_segment-cat.ecsv
 7659 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f435w_j8ph01g3_trl.txt
 20150 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f814w_j8ph01_trl.txt
-614712 outputs/acs_8ph_01/hst_9774_01_acs_wfc_total_j8ph01_segment-cat.ecsv
+4717948 outputs/acs_8ph_01/hst_9774_01_acs_wfc_total_j8ph01_segment-cat.ecsv
 336150720 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f435w_j8ph01_drc.fits
 1780 outputs/acs_8ph_01/acs_8ph_01_manifest.txt
 168448320 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f555w_j8ph01g7_flc.fits
-146083 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f435w_j8ph01_point-cat.ecsv
+7046627 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f435w_j8ph01_point-cat.ecsv
 168448320 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f814w_j8ph01g1_flc.fits
 168448320 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f814w_j8ph01g0_flc.fits
 336182400 outputs/acs_8ph_01/hst_9774_01_acs_wfc_total_j8ph01_drc.fits
