@@ -20,7 +20,8 @@ ENV CURL_CA_BUNDLE=/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
 # ------------------------------------------------------------------------
 # SSL/TLS cert setup for STScI AWS firewalling
 
-USER root
+#USER root
+USER 0
 
 RUN mkdir -p /etc/ssl/certs && \
     mkdir -p /etc/pki/ca-trust/extracted/pem && \
