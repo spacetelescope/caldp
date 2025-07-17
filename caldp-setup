@@ -9,7 +9,7 @@ export PATH=`pwd`/scripts:${PATH}
 export CRDS_CONTEXT=hst_1247.pmap
 
 # Version of stsci/hst-pipeline base image to use
-export BASE_IMAGE_TAG=2025.3.1.6-alignmentmatches-py311
+export BASE_IMAGE_TAG=2025.3.1.7-alignmentmatches-py311
 
 # Docker repo
 #
