@@ -5,13 +5,13 @@ on: [push, pull_request, workflow_dispatch]
 jobs:
   bandit:
     name: run bandit
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     steps:
-      - name: set up python 3.8.11
+      - name: set up python 3.8.12
         uses: actions/setup-python@v2
         with:
-          python-version: 3.8.11
+          python-version: 3.8.12
 
       - name: install dependencies
         run: pip install bandit
@@ -24,13 +24,13 @@ jobs:
 
   black:
     name: run black
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     steps:
-      - name: set up python 3.8.11
+      - name: set up python 3.8.12
         uses: actions/setup-python@v2
         with:
-          python-version: 3.8.11
+          python-version: 3.8.12
 
       - name: install dependencies
         run: pip install black
@@ -43,13 +43,13 @@ jobs:
 
   flake8:
     name: run flake8
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     steps:
-      - name: set up python 3.8.11
+      - name: set up python 3.8.12
         uses: actions/setup-python@v2
         with:
-          python-version: 3.8.11
+          python-version: 3.8.12
 
       - name: install dependencies
         run: pip install flake8

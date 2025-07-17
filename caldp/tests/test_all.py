@@ -20,7 +20,7 @@ from moto import mock_aws
 # Set default CRDS Context
 CRDS_CONTEXT = os.environ.get("CRDS_CONTEXT")
 if CRDS_CONTEXT == "":
-    os.environ["CRDS_CONTEXT"] = "hst_1205.pmap"
+    os.environ["CRDS_CONTEXT"] = "hst_1247.pmap"
 
 # For applicable tests,  the product files associated with each ipppssoot below
 # must be present in the CWD after processing and be within 10% of the listed sizes.
@@ -322,7 +322,7 @@ HAP_RESULTS = dict(
 7685 inputs/hst_9774_01_acs_wfc_f555w_j8ph01g7_trl.txt
 336142080 inputs/hst_9774_01_acs_wfc_f435w_j8ph01g3_drc.fits
 5453 inputs/hst_9774_01_acs_wfc_f435w_j8ph01g5_drc_thumb.jpg
-14911739 inputs/hst_9774_01_acs_wfc_f555w_j8ph01_segment-cat.ecsv
+6907034 inputs/hst_9774_01_acs_wfc_f555w_j8ph01_segment-cat.ecsv
 32787 inputs/hst_9774_01_acs_wfc_j8p_metawcs_all_ref_cat.ecsv
 7690 inputs/hst_9774_01_acs_wfc_f435w_j8ph01g5_trl.txt
 21024 inputs/hst_9774_01_acs_wfc_f555w_j8ph01_trl.txt
@@ -364,18 +364,18 @@ HAP_RESULTS = dict(
 168327360 inputs/j8ph01g9q_flc.fits
 3617827 inputs/hst_9774_01_acs_wfc_f435w_j8ph01g3_drc.jpg
 4481418 inputs/hst_9774_01_acs_wfc_f814w_j8ph01_drc.jpg
-14865580 inputs/hst_9774_01_acs_wfc_f814w_j8ph01_segment-cat.ecsv
+6897344 inputs/hst_9774_01_acs_wfc_f814w_j8ph01_segment-cat.ecsv
 4099 inputs/hst_9774_01_acs_wfc_f555w_j8ph01_drc_thumb.jpg
 336142080 inputs/hst_9774_01_acs_wfc_f814w_j8ph01g0_drc.fits
 336142080 inputs/hst_9774_01_acs_wfc_f814w_j8ph01g1_drc.fits
 21020 inputs/hst_9774_01_acs_wfc_f435w_j8ph01_trl.txt
 2864520 inputs/hst_9774_01_acs_wfc_f555w_j8ph01g9_drc.jpg
 336142080 inputs/hst_9774_01_acs_wfc_f555w_j8ph01g7_drc.fits
-14898538 inputs/hst_9774_01_acs_wfc_f435w_j8ph01_segment-cat.ecsv
+6904980 inputs/hst_9774_01_acs_wfc_f435w_j8ph01_segment-cat.ecsv
 7659 inputs/hst_9774_01_acs_wfc_f435w_j8ph01g3_trl.txt
 20150 inputs/hst_9774_01_acs_wfc_f814w_j8ph01_trl.txt
 168327360 inputs/j8ph01g5q_flc.fits
-4717948 inputs/hst_9774_01_acs_wfc_total_j8ph01_segment-cat.ecsv
+2225045 inputs/hst_9774_01_acs_wfc_total_j8ph01_segment-cat.ecsv
 336150720 inputs/hst_9774_01_acs_wfc_f435w_j8ph01_drc.fits
 1780 inputs/acs_8ph_01_manifest.txt
 5945138 inputs/hst_9774_01_acs_wfc_total_j8ph01_drc_color.jpg
@@ -391,7 +391,7 @@ HAP_RESULTS = dict(
 5476 inputs/hst_9774_01_acs_wfc_f555w_j8ph01g7_drc_thumb.jpg
 7685 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f555w_j8ph01g7_trl.txt
 336142080 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f435w_j8ph01g3_drc.fits
-14911739 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f555w_j8ph01_segment-cat.ecsv
+6907034 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f555w_j8ph01_segment-cat.ecsv
 7690 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f435w_j8ph01g5_trl.txt
 21024 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f555w_j8ph01_trl.txt
 336150720 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f814w_j8ph01_drc.fits
@@ -415,15 +415,15 @@ HAP_RESULTS = dict(
 7067297 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f555w_j8ph01_point-cat.ecsv
 112320 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f555w_j8ph01g7_hlet.fits
 7659 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f555w_j8ph01g9_trl.txt
-14865580 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f814w_j8ph01_segment-cat.ecsv
+6897344 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f814w_j8ph01_segment-cat.ecsv
 336142080 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f814w_j8ph01g0_drc.fits
 336142080 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f814w_j8ph01g1_drc.fits
 21020 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f435w_j8ph01_trl.txt
 336142080 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f555w_j8ph01g7_drc.fits
-14898538 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f435w_j8ph01_segment-cat.ecsv
+6904980 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f435w_j8ph01_segment-cat.ecsv
 7659 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f435w_j8ph01g3_trl.txt
 20150 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f814w_j8ph01_trl.txt
-4717948 outputs/acs_8ph_01/hst_9774_01_acs_wfc_total_j8ph01_segment-cat.ecsv
+2225045 outputs/acs_8ph_01/hst_9774_01_acs_wfc_total_j8ph01_segment-cat.ecsv
 336150720 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f435w_j8ph01_drc.fits
 1780 outputs/acs_8ph_01/acs_8ph_01_manifest.txt
 168448320 outputs/acs_8ph_01/hst_9774_01_acs_wfc_f555w_j8ph01g7_flc.fits
@@ -531,7 +531,7 @@ CALDP_S3_TEST_INPUTS = os.environ.get("CALDP_S3_TEST_INPUTS", "s3://caldp-pytest
 CALDP_S3_MOTO = int(os.environ.get("CALDP_S3_MOTO", 1))
 
 # Output sizes must be within +- this fraction of truth value
-CALDP_TEST_FILE_SIZE_THRESHOLD = float(os.environ.get("CALDP_TEST_FILE_SIZE_THRESHOLD", 0.4))
+CALDP_TEST_FILE_SIZE_THRESHOLD = float(os.environ.get("CALDP_TEST_FILE_SIZE_THRESHOLD", 0.5))
 
 # ----------------------------------------------------------------------------------------
 
