@@ -14,6 +14,8 @@
 #  caldp-config-aws
 # defaulting to caldp-config-offsite
 
+pip install --upgrade git+https://github.com/spacetelescope/drizzlepac@3.11.0rc1
+
 export CALDP_CONFIG=${CALDP_CONFIG:-caldp-config-offsite}
 
 export CMD=${*:-/bin/bash}
