@@ -6,10 +6,10 @@ export PATH=`pwd`/scripts:${PATH}
 # Define the exact version of reference files you want to use.
 # Specify "hst-operational" if you want it defined automatically
 # by the CRDS server and/or cache.
-export CRDS_CONTEXT=hst_1312.pmap
+export CRDS_CONTEXT=hst_1323.pmap
 
 # Version of stsci/hst-pipeline base image to use
-export BASE_IMAGE_TAG=2026.2.1.3-arcticdrizzle-py312
+export BASE_IMAGE_TAG=2026.2.1.5-arcticdrizzle-py312
 
 # Docker repo
 #
