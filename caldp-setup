@@ -9,7 +9,7 @@ export PATH=`pwd`/scripts:${PATH}
 export CRDS_CONTEXT=hst_1323.pmap
 
 # Version of stsci/hst-pipeline base image to use
-export BASE_IMAGE_TAG=2026.2.1.5-arcticdrizzle-py312
+export BASE_IMAGE_TAG=2026.2.1.7-arcticdrizzle-py312
 
 # Docker repo
 #
