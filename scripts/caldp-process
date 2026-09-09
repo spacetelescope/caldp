@@ -63,6 +63,31 @@ ls -ld .
 echo ........................................ Ulimits ..............................................
 ulimit -a
 
+echo ........................................ Disk Metrics .........................................
+disk_metrics_pid=""
+
+cleanup_disk_metrics() {
+    if [[ -n "${disk_metrics_pid}" ]] && kill -0 "${disk_metrics_pid}" 2>/dev/null; then
+        echo "Cleaning up disk metrics logger with PID ${disk_metrics_pid}"
+        kill "${disk_metrics_pid}" 2>/dev/null || true
+        wait "${disk_metrics_pid}" 2>/dev/null || true
+    fi
+}
+
+start_disk_metrics() {
+    {
+        while true; do
+            df -BG . | tail -1 >> "disk_metrics.txt"
+            sleep 1
+        done
+    } &
+    disk_metrics_pid=$!
+    echo "Disk metrics logger started in background with PID ${disk_metrics_pid}"
+}
+
+trap cleanup_disk_metrics EXIT INT TERM
+start_disk_metrics
+
 output_location=`echo $output_path | cut -d':' -f1`
 
 if [ $output_path != "none" -a $output_location == 's3' ]; then
@@ -109,6 +134,9 @@ cat process_metrics.txt
 
 echo ........................................ preview metrics .............................................
 cat preview_metrics.txt
+
+echo ........................................ disk metrics ................................................
+tail disk_metrics.txt
 
 echo ........................... handling outputs for ${output_location} ..................................
 
