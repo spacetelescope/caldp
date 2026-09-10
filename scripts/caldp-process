@@ -75,6 +75,9 @@ cleanup_disk_metrics() {
 }
 
 start_disk_metrics() {
+    pwd
+    echo "Starting disk metrics logger..."
+    df -BG . | tail -1 >> "disk_metrics.txt"
     {
         while true; do
             df -BG . | tail -1 >> "disk_metrics.txt"
@@ -136,7 +139,10 @@ echo ........................................ preview metrics ..................
 cat preview_metrics.txt
 
 echo ........................................ disk metrics ................................................
-tail disk_metrics.txt
+pwd
+ls -l disk_metrics.txt
+wc -l disk_metrics.txt
+cat disk_metrics.txt
 
 echo ........................... handling outputs for ${output_location} ..................................
 
