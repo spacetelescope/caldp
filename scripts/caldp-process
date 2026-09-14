@@ -76,7 +76,7 @@ cleanup_disk_metrics() {
 
 start_disk_metrics() {
     echo "Starting disk metrics logger..."
-    df -BG . | tail -1 >> "disk_metrics.txt"
+    df -BG . | tail -1 > "disk_metrics.txt"
     {
         while true; do
             df -BG . | tail -1 >> "disk_metrics.txt"
