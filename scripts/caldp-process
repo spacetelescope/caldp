@@ -87,7 +87,9 @@ start_disk_metrics() {
     echo "Disk metrics logger started in background with PID ${disk_metrics_pid}"
 }
 
-trap cleanup_disk_metrics EXIT INT TERM
+trap cleanup_disk_metrics EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
 start_disk_metrics
 
 output_location=`echo $output_path | cut -d':' -f1`
