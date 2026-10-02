@@ -21,5 +21,3 @@ def pytest_configure(config):
 
         packagename = os.path.basename(os.path.dirname(__file__))
         TESTED_VERSIONS[packagename] = __version__
-
-
