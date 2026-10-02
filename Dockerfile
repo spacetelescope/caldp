@@ -8,8 +8,7 @@ FROM ${CAL_BASE_IMAGE}
 # Keyword added to products
 ENV CSYS_VER ${CAL_BASE_IMAGE}
 
-LABEL maintainer="dmd_octarine@stsci.edu" \
-      vendor="Space Telescope Science Institute"
+LABEL vendor="Space Telescope Science Institute"
 
 # Environment variables
 ENV MKL_THREADING_LAYER="GNU"
