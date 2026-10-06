@@ -864,14 +864,25 @@ class CosManager(InstrumentManager):
     stage2 = None
     ignore_err_nums = [5]  # Ignore calcos errors from RAWACQ
 
+    _environment = None
+
+    @classmethod
+    def get_environment(cls):
+        if not cls._environment:
+            ssm_client = boto3.client("ssm")
+            cls._environment = ssm_client.get_parameter("environment").get("Parameter", {}).get("Value", "ops")
+        return cls._environment
+
     def unassoc_files(self, files):
         """Returns only the first file returned by raw_files()."""
         return super().raw_files(files)[:1]  # return only first file
 
     def calibrate(self, files):
         """Set keyword RANDSEED=1 in each raw file and process normally."""
+        randseed = 1 if self.get_environment() in ("dev", "test") else -1
+
         for filename in self.raw_files(files):
-            fits.setval(filename, "RANDSEED", value=1)
+            fits.setval(filename, "RANDSEED", value=randseed)
         return super().calibrate(files)
 
 
