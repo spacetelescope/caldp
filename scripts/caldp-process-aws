@@ -8,5 +8,6 @@ output_path=$1
 ipppssoot=$2
 input_path="astroquery:"
 caldp_config=${4:-caldp-config-aws}
+deployment_environment=${5}
 
-caldp-process $ipppssoot  $input_path   $output_path   $caldp_config
+caldp-process $ipppssoot  $input_path   $output_path   $caldp_config $deployment_environment

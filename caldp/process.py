@@ -869,9 +869,13 @@ class CosManager(InstrumentManager):
         return super().raw_files(files)[:1]  # return only first file
 
     def calibrate(self, files):
-        """Set keyword RANDSEED=1 in each raw file and process normally."""
+        """Set keyword RANDSEED=1 for dev/test, -1 for ops in each raw file and process normally."""
+        deployment_environment = os.environ.get("DEPLOYMENT_ENVIRONMENT")
+        randseed = 1 if deployment_environment in ("dev", "test") else -1
+        log.info(f"Deployment environment: {deployment_environment}, RANDSEED set to: {randseed}")
+
         for filename in self.raw_files(files):
-            fits.setval(filename, "RANDSEED", value=1)
+            fits.setval(filename, "RANDSEED", value=randseed)
         return super().calibrate(files)
 
 
