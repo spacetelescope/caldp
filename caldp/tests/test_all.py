@@ -22,6 +22,10 @@ CRDS_CONTEXT = os.environ.get("CRDS_CONTEXT")
 if CRDS_CONTEXT == "":
     os.environ["CRDS_CONTEXT"] = "hst_1323.pmap"
 
+# boto3 requires a region in non-AWS/local test environments.
+os.environ.setdefault("AWS_DEFAULT_REGION", "us-east-1")
+os.environ.setdefault("AWS_REGION", "us-east-1")
+
 # For applicable tests,  the product files associated with each ipppssoot below
 # must be present in the CWD after processing and be within 10% of the listed sizes.
 RESULTS = dict(
@@ -568,6 +572,25 @@ def test_mvm(dataset, input_uri, output_uri):
 @pytest.mark.parametrize("dataset", ["acs_8ph_01"])
 def test_svm(dataset, input_uri, output_uri):
     haptst(dataset, input_uri, output_uri)
+
+
+def test_cos_get_environment_uses_default_region(monkeypatch):
+    captured = {}
+
+    class DummySSMClient:
+        def get_parameter(self, Name):
+            return {"Parameter": {"Value": "test"}}
+
+    def fake_client(service_name, *args, **kwargs):
+        captured["service_name"] = service_name
+        captured["region_name"] = kwargs.get("region_name")
+        assert service_name == "ssm"
+        return DummySSMClient()
+
+    monkeypatch.setattr(process.boto3, "client", fake_client)
+
+    assert process.CosManager.get_environment() == "test"
+    assert captured["region_name"] == "us-east-1"
 
 
 # Conditionally mock S3,  defaulting to mock
