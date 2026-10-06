@@ -870,7 +870,7 @@ class CosManager(InstrumentManager):
     def get_environment(cls):
         if not cls._environment:
             ssm_client = boto3.client("ssm")
-            cls._environment = ssm_client.get_parameter("environment").get("Parameter", {}).get("Value", "ops")
+            cls._environment = ssm_client.get_parameter(Name="environment").get("Parameter", {}).get("Value", "ops")
         return cls._environment
 
     def unassoc_files(self, files):
