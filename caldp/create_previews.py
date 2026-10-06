@@ -420,6 +420,7 @@ class HapPreviewManager(PreviewManager):
                 self.dataset,
                 "There are not enough FITS files in this set " "(requires at least 2) to create a color preview.",
             )
+            os.chdir(cwd)
             return
 
         # call fitscut to create color preview

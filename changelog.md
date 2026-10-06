@@ -1,2 +1,1 @@
-- default base docker image set to CALDP_satandtools_CAL_rc4
-- default crds update to hst_1099.pmap
+- update caldp version and pmap

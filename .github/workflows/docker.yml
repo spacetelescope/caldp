@@ -5,7 +5,7 @@ on: [push, pull_request, workflow_dispatch]
 jobs:
   docker:
     name: docker image build and test
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     strategy:
       matrix:
