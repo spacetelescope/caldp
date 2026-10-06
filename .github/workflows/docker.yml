@@ -33,4 +33,4 @@ jobs:
         run: |
           source caldp-setup
           export CALDP_DOCKER_RUN_PARS="--rm --user root:root"  # non-interactive terminal, enable write this dir with root
-          caldp-docker-run-pipeline j8cb010b0 astroquery: none caldp-config-offsite
+          caldp-docker-run-pipeline j8cb010b0 astroquery: none caldp-config-offsite -dev

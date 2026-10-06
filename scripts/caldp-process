@@ -10,6 +10,7 @@ dataset=$1
 input_path=${2:-"file:."}
 output_path=${3:-"file:."}
 caldp_config=${4:-"caldp-config-onsite"}
+deployment_environment=${5}
 
 # Configure TIME to point to Gnu's time program which can collect process metrics.
 if [ `uname` = "Darwin" -a -f /usr/local/bin/gtime ]; then  # brew install gnu-time
@@ -20,7 +21,7 @@ else
     TIME=eval
 fi
 
-echo "Starting caldp-process at (input) ${input_path} (output) ${output_path} for ${dataset} using config ${caldp_config}"
+echo "Starting caldp-process at (input) ${input_path} (output) ${output_path} (deployment_environment) ${deployment_environment} for ${dataset} using config ${caldp_config}"
 
 source ${caldp_config}
 
@@ -51,6 +52,9 @@ else
     export uref=${CRDS_PATH}/references/hst/wfcpc2/
     export uref_linux=$uref
 fi
+
+# Export the deployment environment
+export DEPLOYMENT_ENVIRONMENT=${deployment_environment}
 
 echo ........................................ Environment ..............................................
 echo "User is" `whoami`
