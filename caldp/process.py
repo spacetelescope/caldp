@@ -872,7 +872,7 @@ class CosManager(InstrumentManager):
         """In each raw file, set keyword RANDSEED based on USE_REPEATABLE_RANDSEED env var and process normally."""
         use_repeatable_randseed = os.environ.get("USE_REPEATABLE_RANDSEED")
         randseed = 1 if use_repeatable_randseed and use_repeatable_randseed.upper() == "TRUE" else -1
-        log.sinfo(f"USE_REPEATABLE_RANDSEED={use_repeatable_randseed!r}, RANDSEED set to: {randseed}")
+        log.info(f"USE_REPEATABLE_RANDSEED={use_repeatable_randseed!r}, RANDSEED set to: {randseed}")
         for filename in self.raw_files(files):
             fits.setval(filename, "RANDSEED", value=randseed)
         return super().calibrate(files)
