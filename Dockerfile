@@ -78,11 +78,6 @@ RUN mkdir /home/developer/caldp
 COPY . /home/developer/caldp/
 RUN chown -R developer.developer /home/developer
 
-# this is a temporary solution for an update to the crds_s3_get plugin
-# because python in the sdp environment is pinned to 3.6, crds is pinned to 10.1.0
-COPY ./scripts/crds_s3_get /home/developer/crds_s3_get
-RUN chmod +x /home/developer/crds_s3_get
-
 # CRDS cache mount point or container storage.
 RUN mkdir -p /grp/crds/cache && chown -R developer.developer /grp/crds/cache
 
