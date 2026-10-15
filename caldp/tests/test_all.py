@@ -1027,6 +1027,56 @@ def message_status_check(input_uri, output_uri, ipppssoot):
         assert msg.name == f"processed-{ipppssoot}.trigger"
 
 
+def test_reference_basename():
+    assert process.reference_basename("jref$q692007bj_idc.fits") == "q692007bj_idc.fits"
+    assert process.reference_basename("  iref$n4e12510j_idc.fits  ") == "n4e12510j_idc.fits"
+    assert process.reference_basename("N/A") is None
+    assert process.reference_basename("j9ie01idq_flt.fits") is None
+
+
+def test_cache_input_references_downloads_header_idctab(tmp_path, monkeypatch):
+    """SVM must fetch the IDCTAB named in the FLT header before runsinglehap."""
+    flt = tmp_path / "j9ie01idq_flt.fits"
+    hdr = process.fits.Header()
+    hdr["IDCTAB"] = "jref$q692007bj_idc.fits"
+    hdr["NPOLFILE"] = "N/A"
+    hdr["FILENAME"] = "j9ie01idq_flt.fits"
+    process.fits.PrimaryHDU(header=hdr).writeto(flt)
+
+    downloaded = {}
+
+    def fake_dump(context, baserefs):
+        downloaded["context"] = context
+        downloaded["baserefs"] = list(baserefs)
+
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("CRDS_CONTEXT", "hst_1356.pmap")
+    monkeypatch.delenv("CRDS_READONLY_CACHE", raising=False)
+    monkeypatch.setattr(process, "dump_references", fake_dump)
+
+    manager = process.SvmManager("acs_9ie_01", f"file:{tmp_path}", "none")
+    manager.cache_input_references()
+
+    assert downloaded == {
+        "context": "hst_1356.pmap",
+        "baserefs": ["q692007bj_idc.fits"],
+    }
+
+
+def test_cache_input_references_skips_readonly_cache(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("CRDS_READONLY_CACHE", "1")
+    called = {"n": 0}
+
+    def fake_dump(context, baserefs):
+        called["n"] += 1
+
+    monkeypatch.setattr(process, "dump_references", fake_dump)
+    manager = process.SvmManager("acs_9ie_01", f"file:{tmp_path}", "none")
+    manager.cache_input_references()
+    assert called["n"] == 0
+
+
 def check_sysexit_retry():
     def no_exc_func(arg1=True):
         pass

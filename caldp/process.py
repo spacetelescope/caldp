@@ -27,6 +27,7 @@ from astropy.io import fits
 from drizzlepac.haputils.astroquery_utils import retrieve_observation
 
 from crds.bestrefs import bestrefs
+from crds.client.api import dump_references
 
 from caldp import log
 from caldp import messages
@@ -163,6 +164,58 @@ def get_svm_obs_set(svm_dataset):
     inst = SVM_INSTR[parts[0]]
     ipppss = inst + parts[1] + parts[2]
     return ipppss
+
+
+# Distortion reference keywords opened by path in stwcs.updatewcs.
+# Grism exposures with DRIZCORR=OMIT call updatewcs, which does not download
+# a missing file. Instrument calibration fills the cache via assign_bestrefs;
+# SVM/MVM inputs are already-calibrated FLT/FLC files and skip that step.
+DISTORTION_REF_KEYWORDS = ("IDCTAB", "NPOLFILE", "D2IMFILE", "DGEOFILE", "OFFTAB", "DXYFILE")
+_REF_VALUE_RE = re.compile(
+    r"(?:[A-Za-z0-9_]+ref\$|crds://)([A-Za-z0-9_]+\.(?:fits\.gz|fits|r\d[hd]))",
+    re.IGNORECASE,
+)
+_NOT_A_REFERENCE = {"N/A", "NA", "NONE", "BLANK", "UNDEFINED", ""}
+
+
+def reference_basename(value):
+    """Return the CRDS basename stored in a FITS reference-keyword value.
+
+    Pipeline products record references as IRAF paths such as
+    ``jref$q692007bj_idc.fits``. ``N/A`` and bare science filenames are ignored.
+
+    >>> reference_basename("jref$q692007bj_idc.fits")
+    'q692007bj_idc.fits'
+    >>> reference_basename("N/A") is None
+    True
+    >>> reference_basename("j9ie01idq_flt.fits") is None
+    True
+    """
+    if value is None:
+        return None
+    text = str(value).strip()
+    if text.upper() in _NOT_A_REFERENCE:
+        return None
+    match = _REF_VALUE_RE.search(text)
+    if not match:
+        return None
+    return match.group(1)
+
+
+def distortion_reference_names(fits_files):
+    """Return sorted CRDS basenames for distortion references named in `fits_files`."""
+    names = set()
+    for path in fits_files:
+        with fits.open(path) as hdul:
+            for hdu in hdul:
+                header = hdu.header
+                for keyword in DISTORTION_REF_KEYWORDS:
+                    if keyword not in header:
+                        continue
+                    basename = reference_basename(header[keyword])
+                    if basename:
+                        names.add(basename)
+    return sorted(names)
 
 
 # -----------------------------------------------------------------------------
@@ -445,6 +498,43 @@ class Manager:
         Abstract class for method to process input files
         """
         pass
+
+    def cache_input_references(self):
+        """Download distortion reference files named in the input FLT/FLC headers.
+
+        A dynamic CRDS cache (AWS, ``CRDS_DOWNLOAD_MODE=plugin``) starts empty and
+        is filled only when CRDS is asked to fetch files. ``stwcs.updatewcs``
+        expands header values such as ``jref$q692007bj_idc.fits`` and requires
+        that path to already exist. SVM and MVM never call ``assign_bestrefs``,
+        so grism exposures with ``DRIZCORR=OMIT`` fail in ``foundIDCTAB``.
+
+        A readonly cache is assumed to already contain the files. Headers are
+        not rewritten; the files already named in the calibrated products are
+        the ones ``updatewcs`` will open.
+        """
+        if os.environ.get("CRDS_READONLY_CACHE", "0") == "1":
+            log.info("CRDS cache is readonly; not downloading header reference files.")
+            return
+
+        fits_files = sorted(set(glob.glob("*_flt.fits") + glob.glob("*_flc.fits")))
+        if not fits_files:
+            log.info("No FLT/FLC inputs found; skipping CRDS reference cache sync.")
+            return
+
+        baserefs = distortion_reference_names(fits_files)
+        if not baserefs:
+            log.info("No distortion reference files named in input headers.")
+            return
+
+        context = os.environ.get("CRDS_CONTEXT") or "hst"
+        with sysexit.exit_on_exception(
+            exit_codes.BESTREFS_ERROR,
+            "Failed downloading reference files named in input headers.",
+            baserefs,
+        ):
+            self.divider("Downloading header reference files into CRDS cache.", baserefs)
+            dump_references(context, baserefs)
+            self.divider("Header reference download complete.")
 
     def get_input_path(self):
         """Creates subfolder in current directory prior to downloading files.
@@ -969,6 +1059,7 @@ class SvmManager(Manager):
 
     def process_inputs(self, input_files):
         """Run runsinglehap on dataset_input.out"""
+        self.cache_input_references()
         input_file = input_files[0]  # get_input_files returns a list
         return self.run(exit_codes.SVM_ERROR, self.runsinglehap, input_file)
 
@@ -1099,7 +1190,8 @@ class MvmManager(Manager):
     # -----------------------------------------------------------------------------
 
     def process_inputs(self, input_files):
-        """Run runsinglehap on dataset_input.out"""
+        """Run runmultihap on dataset_input.out"""
+        self.cache_input_references()
         input_file = input_files[0]  # get_input_files returns a list
         return self.run(exit_codes.MVM_ERROR, self.runmultihap, input_file)
 
