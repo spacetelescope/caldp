@@ -1329,7 +1329,8 @@ def get_manager(dataset, input_uri, output_uri):
     return manager
 
 
-# -----------------------------------------------------------p
+# -----------------------------------------------------------------------------
+
 
 def process(dataset, input_uri, output_uri):
     """Given an `dataset`, `input_uri`, and `output_uri` where products should be stored,
@@ -1354,8 +1355,8 @@ def process(dataset, input_uri, output_uri):
     output_path = get_output_path(output_uri, dataset)
 
     msg = messages.Messages(output_uri, output_path, dataset)
-    # msg.init()
-    # msg.process_message()  # processing-ipst
+    msg.init()
+    msg.process_message()  # processing-ipst
 
     manager = get_manager(dataset, input_uri, output_uri)
     manager.main()
@@ -1385,7 +1386,8 @@ def download_inputs(dataset, input_uri, output_uri, make_env=False):
     return tar
 
 
-# -----------------------------------------------------------p
+# -----------------------------------------------------------------------------
+
 
 def process_datasets(datasets, input_uri=None, output_uri=None):
     """Given a list of `ipppssoots`, and `input_uri`,  and an `output_uri` defining
