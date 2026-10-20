@@ -206,17 +206,27 @@ def distortion_reference_names(fits_files):
     """Return sorted CRDS basenames for distortion references named in `fits_files`."""
     names = set()
     for path in fits_files:
-        with fits.open(path) as hdul:
-            for hdu in hdul:
-                if hdu.name != "PRIMARY":
-                    continue
-                header = hdu.header
-                for keyword in DISTORTION_REF_KEYWORDS:
-                    if keyword not in header:
-                        continue
-                    basename = reference_basename(header[keyword])
-                    if basename:
-                        names.add(basename)
+        try:
+            result = subprocess.run(
+                ["/usr/local/bin/gethead", path] + list(DISTORTION_REF_KEYWORDS),
+                capture_output=True,
+                text=True,
+                errors="backslashreplace",
+                check=True,
+            )
+        except subprocess.CalledProcessError as error:
+            if error.stdout:
+                log.error(error.stdout.rstrip())
+            if error.stderr:
+                log.error(error.stderr.rstrip())
+            raise
+        except OSError as error:
+            log.error(str(error))
+            raise
+        for item in result.stdout.split():
+            basename = reference_basename(item)
+            if basename:
+                names.add(basename)
     return sorted(names)
 
 
