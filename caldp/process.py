@@ -208,7 +208,7 @@ def distortion_reference_names(fits_files):
     for path in fits_files:
         try:
             result = subprocess.run(
-                ["/usr/local/bin/gethead", path] + list(DISTORTION_REF_KEYWORDS),
+                ["/usr/local/bin/gethead", path + ",0"] + list(DISTORTION_REF_KEYWORDS),
                 capture_output=True,
                 text=True,
                 errors="backslashreplace",
@@ -226,6 +226,7 @@ def distortion_reference_names(fits_files):
         for item in result.stdout.split():
             basename = reference_basename(item)
             if basename:
+                log.info(f"Adding distortion reference {basename} from {path}")
                 names.add(basename)
     return sorted(names)
 
