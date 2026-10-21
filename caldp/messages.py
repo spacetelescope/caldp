@@ -285,9 +285,10 @@ def main(input_uri, output_uri_prefix, dataset):
     logs.copy_logs()
     msg = Messages(output_uri, output_path, dataset)
     msg.preview_message()
-    msg.final_message()
     if output_uri.startswith("s3"):
         logs.upload_logs()
+    msg.final_message()
+    if output_uri.startswith("s3"):
         clean_up(dataset, IO="outputs")
         clean_up(dataset, IO="messages")
         if not input_uri.startswith("file"):
