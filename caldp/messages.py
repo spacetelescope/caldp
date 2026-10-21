@@ -136,13 +136,11 @@ class Messages:
                         prev_metrics = os.path.abspath(f)
 
             with open(proc_metrics) as proc:
-                proc_stat = proc.readlines()[-1].strip("\t").strip("\n")[-1]
+                proc_stat = int(proc.readlines()[-1].rsplit(":", 1)[-1].strip())
             with open(prev_metrics) as prev:
-                prev_stat = prev.readlines()[-1].strip("\t").strip("\n")[-1]
+                prev_stat = int(prev.readlines()[-1].rsplit(":", 1)[-1].strip())
 
-            result = int(proc_stat) + int(prev_stat)
-
-            if result > 0:
+            if proc_stat != 0 or prev_stat != 0:
                 self.name = f"error-{self.dataset}"
                 self.stat = -1
             else:

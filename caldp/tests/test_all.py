@@ -998,6 +998,27 @@ def check_messages(ipppssoot, output_uri, status):
         assert os.path.exists(proc_msg) or os.path.exists(err_msg)
 
 
+@pytest.mark.parametrize("process_status", [0, 1, 40, 100, 137])
+@pytest.mark.parametrize("preview_status", [0, 1, 40, 100, 137])
+def test_final_message_exit_status(tmp_path, monkeypatch, process_status, preview_status):
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "process_metrics.txt").write_text(f"\tExit status: {process_status}\n")
+    (tmp_path / "preview_metrics.txt").write_text(f"\tExit status: {preview_status}\n")
+
+    dataset = "wfc3_cau_0c"
+    msg = messages.Messages(f"file:{tmp_path}", str(tmp_path), dataset)
+    monkeypatch.setattr(msg, "sync_dataset", lambda: None)
+    msg.init().process_message()
+    msg.final_message()
+
+    success = process_status == 0 and preview_status == 0
+    expected_name = f"processed-{dataset}.trigger" if success else f"error-{dataset}"
+    assert msg.stat == (3 if success else -1)
+    assert msg.name == expected_name
+    assert (tmp_path / "messages" / expected_name).is_file()
+    assert (tmp_path / "messages" / f"processed-{dataset}.trigger").exists() == success
+
+
 def message_status_check(input_uri, output_uri, ipppssoot):
     output_path = messages.get_local_outpath(output_uri, ipppssoot)
     msg = messages.Messages(output_uri, output_path, ipppssoot)
