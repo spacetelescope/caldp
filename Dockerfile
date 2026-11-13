@@ -4,6 +4,7 @@
 # DATB's HST CAL code build for fundamental calibration s/w
 ARG CAL_BASE_IMAGE=stsci/hst-pipeline:stable
 FROM ${CAL_BASE_IMAGE}
+ARG CAL_BASE_IMAGE   # Need to re-declare the ARG so it is in-scope for the rest of the Dockerfile
 
 # Keyword added to products
 ENV CSYS_VER=${CAL_BASE_IMAGE}
