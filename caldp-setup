@@ -6,10 +6,10 @@ export PATH=`pwd`/scripts:${PATH}
 # Define the exact version of reference files you want to use.
 # Specify "hst-operational" if you want it defined automatically
 # by the CRDS server and/or cache.
-export CRDS_CONTEXT=hst_1323.pmap
+export CRDS_CONTEXT=hst_1356.pmap
 
-# Version of stsci/hst-pipeline base image to use
-export BASE_IMAGE_TAG=2026.2.1.7-arcticdrizzle-py312
+# Version of stsci/caldp-pipeline base image to use
+export BASE_IMAGE_TAG=2026.3.1.4-blazingsaddles-py314
 
 # Docker repo
 #
@@ -46,7 +46,7 @@ export CALDP_COVERAGE=70
 export CALDP_DOCKER_IMAGE=${CALDP_IMAGE_REPO}:${CALDP_IMAGE_TAG}
 
 # Fundamental calibration s/w image CALDP image inherits from
-export CAL_BASE_IMAGE=stsci/hst-pipeline:${BASE_IMAGE_TAG}
+export CAL_BASE_IMAGE=stsci/caldp:${BASE_IMAGE_TAG}
 
 # The root of the git clone,  don't change this,  scripts cd here
 export CALDP_CLONE=`pwd`

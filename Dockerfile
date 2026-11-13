@@ -6,7 +6,7 @@ ARG CAL_BASE_IMAGE=stsci/hst-pipeline:stable
 FROM ${CAL_BASE_IMAGE}
 
 # Keyword added to products
-ENV CSYS_VER ${CAL_BASE_IMAGE}
+ENV CSYS_VER=${CAL_BASE_IMAGE}
 
 LABEL vendor="Space Telescope Science Institute"
 
