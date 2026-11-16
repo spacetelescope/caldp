@@ -4,66 +4,58 @@
 # DATB's HST CAL code build for fundamental calibration s/w
 ARG CAL_BASE_IMAGE=stsci/hst-pipeline:stable
 FROM ${CAL_BASE_IMAGE}
+ARG CAL_BASE_IMAGE   # Need to re-declare the ARG so it is in-scope for the rest of the Dockerfile
 
 # Keyword added to products
-ENV CSYS_VER ${CAL_BASE_IMAGE}
+ENV CSYS_VER=${CAL_BASE_IMAGE}
 
 LABEL vendor="Space Telescope Science Institute"
 
 # Environment variables
 ENV MKL_THREADING_LAYER="GNU"
 
-ENV REQUESTS_CA_BUNDLE=/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
-ENV CURL_CA_BUNDLE=/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
+ENV REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt \
+    CURL_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt \
+    SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
 
 # ------------------------------------------------------------------------
 # SSL/TLS cert setup for STScI AWS firewalling
 
 USER root
 
-RUN mkdir -p /etc/ssl/certs && \
-    mkdir -p /etc/pki/ca-trust/extracted/pem && \
-    mkdir -p /etc/pki/ca-trust/source/anchors
-#COPY tls-ca-bundle.pem /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
-COPY STSCICA.crt /etc/ssl/certs/STSCICA.crt
-COPY STSCICA.crt /etc/pki/ca-trust/source/anchors/STSCICA.crt
-RUN update-ca-trust
-RUN mv /etc/ssl/certs/ca-bundle.crt /etc/ssl/certs/ca-bundle.crt.org && \
-    ln -s /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem  /etc/ssl/certs/ca-bundle.crt && \
-   #  mv /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt.org && \
-    ln -s /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem /etc/ssl/certs/ca-certificates.crt && \
-   #  ln -s /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem /usr/lib/ssl/cert.pem && \
-    mkdir -p /etc/pki/ca-trust/extracted/openssl
-
-# RUN npm config set cafile /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
-COPY scripts/fix-certs .
-RUN ./fix-certs
 
 # Removing kernel-headers seems to remove glibc and all packages which use them
 # Install s/w dev tools for fitscut build
-RUN  yum remove -y kernel-devel && \
- yum install -y epel-release && \
- yum update  -y && \
- yum install -y --allowerasing \
-   emacs-nox \
-   make \
-   gcc \
-   gcc-c++ \
-   gcc-gfortran \
-   python3 \
-   python3-devel \
-   htop \
-   wget \
-   git \
-   libpng-devel \
-   libjpeg-devel \
-   libcurl-devel \
-   tar \
-   patch \
-   curl \
-   rsync \
-   time \
-   which
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+      ca-certificates \
+      emacs-nox \
+      make \
+      gcc \
+      g++ \
+      gfortran \
+      python3 \
+      python3-dev \
+      htop \
+      wget \
+      git \
+      libpng-dev \
+      libjpeg-dev \
+      libcurl4-openssl-dev \
+      tar \
+      patch \
+      curl \
+      rsync \
+      time \
+    && rm -rf /var/lib/apt/lists/*
+
+
+RUN mkdir -p /usr/local/share/ca-certificates
+COPY STSCICA.crt /usr/local/share/ca-certificates/STSCICA.crt
+RUN update-ca-certificates
+
+COPY scripts/fix-certs .
+RUN ./fix-certs
 
 # Install fitscut
 COPY scripts/caldp-install-fitscut  .
@@ -77,11 +69,6 @@ WORKDIR /home/developer
 RUN mkdir /home/developer/caldp
 COPY . /home/developer/caldp/
 RUN chown -R developer.developer /home/developer
-
-# this is a temporary solution for an update to the crds_s3_get plugin
-# because python in the sdp environment is pinned to 3.6, crds is pinned to 10.1.0
-COPY ./scripts/crds_s3_get /home/developer/crds_s3_get
-RUN chmod +x /home/developer/crds_s3_get
 
 # CRDS cache mount point or container storage.
 RUN mkdir -p /grp/crds/cache && chown -R developer.developer /grp/crds/cache
