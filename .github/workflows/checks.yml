@@ -5,57 +5,57 @@ on: [push, pull_request, workflow_dispatch]
 jobs:
   bandit:
     name: run bandit
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-26.04
 
     steps:
-      - name: set up python 3.8.12
-        uses: actions/setup-python@v2
+      - name: set up python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
-          python-version: 3.8.12
+          python-version: 3.13.15
 
       - name: install dependencies
         run: pip install bandit
 
       - name: checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: run bandit security checks
         run: bandit -ll -r caldp
 
   black:
     name: run black
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-26.04
 
     steps:
-      - name: set up python 3.8.12
-        uses: actions/setup-python@v2
+      - name: set up python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
-          python-version: 3.8.12
+          python-version: 3.13.15
 
       - name: install dependencies
         run: pip install black
 
       - name: checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: run black style checks
         run: black --check caldp caldp/tests -l 120 -v
 
   flake8:
     name: run flake8
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-26.04
 
     steps:
-      - name: set up python 3.8.12
-        uses: actions/setup-python@v2
+      - name: set up python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
-          python-version: 3.8.12
+          python-version: 3.13.15
 
       - name: install dependencies
         run: pip install flake8
 
       - name: checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: run flake8 python lint checks
         run: flake8 --count --max-line-length=120 --exclude docs

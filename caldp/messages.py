@@ -30,7 +30,8 @@ class Logs:
     def findlogs(self, log_output):
         proc = list(glob.glob(f"{os.getcwd()}/process*.txt"))
         prev = list(glob.glob(f"{os.getcwd()}/preview*.txt"))
-        log_source = proc + prev
+        disk = list(glob.glob(f"{os.getcwd()}/disk*.txt"))
+        log_source = proc + prev + disk
         filenames = [os.path.basename(log) for log in log_source]
         log_dest = [log_output + "/" + name for name in filenames]
         return dict(zip(log_source, log_dest))
