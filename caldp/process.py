@@ -21,6 +21,7 @@ import tarfile
 # -----------------------------------------------------------------------------
 
 import boto3
+from botocore.exceptions import ClientError
 
 from astropy.io import fits
 
@@ -33,6 +34,7 @@ from caldp import log
 from caldp import messages
 from caldp import exit_codes
 from caldp import sysexit
+from caldp import utils
 
 # import caldp     (see track_versions)
 
@@ -1357,6 +1359,16 @@ def process(dataset, input_uri, output_uri):
     msg = messages.Messages(output_uri, output_path, dataset)
     msg.init()
     msg.process_message()  # processing-ipst
+
+    if utils.get_environment() == "dev":
+        key = f"inputs/causeerror-{dataset}"
+        try:
+            boto3.client("s3").head_object(Bucket="calcloud-processing-dev", Key=key)
+        except ClientError as exc:
+            if exc.response["Error"]["Code"] != "404":
+                raise
+        else:
+            raise RuntimeError(f"Simulated processing error: s3://calcloud-processing-dev/{key} exists")
 
     manager = get_manager(dataset, input_uri, output_uri)
     manager.main()

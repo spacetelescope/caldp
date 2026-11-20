@@ -77,7 +77,7 @@ class Messages:
     1: 'submit-dataset'
     2: 'processing-dataset'
     3: 'processed-dataset.trigger'
-    -1: 'error-dataset'
+    -1: 'caldperror-dataset'
     """
 
     def __init__(self, output_uri, output_path, dataset):
@@ -91,7 +91,7 @@ class Messages:
 
     def clear_messages(self):
         previous_files = [
-            f"error-{self.dataset}",
+            f"caldperror-{self.dataset}",
             f"processing-{self.dataset}",
             f"processed-{self.dataset}.trigger",
         ]
@@ -141,7 +141,7 @@ class Messages:
                 prev_stat = int(prev.readlines()[-1].rsplit(":", 1)[-1].strip())
 
             if proc_stat != 0 or prev_stat != 0:
-                self.name = f"error-{self.dataset}"
+                self.name = f"caldperror-{self.dataset}"
                 self.stat = -1
             else:
                 self.name = f"processed-{self.dataset}.trigger"
