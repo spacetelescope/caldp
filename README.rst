@@ -181,6 +181,12 @@ is set to your host computer's clone of the CALDP repo.
 
     caldp-sh <any program and parameters to run in docker...>
 
+In the dev Batch environment, a dataset's processing can be intentionally failed by
+creating the S3 object ``s3://calcloud-processing-dev/control/<dataset>/causeerror``.
+The environment is determined by the suffix of ``AWS_BATCH_JQ_NAME``. The job
+must have permission to check the object; S3 access errors fail the job rather
+than being treated as an absent marker.
+
 
 Native Runs
 -----------
@@ -356,7 +362,7 @@ A CALCLOUD Batch event handler is triggered upon CALDP job failure.  The event
 handler interprets the combination of CALDP exit code, Batch exit code, and
 Batch exit reason to determine the error type and react appropriately.
 Reactions include automatically rescuing jobs with memory errors, retrying
-Docker failures, recording error-ipppssoot messages, etc.
+Docker failures, recording caldperror-ipppssoot messages, etc.
 
 Normalizing Error Codes
 =======================

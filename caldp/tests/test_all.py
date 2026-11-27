@@ -4,8 +4,10 @@ assigning references, and basic calibrations.
 
 import os
 import tempfile
+from unittest.mock import Mock
 
 import pytest
+from botocore.exceptions import ClientError
 
 from caldp import process
 from caldp import create_previews
@@ -994,7 +996,7 @@ def check_messages(ipppssoot, output_uri, status):
     else:
         working_dir = os.getcwd()
         proc_msg = os.path.join(working_dir, "messages", f"{status}-{ipppssoot}{suffix}")
-        err_msg = os.path.join(working_dir, "messages", f"error-{ipppssoot}")
+        err_msg = os.path.join(working_dir, "messages", f"caldperror-{ipppssoot}")
         assert os.path.exists(proc_msg) or os.path.exists(err_msg)
 
 
@@ -1012,7 +1014,7 @@ def test_final_message_exit_status(tmp_path, monkeypatch, process_status, previe
     msg.final_message()
 
     success = process_status == 0 and preview_status == 0
-    expected_name = f"processed-{dataset}.trigger" if success else f"error-{dataset}"
+    expected_name = f"processed-{dataset}.trigger" if success else f"caldperror-{dataset}"
     assert msg.stat == (3 if success else -1)
     assert msg.name == expected_name
     assert (tmp_path / "messages" / expected_name).is_file()
@@ -1043,7 +1045,7 @@ def message_status_check(input_uri, output_uri, ipppssoot):
 
     msg.final_message()
     if msg.stat == -1:
-        assert msg.name == f"error-{ipppssoot}"
+        assert msg.name == f"caldperror-{ipppssoot}"
     elif msg.stat == 3:
         assert msg.name == f"processed-{ipppssoot}.trigger"
 
@@ -1111,3 +1113,56 @@ def check_sysexit_retry():
     retry_no_exc()
     with pytest.raises(NotImplementedError):
         retry_exc()
+
+
+@pytest.fixture
+def forced_error_process(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    s3 = Mock()
+    client = Mock(return_value=s3)
+    manager = Mock()
+    monkeypatch.setattr(process.boto3, "client", client)
+    monkeypatch.setattr(process, "get_manager", Mock(return_value=manager))
+    return client, s3, manager
+
+
+def test_forced_error_marker_stops_processing(monkeypatch, forced_error_process):
+    monkeypatch.setenv("AWS_BATCH_JQ_NAME", "calcloud-hst-queue-02g-dev")
+    client, s3, manager = forced_error_process
+
+    with pytest.raises(RuntimeError, match="control/j8cb010b0/causeerror"):
+        process.process("j8cb010b0", "file:inputs", "file:outputs")
+
+    client.assert_called_once_with("s3")
+    s3.head_object.assert_called_once_with(Bucket="calcloud-processing-dev", Key="control/j8cb010b0/causeerror")
+    manager.main.assert_not_called()
+    assert process.get_manager.call_count == 0
+
+
+@pytest.mark.parametrize("queue", ["calcloud-hst-queue-02g-test", "calcloud-hst-queue-02g-ops", None])
+def test_forced_error_marker_only_checked_in_dev(monkeypatch, forced_error_process, queue):
+    if queue is None:
+        monkeypatch.delenv("AWS_BATCH_JQ_NAME", raising=False)
+    else:
+        monkeypatch.setenv("AWS_BATCH_JQ_NAME", queue)
+    client, _, manager = forced_error_process
+
+    process.process("j8cb010b0", "file:inputs", "file:outputs")
+
+    client.assert_not_called()
+    manager.main.assert_called_once_with()
+
+
+@pytest.mark.parametrize("error_code", ["404", "403"])
+def test_forced_error_marker_s3_errors(monkeypatch, forced_error_process, error_code):
+    monkeypatch.setenv("AWS_BATCH_JQ_NAME", "calcloud-hst-queue-02g-dev")
+    _, s3, manager = forced_error_process
+    s3.head_object.side_effect = ClientError({"Error": {"Code": error_code, "Message": "S3 error"}}, "HeadObject")
+
+    if error_code == "404":
+        process.process("j8cb010b0", "file:inputs", "file:outputs")
+        manager.main.assert_called_once_with()
+    else:
+        with pytest.raises(ClientError, match="403"):
+            process.process("j8cb010b0", "file:inputs", "file:outputs")
+        manager.main.assert_not_called()
